@@ -41,6 +41,22 @@ dependencies:
     sdk: flutter
   # 为简单数据包装特定于平台的持久存储（持久化简单key-value数据）
   shared_preferences: ^2.1.0
+  # 用于从设备存储中查询音频/歌曲信息[标题、艺术家、专辑等]。
+  on_audio_query: ^2.7.0
+  # 音乐播放组件
+  just_audio: ^0.9.32
+  # 配合上一个实现后台播放(其他高级音频背景播放，使用audio_service)
+  just_audio_background: ^0.0.1-beta.9
+  # 同上配合使用，此插件会告知操作系统您的音频应用程序的性质（例如游戏、媒体播放器、助手等）以及您的应用程序将如何处理和启动音频中断（例如电话中断）
+  audio_session: ^0.1.13
+  # RxDart 扩展了 Dart Streams和 StreamControllers的功能 。
+  rxdart: ^0.27.7
+  # 【测试对比用】另一个音频播放组件
+  assets_audio_player: ^3.0.6
+  # 【测试对比用一个完整的、随时可用的、用于 Flutter 的 Neumorphic ui 套件(配合上一个实现音频播放界面)
+  flutter_neumorphic: ^3.2.0
+  # GetIt是一个简单的直接服务定位器，允许将接口与具体实现分离，并从应用程序的任何地方访问具体实现(一个单例的工具箱)。
+  get_it: ^7.2.0
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +83,9 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/
+    - assets/audio/nature.mp3
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

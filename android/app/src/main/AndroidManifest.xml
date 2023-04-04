@@ -1,11 +1,29 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.freader_music_player">
+
+    <!-- 不加 xmlns:tools="http://schemas.android.com/tools"，下面添加just_audio_background需要的 service和receiver后，编译会报错-->
+
+    <!-- Android 12 or below  -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <!-- Android 13 or greater  -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+
+    <!-- 锁屏也保持能用（例如锁屏后还能继续放歌） -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <!-- 启动前台服务 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+
    <application
         android:label="freader_music_player"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
-            android:name=".MainActivity"
+            android:name="com.ryanheise.audioservice.AudioServiceActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
@@ -16,6 +34,9 @@
                  the Android process has started. This theme is visible to the user
                  while the Flutter UI initializes. After that, this theme continues
                  to determine the Window background behind the Flutter UI. -->
+
+            <!-- android:name=".MainActivity" 被替换成上面那个，因为just_audio_background: ^0.0.1-beta.9插件 -->
+
             <meta-data
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
@@ -25,6 +46,24 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <!-- 以下两个也是just_audio_background: ^0.0.1-beta.9 、audio_service插件需要 -->
+        <!-- ADD THIS "SERVICE" element -->
+        <service android:name="com.ryanheise.audioservice.AudioService"
+                        android:foregroundServiceType="mediaPlayback"
+                        android:exported="true" tools:ignore="Instantiatable">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+        <!-- ADD THIS "RECEIVER" element -->
+        <receiver android:name="com.ryanheise.audioservice.MediaButtonReceiver"
+                        android:exported="true" tools:ignore="Instantiatable">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver> 
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

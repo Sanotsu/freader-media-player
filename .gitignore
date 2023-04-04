@@ -45,3 +45,7 @@ app.*.map.json
 
 # 暂时不关注ios的构建
 ios
+**/_demos
+**/_tests
+
+**/assets/audio

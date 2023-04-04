@@ -24,7 +24,7 @@ class FreaderApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (_, widget) {
         return MaterialApp(
-          title: 'freader',
+          title: 'freader_music_player',
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
@@ -38,7 +38,7 @@ class FreaderApp extends StatelessWidget {
           theme: ThemeData(
             primarySwatch: Colors.blue,
           ),
-          home: const MyHomePage(title: 'freader_music_player'),
+          home: const MyHomePage(title: 'freader_music_player_home'),
         );
       },
     );

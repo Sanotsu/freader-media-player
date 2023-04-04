@@ -34,9 +34,11 @@ A simple local music player
 |----------layout---------|------views------|------widget------
 app
     home                                       DefaultTabController->Scaffold
-        local_music                                     ListView
-                            pexels_image_page              Scaffold
-                            image_page_demo                Scaffold
+        local_music(_index)                                     ListView
+                            playlist              JustAudioMusicPlayer
+                            all                   Scaffold
+                            artist                Scaffold
+                            album                 Scaffold
         online_music                                      ListView
                             readhub_page                   Scaffold
                             news_page_demo                 Scaffold
@@ -48,16 +50,16 @@ app
 - 首页即本地音乐界面：
   - 最下方是 3 个 BottomAppBar 的图标：本地、云端、其他（打开默认就是“本地”）
   - 其上是当前播放音乐的简约状态，能点击按钮切换播放/暂定，点击歌名进入播放主页面
-  - 在上是“功能分类”，暂时定 4 个（后三个只是单纯显示，默认扫描出的全部，为了方便，不自定义扫描文件夹）：
+  - 在上是“功能分类”，暂时定 4 个（后三个只是单纯显示，默认扫描出的全部 on audio query 依赖。为了方便，不自定义扫描文件夹）：
     - 播放列表/歌单（可新增、删除、修改，其中的歌曲需要在全部音乐列表中添加，或者在指定播放列表详情中移除）
       - 长按播放列表可“删除”、“全选”、“复制”等功能（先只实现删除）
-    - 艺术家、
-    - 专辑、
+    - 艺术家
+    - 专辑
     - 全部
       - 后三者进入音乐列表后，长按指定音乐操作多种功能“重命名”、“删除”、“添加到歌单”、“查看信息”等
         - “添加到歌单”则可以“新增歌单”
       - “音乐列表”页面(或者说显示组件)可以复用，只不过根据选择“播放列表”、“艺术家”等显示对应歌曲列表而已
-    - 这个“功能分类”可以使用 tab 形式直接当前页面区域显示内容，也可以 card 标题再点一层进入内部显示。
+    - 这个“功能分类”可以使用 tab 形式直接当前页面区域显示内容（当前采用），也可以 card 标题再点一层进入内部显示。
   - 在上是“音乐搜索”，暂时模糊搜索名称。可考虑在搜索框右边添加“按 xx 排序”等弹窗选择的小功能
     - 这已经在 appbar 的 actions 位置了，导航栏里面了。
 - “云端”、“其他”页面暂时先不考虑细节
@@ -76,3 +78,44 @@ app
 - main 仅当做启动入口，运行 app
   - 在 app 中根据登录状态进入 home-page(也就是默认的“本地”) 或者 login-page(先假装会有，默认都 home-page)
   - home-page 中，拆分`drawer`、`appBar`、`bottomNavigationBar`等组件单独文件
+- 底部导航栏对应的三个文件夹暂命名为 local_music、online_music、other_index
+  - local_music 对应的 index，显示 4 个 tab 页面：playlist、all、artist、album
+    - index 最下面是 mini 播放状态条 mini_music_player_bar，只有歌名和播放暂停按钮
+      - 点击歌名进入播放界面 just_audio_music_player
+    - 4 个 tab 基本就是 builder 了一个 list 的样子，显示所有的播放列表、艺术家之类的
+- 查询本地音乐的组件 on audio query 和音频播放组件 just audio 需要全局单例，所有抽取到`/services`文件夹
+  - 并使用`get_it`库在 main 中延迟注册全局单例
+
+---
+
+依赖（like 数量为 2023-04-03 统计）：
+
+- on_audio_query: ^2.7.0 获取本地音乐信息
+- 几个音乐播放器插件
+
+  ```
+  just_audio: ^0.9.32           2651 likes  【实际使用】
+    just_audio_background: ^0.0.1-beta.9    搭配上者实现背景播放（在AndroidManifest.xml配置蛮多的4处）
+  // assets_audio_player: ^3.0.6   942 likes
+  // audioplayers: ^3.0.1          2076 likes
+  ```
+
+- get_it: ^7.2.0 全局单例的工具箱
+
+---
+
+其他说明：
+
+- 在进入“本地音乐”主页时，不管是切换在“播放列表”、“全部”、“专辑”等哪一个 tab，下方都显示 mini 当前播放状态条
+  - 该当前播放的音乐、以及播放列表的名称，可以存到数据库或者缓存，每次进入“本地音乐”时重新获取
+  - 这也意味着，player 要在最上层就初始化，且全局单一实例。
+- 同理，查询音频的 onAudioQuery 也应该全局单一。
+  - 以上两者，抽出来单独的 service，并使用 get_it 单例化
+
+注意，“全部”、“专辑”、“艺术家”、“歌单”等，使用 on audio query 创建和查询即可，**统一称为“播放列表”**，但在构建播放列表时，
+使用的音频文件则不是他们的各自格式，需要在对应。
+
+### 完成进度
+
+- 2023-04-04 基本完成全部音乐页面、并显示 mini 状态 bar、播放页面
+  - 注意，当前播放列表和音频没有传入 db，重新打开页面无法显示上次内容。
