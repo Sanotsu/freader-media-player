@@ -19,11 +19,39 @@ class MyAudioQuery {
         ignoreCase: true,
       );
 
+  // 从哪里（例如歌单、专辑、艺术家枚举值等）查询歌曲，需要参看原方法的属性
+  Future<List<SongModel>> queryAudiosFrom(
+    AudiosFromType type,
+    Object where, {
+    SongSortType? sortType,
+    OrderType? orderType,
+    bool? ignoreCase,
+  }) =>
+      _query.queryAudiosFrom(
+        type,
+        where,
+        sortType: sortType,
+        orderType: orderType,
+        ignoreCase: ignoreCase,
+      );
+
   // 查询歌单
   Future<List<PlaylistModel>> queryPlaylists() => _query.queryPlaylists();
 
   // 创建歌单
   Future<bool> createPlaylist(String name) => _query.createPlaylist(name);
+
+  // 删除歌单
+  Future<bool> removePlaylist(int playlistId) =>
+      _query.removePlaylist(playlistId);
+
+  // 将音频添加到歌单中
+  Future<bool> addToPlaylist(int playlistId, int audioId) =>
+      _query.addToPlaylist(playlistId, audioId);
+
+  // 将音频从歌单中删除
+  Future<bool> removeFromPlaylist(int playlistId, int audioId) =>
+      _query.removeFromPlaylist(playlistId, audioId);
 
   // 设置日志配置
   void setLogConfig() {

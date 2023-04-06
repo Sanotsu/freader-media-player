@@ -1,9 +1,13 @@
 // ignore_for_file: avoid_print
 
+import 'package:freader_music_player/services/my_shared_preferences.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:rxdart/rxdart.dart';
+
+import 'my_audio_query.dart';
+import 'service_locator.dart';
 
 /// 单例的audio player，以及他的一些方法
 
@@ -15,6 +19,12 @@ class MyAudioHandler {
   // 当前播放列表中播放的第几首歌
   var _initIndex = 0;
 
+  // 获取查询音乐组件实例
+  final _audioQuery = getIt<MyAudioQuery>();
+
+  // 统一简单存储操作的工具类实例
+  final _simpleShared = getIt<MySharedPreferences>();
+
   // 构造函数
   MyAudioHandler() {
     _loadInitCurrentPlaylist();
@@ -25,19 +35,64 @@ class MyAudioHandler {
   // 其他情况改变了当前列表，则额外处理
   Future<void> _getInitPlaylistAndIndex() async {
     // todo
+    // 获取权限
+    await _audioQuery.checkAndRequestPermissions(retry: true);
 
-    _initIndex = 1;
+    print("这是在_getInitPlaylistAndIndex");
+    // // 获取当前的播放列表数据
+
+    // 这个list有依次3个值：当前列表类型、当前音频在列表中的索引、当前歌单编号
+    var tempList = await _simpleShared.getCurrentAudioInfo();
+
+    print("$tempList,,,,,,${tempList[0]}");
+
+    switch (tempList[0]) {
+      case "all":
+        var songs = await _audioQuery.querySongs();
+        await buildPlaylist(songs, songs[tempList[1]]);
+        break;
+      case "playlist":
+        // 当前歌单编号
+        var songs = await _audioQuery.queryAudiosFrom(
+          AudiosFromType.PLAYLIST,
+          tempList[2],
+        );
+        await buildPlaylist(songs, songs[tempList[1]]);
+        break;
+      case "artist":
+        // statements
+        break;
+      case "album":
+        // statements
+        break;
+
+      default:
+      // default statements
+    }
   }
 
-  // 设置初始化播放列表源
+  // 设置初始化播放列表源（这在app启动时就要加载完成）
   Future<void> _loadInitCurrentPlaylist() async {
     try {
-      // 等待获取到列表和索引之后，再绑定音源
+      // 等待获取到持久化中的播放列表和索引之后，再绑定音源
       await _getInitPlaylistAndIndex();
       await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
+
+      print(
+          "_player.sequenceStateStream.length${_player.sequenceStateStream.length}");
     } catch (e) {
       print("_loadInitCurrentPlaylist Error: $e");
     }
+  }
+
+  /// ------------ 上面是内部私有方法
+
+  // 在播放过程中侦听错误。
+  void _notifyAudioHandlerAboutPlaybackEvents() {
+    _player.playbackEventStream.listen((event) {},
+        onError: (Object e, StackTrace stackTrace) {
+      print('A stream error occurred: $e');
+    });
   }
 
   // 构建当前播放列表和音频（一般是在 播放列表、专辑、艺术家、全部 等主页点击指定音乐时，需要替换到现有的播放列表和音频）
@@ -76,24 +131,23 @@ class MyAudioHandler {
 
     // 构建新的播放列表就直接替换，在原列表上新增或删除在使用add、remove等方法修改
     _currentPlaylist = ConcatenatingAudioSource(children: tempChildren);
+
+    print("****************");
+    print(_currentPlaylist);
+    print(_initIndex);
   }
 
   // 设置初始化播放列表源
   Future<void> refreshCurrentPlaylist() async {
+    print("refreshCurrentPlaylist ================");
     try {
       // 更新，重新绑定音源
       await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
+
+      print(_player.sequenceStateStream);
     } catch (e) {
       print("refreshCurrentPlaylist Error: $e");
     }
-  }
-
-  // 在播放过程中侦听错误。
-  void _notifyAudioHandlerAboutPlaybackEvents() {
-    _player.playbackEventStream.listen((event) {},
-        onError: (Object e, StackTrace stackTrace) {
-      print('A stream error occurred: $e');
-    });
   }
 
   // 继续播放

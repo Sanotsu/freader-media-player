@@ -10,7 +10,7 @@ import 'package:on_audio_query/on_audio_query.dart';
 
 import '../../../services/my_audio_handler.dart';
 import '../../../services/service_locator.dart';
-import 'common.dart';
+import '../widgets/common.dart';
 
 /// 音乐播放器主界面
 /// 本地音乐或者之后在线音乐，不管从哪里点击音乐，都进入到此音乐播放详情页面
@@ -56,6 +56,8 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    print("++++++++++++++但钱app的生命周期状态$state");
+
     if (state == AppLifecycleState.paused) {
       // 在不使用时释放播放器的资源。使用 "stop"，则可以如果应用程序稍后恢复，它仍会记得从哪个位置恢复。
       _audioHandler.stop();
@@ -83,13 +85,14 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
                   builder: (context, snapshot) {
                     final state = snapshot.data;
 
-                    print("当前正在播放的音乐》");
-                    print(state.toString());
-
                     if (state?.sequence.isEmpty ?? true) {
                       return const SizedBox();
                     }
                     final metadata = state!.currentSource!.tag as MediaItem;
+
+                    print(" player detail 当前正在播放的音乐 索引》");
+                    print(state.currentIndex);
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [

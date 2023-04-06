@@ -7,17 +7,17 @@ import 'package:just_audio_background/just_audio_background.dart';
 
 import '../../../services/my_audio_handler.dart';
 import '../../../services/service_locator.dart';
-import 'just_audio_music_player.dart';
+import '../nested_pages/just_audio_music_player_detail.dart';
 
 ///  当前音乐播放条，只显示名称和暂停/开始按钮
-class MiniMusicPlayerBar extends StatefulWidget {
-  const MiniMusicPlayerBar({super.key});
+class MusicPlayerMiniBar extends StatefulWidget {
+  const MusicPlayerMiniBar({super.key});
 
   @override
-  State<MiniMusicPlayerBar> createState() => _MiniMusicPlayerBarState();
+  State<MusicPlayerMiniBar> createState() => _MusicPlayerMiniBarState();
 }
 
-class _MiniMusicPlayerBarState extends State<MiniMusicPlayerBar> {
+class _MusicPlayerMiniBarState extends State<MusicPlayerMiniBar> {
   final _audioHandler = getIt<MyAudioHandler>();
 
   @override
@@ -50,13 +50,17 @@ class _MiniMusicPlayerBarState extends State<MiniMusicPlayerBar> {
                   builder: (context, snapshot) {
                     final state = snapshot.data;
 
-                    print("当前正在播放的音乐》");
-                    print(state.toString());
-
                     if (state?.sequence.isEmpty ?? true) {
+                      print("mini bar 当前正在音频流为空----------");
+
                       return const SizedBox();
                     }
                     final metadata = state!.currentSource!.tag as MediaItem;
+                    print("mini bar 当前正在播放的音乐》");
+                    print(state.toString());
+                    print(state.currentIndex);
+                    print(metadata.id);
+
                     return Text(metadata.title);
                   },
                 ),
@@ -73,8 +77,12 @@ class _MiniMusicPlayerBarState extends State<MiniMusicPlayerBar> {
                 stream: _audioHandler.getPlayerStateStream(),
                 builder: (context, snapshot) {
                   final playerState = snapshot.data;
+
                   final processingState = playerState?.processingState;
                   final playing = playerState?.playing;
+
+                  print(
+                      "mini bar 中 按钮状态的来源 playing $playing,processingState $processingState");
 
                   final buttonSize = 48.sp;
 

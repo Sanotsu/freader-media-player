@@ -5,9 +5,9 @@ import 'package:on_audio_query/on_audio_query.dart';
 
 import '../../services/my_audio_handler.dart';
 import '../../services/my_audio_query.dart';
+import '../../services/my_shared_preferences.dart';
 import '../../services/service_locator.dart';
-import 'widgets/just_audio_music_player.dart';
-
+import 'nested_pages/just_audio_music_player_detail.dart';
 
 class LocalMusicAll extends StatefulWidget {
   const LocalMusicAll({super.key});
@@ -19,22 +19,24 @@ class LocalMusicAll extends StatefulWidget {
 class _LocalMusicAllState extends State<LocalMusicAll> {
   // 获取查询音乐组件实例
   final _audioQuery = getIt<MyAudioQuery>();
-
   // 音乐播放实例
   final _audioHandler = getIt<MyAudioHandler>();
+  // 统一简单存储操作的工具类实例
+  final _simpleShared = getIt<MySharedPreferences>();
 
   @override
   void initState() {
     super.initState();
 
     _audioQuery.setLogConfig();
-    checkPermission();
+    // 如果确定在 my audio handle中 _getInitPlaylistAndIndex 有效，这里就不再用了
+    // checkPermission();
   }
 
-  checkPermission() async {
-    await _audioQuery.checkAndRequestPermissions(retry: false);
-    _audioQuery.hasPermission ? setState(() {}) : null;
-  }
+  // checkPermission() async {
+  //   await _audioQuery.checkAndRequestPermissions(retry: false);
+  //   _audioQuery.hasPermission ? setState(() {}) : null;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -49,12 +51,10 @@ class _LocalMusicAllState extends State<LocalMusicAll> {
                 if (item.hasError) {
                   return Text(item.error.toString());
                 }
-
                 // Waiting content.
                 if (item.data == null) {
                   return const CircularProgressIndicator();
                 }
-
                 // 'Library' is empty.
                 if (item.data!.isEmpty) return const Text("Nothing found!");
 
@@ -75,14 +75,20 @@ class _LocalMusicAllState extends State<LocalMusicAll> {
                         id: songs[index].id,
                         type: ArtworkType.AUDIO,
                       ),
-                      onTap: () {
-                        print('MyButton was tapped!');
+                      onTap: () async {
+                        print('MyButton was tapped! ${songs[index].id}');
                         print(songs[index].runtimeType);
 
                         // 到这里就已经查询到当前“全部歌曲”页面中所有的歌曲了，可以构建播放列表和当前音频
-                        _audioHandler.buildPlaylist(songs, songs[index]);
-                        _audioHandler.refreshCurrentPlaylist();
+                        await _audioHandler.buildPlaylist(songs, songs[index]);
+                        await _audioHandler.refreshCurrentPlaylist();
 
+                        // 将歌单信息、被点击的音频编号存入持久化
+                        await _simpleShared.setCurrentAudioListType('all');
+                        await _simpleShared
+                            .setCurrentAudioIndex(index.toString());
+
+                        if (!mounted) return;
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (BuildContext ctx) {

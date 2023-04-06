@@ -80,9 +80,10 @@ app
   - home-page 中，拆分`drawer`、`appBar`、`bottomNavigationBar`等组件单独文件
 - 底部导航栏对应的三个文件夹暂命名为 local_music、online_music、other_index
   - local_music 对应的 index，显示 4 个 tab 页面：playlist、all、artist、album
-    - index 最下面是 mini 播放状态条 mini_music_player_bar，只有歌名和播放暂停按钮
-      - 点击歌名进入播放界面 just_audio_music_player
-    - 4 个 tab 基本就是 builder 了一个 list 的样子，显示所有的播放列表、艺术家之类的
+    - index 最下面是 mini 播放状态条 music_player_mini_bar，只有歌名和播放暂停按钮
+      - 点击歌名进入播放界面 just_audio_music_player_detail
+    - 4 个 tab 基本就是 builder 了一个 list 的样子，显示所有的歌单、艺术家之类的
+      - 点击“歌单”，则显示该歌单下歌曲列表 playlist_detail，然后是对歌曲的相关操作
 - 查询本地音乐的组件 on audio query 和音频播放组件 just audio 需要全局单例，所有抽取到`/services`文件夹
   - 并使用`get_it`库在 main 中延迟注册全局单例
 
@@ -117,5 +118,44 @@ app
 
 ### 完成进度
 
-- 2023-04-04 基本完成全部音乐页面、并显示 mini 状态 bar、播放页面
+- （2023-04-04 基本完成）“全部歌曲”页面、并显示 mini 状态 bar、播放页面
+
   - 注意，当前播放列表和音频没有传入 db，重新打开页面无法显示上次内容。
+
+- （2023-04-06 基本完成）**缓存播放列表和进度**
+
+  - 使用最简单的 SharedPreferences，简单的 key value 存放列表的 id 和对应音频的 id，再多一个类型表示存入的列表是“歌单”、“全部”、“艺术家”、“专辑”
+    - 有想着把用到该依赖的方法集中起来，放到 my shared preferences，但不知道是好是坏
+  - 什么时候修改？
+    - **播放歌曲有变化的时候，目前先统一在进入播放详情页面和歌曲播放完跳到下一首时**，
+      - 注意：页面停留在 player detail 时音频切换，minibar 的音频索引会跟着变，但页面停留在 mini bar 时，palyer detail 是不会跟着变的（因为还没到该组件内，进入之后就触发了）。
+    - 其他比如返回/切换到其他页面时、app 退出前等时机逐步完善。
+  - 什么时候读？
+    - 在 run app 时，会使用 get it 注册 audio handler 的实例，在其构造函数处读取
+    - 注意初始化(app 首次运行等)时，是没有值的
+  - 保存的内容：
+    - 播放列表类型 {currentAudioListType: all | playlist | artist | album}
+      - **保存时机**: 这个类型，在点击进入 tab 时，就要保存
+    - 歌单编号 {currentPlaylistId: xxx }
+      - **保存时机**: 点击“歌单”进入播放详情前保存
+    - 当前音频在列表中索引 {currentAudioIndex: xxx }
+      - **保存时机**: mini bar 或 player detail 中索引变化时保存
+      - 注意：这是该音频在各种播放列表中的索引，不是音频本身的 id。
+  - **注意**:“全部”、“艺术家”、“专辑”,使用工具类方法 querySongs()、queryAlbums()、queryArtists()直接查，不需要存播放列表编号。
+    - 而歌单需要指定编号，再在 queryPlaylists()获取到指定的列表编号，在通过音频索引进行播放列表的处理。
+
+- （2023-04-06 基本完成）**初始化播放状态**
+  - 在 app 启动的时候，就需要查询到持久化的播放列表和音频，绑定音源，这样在 mini bar 中才能获取到音频流信息，才能正常显示歌名和播放/暂停按钮切换。
+  - 这部分操作在 my audio handle 的构造函数处执行，那就在 service 注册时能完成。
+  - 当然，手动切换 tab、播放列表然后点击音频，会更新持久化的数据，也会更新正在播放的列表和音频。
+
+--- 出现的错误
+
+1.
+
+```sh
+ Audio sink error
+E/MediaCodecAudioRenderer(32055):   com.google.android.exoplayer2.audio.AudioSink$UnexpectedDiscontinuityException: Unexpected audio track timestamp discontinuity: expected 1000753599141, got 1000753214693
+```
+
+可能是解析的音频时间戳有问题，应该是组件内部的依赖库爆出来的，不过这和 调试时一直断开连接有没有关系还不清楚
