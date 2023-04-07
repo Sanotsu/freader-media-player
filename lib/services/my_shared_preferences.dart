@@ -2,7 +2,7 @@
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../common/personal/constants.dart';
+import '../common/global/constants.dart';
 
 /// 需要用到的统一方法放在这里吧
 
@@ -15,7 +15,7 @@ class MySharedPreferences {
     final String? calType =
         prefs.getString(GlobalConstants.currentAudioListType);
     // 如果不存在列表类型，就从“全部歌曲”开始
-    var listType = calType ?? "all";
+    var listType = calType ?? AudioListTypes.all;
 
     // 2 当前音频在列表中的索引
     final String? caIndex = prefs.getString(GlobalConstants.currentAudioIndex);

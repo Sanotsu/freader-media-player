@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../common/personal/constants.dart';
+import '../common/global/constants.dart';
 import 'home.dart';
 
 class FreaderApp extends StatelessWidget {

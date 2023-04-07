@@ -6,6 +6,7 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:rxdart/rxdart.dart';
 
+import '../common/global/constants.dart';
 import 'my_audio_query.dart';
 import 'service_locator.dart';
 
@@ -44,14 +45,14 @@ class MyAudioHandler {
     // 这个list有依次3个值：当前列表类型、当前音频在列表中的索引、当前歌单编号
     var tempList = await _simpleShared.getCurrentAudioInfo();
 
-    print("$tempList,,,,,,${tempList[0]}");
+    print("$tempList,,,,,,${tempList[0]},,,,${AudioListTypes.all}");
 
     switch (tempList[0]) {
-      case "all":
+      case AudioListTypes.all:
         var songs = await _audioQuery.querySongs();
         await buildPlaylist(songs, songs[tempList[1]]);
         break;
-      case "playlist":
+      case AudioListTypes.playlist:
         // 当前歌单编号
         var songs = await _audioQuery.queryAudiosFrom(
           AudiosFromType.PLAYLIST,
@@ -59,10 +60,10 @@ class MyAudioHandler {
         );
         await buildPlaylist(songs, songs[tempList[1]]);
         break;
-      case "artist":
+      case AudioListTypes.artist:
         // statements
         break;
-      case "album":
+      case AudioListTypes.album:
         // statements
         break;
 

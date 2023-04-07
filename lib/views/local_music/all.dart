@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
+import '../../common/global/constants.dart';
 import '../../services/my_audio_handler.dart';
 import '../../services/my_audio_query.dart';
 import '../../services/my_shared_preferences.dart';
@@ -84,7 +85,8 @@ class _LocalMusicAllState extends State<LocalMusicAll> {
                         await _audioHandler.refreshCurrentPlaylist();
 
                         // 将歌单信息、被点击的音频编号存入持久化
-                        await _simpleShared.setCurrentAudioListType('all');
+                        await _simpleShared
+                            .setCurrentAudioListType(AudioListTypes.all);
                         await _simpleShared
                             .setCurrentAudioIndex(index.toString());
 
