@@ -5,7 +5,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../common/utils/global_styles.dart';
 
+import 'album.dart';
 import 'all.dart';
+import 'artist.dart';
 import 'playlist.dart';
 import 'widgets/music_player_mini_bar.dart';
 
@@ -55,8 +57,8 @@ class LocalMusic extends StatelessWidget {
                 children: <Widget>[
                   LocalMusicPlaylist(),
                   LocalMusicAll(),
-                  Center(child: Text("艺术家 占位")),
-                  Center(child: Text("专辑 占位")),
+                  LocalMusicArtist(),
+                  LocalMusicAlbum(),
                 ],
               ),
             ),

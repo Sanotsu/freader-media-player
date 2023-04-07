@@ -23,13 +23,13 @@ class MySharedPreferences {
     var audioIndex = caIndex != null ? int.parse(caIndex) : 5;
 
     // 3 当前播放列表编号(仅当类型是“歌单”时才需要)
-    final String? cpId = prefs.getString(GlobalConstants.currentPlaylistId);
+    final String? cpId = prefs.getString(GlobalConstants.currentAudioListId);
     // 如果不存在音频编号，就从0开始
-    var playlistIndex = cpId != null ? int.parse(cpId) : 0;
+    var playlistId = cpId != null ? int.parse(cpId) : 0;
 
     print("$calType + $caIndex + $cpId");
 
-    return [listType, audioIndex, playlistIndex];
+    return [listType, audioIndex, playlistId];
   }
 
   /// 保存当前播放列表信息类型
@@ -48,9 +48,9 @@ class MySharedPreferences {
   }
 
   /// 保存当前歌单编号
-  Future<void> setCurrentPlaylistId(playlistIndex) async {
+  Future<void> setCurrentAudioListId(listIndex) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(GlobalConstants.currentPlaylistId, playlistIndex);
-    print("playlistIndex----------------$playlistIndex");
+    await prefs.setString(GlobalConstants.currentAudioListId, listIndex);
+    print("playlistId----------------$listIndex");
   }
 }

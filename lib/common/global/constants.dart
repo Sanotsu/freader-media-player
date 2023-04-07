@@ -3,9 +3,9 @@ class GlobalConstants {
   static String loginState = "loginState";
   static String loginAccount = "loginAccount";
 
-  /// 本地音频播放中，存放当前播放列表类型、当前播放列表编号、当前音频编号的字串
+  /// 本地音频播放中，存放当前播放列表类型、当前播放列表编号(all类型不需要)、当前音频编号的字串
   static String currentAudioListType = "currentAudioListType";
-  static String currentPlaylistId = "currentPlaylistId";
+  static String currentAudioListId = "currentAudioListId";
   static String currentAudioIndex = "currentAudioIndex";
 }
 

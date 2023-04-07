@@ -1,0 +1,184 @@
+// ignore_for_file: avoid_print
+
+import 'package:flutter/material.dart';
+import 'package:on_audio_query/on_audio_query.dart';
+
+import '../../../common/global/constants.dart';
+import '../../../services/my_audio_handler.dart';
+import '../../../services/my_audio_query.dart';
+import '../../../services/my_shared_preferences.dart';
+import '../../../services/service_locator.dart';
+import '../nested_pages/just_audio_music_player_detail.dart';
+
+/// 这里是构建音频列表的显示页面
+/// 需要传入播放列表类型（如果是歌单还要传入歌单编号，艺术家要传艺术家编号，专辑要传专辑编号……，好像就全部歌曲不用传）
+/// 根据不同类型，调用不同查询方法
+
+class MusicListFutureBuilder extends StatefulWidget {
+  const MusicListFutureBuilder(
+      {super.key, required this.audioListType, this.audioListId});
+
+  final String audioListType;
+  final int? audioListId;
+
+  @override
+  State<MusicListFutureBuilder> createState() => _MusicListFutureBuilderState();
+}
+
+class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
+  // 获取查询音乐组件实例
+  final _audioQuery = getIt<MyAudioQuery>();
+  // 音乐播放实例
+  final _audioHandler = getIt<MyAudioHandler>();
+  // 统一简单存储操作的工具类实例
+  final _simpleShared = getIt<MySharedPreferences>();
+
+  // 根据不同播放列表类型，构建不同的查询处理
+  late dynamic futureHandler;
+
+  @override
+  void initState() {
+    super.initState();
+    _audioQuery.setLogConfig();
+    initFuture();
+    // 如果确定在 my audio handle中 _getInitPlaylistAndIndex 有效，这里就不再用了
+    // checkPermission();
+  }
+
+  // checkPermission() async {
+  //   await _audioQuery.checkAndRequestPermissions(retry: false);
+  //   _audioQuery.hasPermission ? setState(() {}) : null;
+  // }
+
+  initFuture() async {
+    print("传入music list future builder的播放列表类型和编号------------");
+    print("${widget.audioListType},,,${widget.audioListId}");
+
+    switch (widget.audioListType) {
+      case AudioListTypes.all:
+        futureHandler = _audioQuery.querySongs();
+        break;
+      case AudioListTypes.playlist:
+        futureHandler = _audioQuery.queryAudiosFrom(
+            AudiosFromType.PLAYLIST, widget.audioListId!);
+        break;
+      case AudioListTypes.artist:
+        futureHandler = _audioQuery.queryAudiosFrom(
+            AudiosFromType.ARTIST_ID, widget.audioListId!);
+        break;
+      case AudioListTypes.album:
+        futureHandler = _audioQuery.queryAudiosFrom(
+            AudiosFromType.ALBUM_ID, widget.audioListId!);
+        break;
+      default:
+        futureHandler = _audioQuery.querySongs();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: !_audioQuery.hasPermission
+          ? noAccessToLibraryWidget()
+          : FutureBuilder<List<SongModel>>(
+              // Default values:
+              future: futureHandler,
+              builder: (context, item) {
+                // 如果查询出错，显示错误信息
+                if (item.hasError) {
+                  return Text(item.error.toString());
+                }
+                // 如果还在加载中，显示转圈圈.
+                if (item.data == null) {
+                  return const CircularProgressIndicator();
+                }
+                // 如果结果为空，显示无数据
+                if (item.data!.isEmpty) return const Text("Nothing found!");
+
+                // 最后就是得到了歌曲列表，统一处理
+                List<SongModel> songs = item.data!;
+
+                return ListView.builder(
+                  itemCount: songs.length,
+                  itemBuilder: (context, index) {
+                    // 歌手分类子标题就是专辑名，专辑分类子标题就是歌手
+                    var subtext = "";
+                    switch (widget.audioListType) {
+                      case AudioListTypes.artist:
+                        subtext = "专辑: ${songs[index].album}";
+                        break;
+                      default:
+                        subtext = songs[index].artist ?? '未知艺术家';
+                    }
+
+                    return ListTile(
+                      title: Text(songs[index].title),
+                      subtitle: Text(subtext),
+                      trailing: const Icon(Icons.arrow_forward_rounded),
+                      // 这个小部件将查询/加载图像。可以使用/创建你自己的Widget/方法，使用[queryArtwork]。
+                      leading: QueryArtworkWidget(
+                        controller: _audioQuery.onAudioQueryController,
+                        // ??好像只有querysongs获取到的 SongModel 的id才能找到图片
+                        // 其他查询播放列表、艺术家的获取的音频id和querysongs的不一样，也拿不到图片
+                        id: songs[index].id,
+                        type: ArtworkType.AUDIO,
+                      ),
+                      onTap: () async {
+                        print(
+                            '点击了歌曲${songs[index].title} id是 ${songs[index].id}');
+                        print(songs[index].runtimeType);
+
+                        // 到这里就已经查询到当前“全部歌曲”页面中所有的歌曲了，可以构建播放列表和当前音频
+                        await _audioHandler.buildPlaylist(songs, songs[index]);
+                        await _audioHandler.refreshCurrentPlaylist();
+
+                        // 将播放列表信息、被点击的音频编号\播放列表编号(全部歌曲tab除外)存入持久化
+                        await _simpleShared
+                            .setCurrentAudioListType(widget.audioListType);
+                        await _simpleShared
+                            .setCurrentAudioIndex(index.toString());
+                        if (widget.audioListType != AudioListTypes.all) {
+                          await _simpleShared.setCurrentAudioListId(
+                              widget.audioListId.toString());
+                        }
+
+                        if (!mounted) return;
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (BuildContext ctx) {
+                              return const JustAudioMusicPlayer();
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+    );
+  }
+
+  // 无访问权限时的占位部件
+  Widget noAccessToLibraryWidget() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.redAccent.withOpacity(0.5),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text("Application doesn't have access to the library"),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () =>
+                _audioQuery.checkAndRequestPermissions(retry: true),
+            child: const Text("Allow"),
+          ),
+        ],
+      ),
+    );
+  }
+}

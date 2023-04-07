@@ -44,6 +44,8 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
   Future<void> _init() async {
     final session = await AudioSession.instance;
     await session.configure(const AudioSessionConfiguration.speech());
+
+    _audioHandler.play();
   }
 
   // 如果这里处理掉player了，那么切换到其他页面后，自然就停止播放了。
@@ -104,13 +106,14 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
                               type: ArtworkType.AUDIO,
                               artworkWidth: 1.sw,
                               artworkHeight: 20.sp,
+                              artworkBorder: BorderRadius.zero, // 图标边角无圆弧
                               size: 100,
                             ),
                           ),
                         ),
-                        Text(metadata.album ?? "未知专辑",
+                        Text(metadata.title,
                             style: Theme.of(context).textTheme.titleLarge),
-                        Text(metadata.title),
+                        Text(metadata.album ?? "未知专辑"),
                       ],
                     );
                   },
@@ -118,17 +121,10 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
               ),
 
               /// 分割占位
-              Expanded(
-                flex: 1,
-                child: SizedBox(height: 8.sp),
-              ),
+              Expanded(flex: 1, child: SizedBox(height: 8.sp)),
 
               /// 音频控制按钮区域
-              Expanded(
-                flex: 1,
-                child: ControlButtons(),
-                // child: MiniMusicPlayerBar(),
-              ),
+              Expanded(flex: 1, child: ControlButtons()),
 
               /// 音频拖动进度条
               Expanded(
@@ -138,6 +134,7 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
                   stream: _audioHandler.positionDataStream,
                   builder: (context, snapshot) {
                     final positionData = snapshot.data;
+                    // 进度条右边是剩余时间
                     return SeekBar(
                       duration: positionData?.duration ?? Duration.zero,
                       position: positionData?.position ?? Duration.zero,
@@ -152,62 +149,52 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
               ),
 
               /// 切换播放方式区域(单曲循环等、歌单名称、随机播放图标)
+              /// 这个要改变形象了，暂时放这里，后面要放到seekbar中
               Expanded(
                 flex: 1,
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ///> 播放方式切换按钮（单曲循环、列表循环、不循环）
-                    StreamBuilder<LoopMode>(
-                      stream: _audioHandler.getLoopModeStream(),
-                      builder: (context, snapshot) {
-                        final loopMode = snapshot.data ?? LoopMode.off;
-                        const icons = [
-                          Icon(Icons.repeat, color: Colors.grey),
-                          Icon(Icons.repeat, color: Colors.orange),
-                          Icon(Icons.repeat_one, color: Colors.orange),
-                        ];
-                        const cycleModes = [
-                          LoopMode.off,
-                          LoopMode.all,
-                          LoopMode.one,
-                        ];
-                        final index = cycleModes.indexOf(loopMode);
-                        return IconButton(
-                          icon: icons[index],
-                          onPressed: () {
-                            _audioHandler.setRepeatMode(cycleModes[
-                                (cycleModes.indexOf(loopMode) + 1) %
-                                    cycleModes.length]);
-                          },
+                    /// 音量调节按钮
+
+                    IconButton(
+                      icon: const Icon(Icons.volume_up),
+                      iconSize: 32.sp,
+                      onPressed: () {
+                        showSliderDialog(
+                          context: context,
+                          title: "音量调节",
+                          divisions: 10,
+                          min: 0.0,
+                          max: 1.0,
+                          value: _audioHandler.volume,
+                          stream: _audioHandler.volumeStream,
+                          onChanged: _audioHandler.setVolume,
                         );
                       },
-                    ),
-                    Expanded(
-                      child: Text(
-                        "Playlist",
-                        style: Theme.of(context).textTheme.titleLarge,
-                        textAlign: TextAlign.center,
-                      ),
                     ),
 
-                    ///> 随机播放的图标按钮
-                    StreamBuilder<bool>(
-                      stream: _audioHandler.getShuffleModeEnabledStream(),
-                      builder: (context, snapshot) {
-                        final shuffleModeEnabled = snapshot.data ?? false;
-                        return IconButton(
-                          icon: shuffleModeEnabled
-                              ? const Icon(Icons.shuffle, color: Colors.orange)
-                              : const Icon(Icons.shuffle, color: Colors.grey),
-                          onPressed: () async {
-                            final enable = !shuffleModeEnabled;
-                            if (enable) {
-                              await _audioHandler.shuffle();
-                            }
-                            await _audioHandler.setShuffleModeEnabled(enable);
-                          },
-                        );
-                      },
+                    /// 播放速度条件按钮
+                    StreamBuilder<double>(
+                      stream: _audioHandler.getSpeedStream(),
+                      builder: (context, snapshot) => IconButton(
+                        icon: Text("${snapshot.data?.toStringAsFixed(1)}x",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 24.sp)),
+                        iconSize: 48.sp,
+                        onPressed: () {
+                          showSliderDialog(
+                            context: context,
+                            title: "调整速度",
+                            divisions: 10,
+                            min: 0.5,
+                            max: 1.5,
+                            value: _audioHandler.speed,
+                            stream: _audioHandler.getSpeedStream(),
+                            onChanged: _audioHandler.setSpeed(),
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -241,30 +228,48 @@ class ControlButtons extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
-          icon: const Icon(Icons.volume_up),
-          onPressed: () {
-            showSliderDialog(
-              context: context,
-              title: "Adjust volume",
-              divisions: 10,
-              min: 0.0,
-              max: 1.0,
-              value: _audioHandler.volume,
-              stream: _audioHandler.volumeStream,
-              onChanged: _audioHandler.setVolume,
+        ///> 播放方式切换按钮（单曲循环、列表循环、不循环）
+        StreamBuilder<LoopMode>(
+          stream: _audioHandler.getLoopModeStream(),
+          builder: (context, snapshot) {
+            final loopMode = snapshot.data ?? LoopMode.off;
+            const icons = [
+              Icon(Icons.repeat, color: Colors.orange),
+              Icon(Icons.repeat_one, color: Colors.orange),
+              Icon(Icons.repeat, color: Colors.grey),
+            ];
+            const cycleModes = [
+              LoopMode.all,
+              LoopMode.one,
+              LoopMode.off,
+            ];
+            final index = cycleModes.indexOf(loopMode);
+            return IconButton(
+              icon: icons[index],
+              iconSize: 32.sp,
+              onPressed: () {
+                _audioHandler.setRepeatMode(cycleModes[
+                    (cycleModes.indexOf(loopMode) + 1) % cycleModes.length]);
+              },
             );
           },
         ),
+
+        /// 上一曲按钮
+
         StreamBuilder<SequenceState?>(
           stream: _audioHandler.getSequenceStateStream(),
           builder: (context, snapshot) => IconButton(
             icon: const Icon(Icons.skip_previous),
+            iconSize: 32.sp,
             onPressed: _audioHandler.hasPrevious()
                 ? () => _audioHandler.seekToPrevious()
                 : null,
           ),
         ),
+
+        /// 播放/暂停/再次播放 按钮
+
         StreamBuilder<PlayerState>(
           stream: _audioHandler.getPlayerStateStream(),
           builder: (context, snapshot) {
@@ -274,60 +279,65 @@ class ControlButtons extends StatelessWidget {
             if (processingState == ProcessingState.loading ||
                 processingState == ProcessingState.buffering) {
               return Container(
-                margin: const EdgeInsets.all(8.0),
-                width: 64.0,
-                height: 64.0,
+                margin: EdgeInsets.all(8.sp),
+                width: 64.sp,
+                height: 64.sp,
                 child: const CircularProgressIndicator(),
               );
             } else if (playing != true) {
               return IconButton(
                 icon: const Icon(Icons.play_arrow),
-                iconSize: 64.0,
+                iconSize: 64.sp,
                 onPressed: () => _audioHandler.play(),
               );
             } else if (processingState != ProcessingState.completed) {
               return IconButton(
                 icon: const Icon(Icons.pause),
-                iconSize: 64.0,
+                iconSize: 64.sp,
                 onPressed: () => _audioHandler.pause(),
               );
             } else {
               return IconButton(
                 icon: const Icon(Icons.replay),
-                iconSize: 64.0,
+                iconSize: 64.sp,
                 onPressed: () => _audioHandler.seek(Duration.zero,
                     index: _audioHandler.getEffectiveIndices()!.first),
               );
             }
           },
         ),
+
+        /// 下一曲按钮
         StreamBuilder<SequenceState?>(
           stream: _audioHandler.getSequenceStateStream(),
           builder: (context, snapshot) => IconButton(
             icon: const Icon(Icons.skip_next),
+            iconSize: 32.sp,
             onPressed: _audioHandler.hasNext()
                 ? () => _audioHandler.seekToNext()
                 : null,
           ),
         ),
-        StreamBuilder<double>(
-          stream: _audioHandler.getSpeedStream(),
-          builder: (context, snapshot) => IconButton(
-            icon: Text("${snapshot.data?.toStringAsFixed(1)}x",
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-            onPressed: () {
-              showSliderDialog(
-                context: context,
-                title: "Adjust speed",
-                divisions: 10,
-                min: 0.5,
-                max: 1.5,
-                value: _audioHandler.speed,
-                stream: _audioHandler.getSpeedStream(),
-                onChanged: _audioHandler.setSpeed(),
-              );
-            },
-          ),
+
+        ///> 随机播放的图标按钮
+        StreamBuilder<bool>(
+          stream: _audioHandler.getShuffleModeEnabledStream(),
+          builder: (context, snapshot) {
+            final shuffleModeEnabled = snapshot.data ?? false;
+            return IconButton(
+              icon: shuffleModeEnabled
+                  ? const Icon(Icons.shuffle, color: Colors.orange)
+                  : const Icon(Icons.shuffle, color: Colors.grey),
+              iconSize: 32.sp,
+              onPressed: () async {
+                final enable = !shuffleModeEnabled;
+                if (enable) {
+                  await _audioHandler.shuffle();
+                }
+                await _audioHandler.setShuffleModeEnabled(enable);
+              },
+            );
+          },
         ),
       ],
     );

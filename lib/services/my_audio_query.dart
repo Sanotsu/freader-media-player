@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:on_audio_query/on_audio_query.dart';
 
 class MyAudioQuery {
@@ -10,6 +12,10 @@ class MyAudioQuery {
   // 返回权限标志
   bool get hasPermission => _hasPermission;
   OnAudioQuery get onAudioQueryController => _query;
+
+  MyAudioQuery() {
+    checkAndRequestPermissions(retry: true);
+  }
 
   // 查询本地歌曲（条件暂时就不支持自定了。这里单纯把方法抽出来，工具单例化）
   Future<List<SongModel>> querySongs() => _query.querySongs(
@@ -53,6 +59,12 @@ class MyAudioQuery {
   Future<bool> removeFromPlaylist(int playlistId, int audioId) =>
       _query.removeFromPlaylist(playlistId, audioId);
 
+  // 查询艺术家分类列表
+  Future<List<ArtistModel>> queryArtists() => _query.queryArtists();
+
+  // 查询专辑分类列表
+  Future<List<AlbumModel>> queryAlbums() => _query.queryAlbums();
+
   // 设置日志配置
   void setLogConfig() {
     LogConfig logConfig = LogConfig(logType: LogType.DEBUG);
@@ -62,6 +74,9 @@ class MyAudioQuery {
   // 检查权限是否已经获取
   checkAndRequestPermissions({bool retry = false}) async {
     // The param 'retryRequest' is false, by default.
+
+    print("进入了检查权限的函数");
+
     _hasPermission = await _query.checkAndRequest(
       retryRequest: retry,
     );

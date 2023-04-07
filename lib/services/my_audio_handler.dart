@@ -36,40 +36,41 @@ class MyAudioHandler {
   // 其他情况改变了当前列表，则额外处理
   Future<void> _getInitPlaylistAndIndex() async {
     // todo
-    // 获取权限
-    await _audioQuery.checkAndRequestPermissions(retry: true);
+    // // 获取权限
+    // await _audioQuery.checkAndRequestPermissions(retry: true);
 
     print("这是在_getInitPlaylistAndIndex");
     // // 获取当前的播放列表数据
 
-    // 这个list有依次3个值：当前列表类型、当前音频在列表中的索引、当前歌单编号
+    // 这个list有依次3个值：当前列表类型、当前音频在列表中的索引、当前播放列表编号
     var tempList = await _simpleShared.getCurrentAudioInfo();
 
     print("$tempList,,,,,,${tempList[0]},,,,${AudioListTypes.all}");
 
+    List<SongModel> songs;
     switch (tempList[0]) {
       case AudioListTypes.all:
-        var songs = await _audioQuery.querySongs();
-        await buildPlaylist(songs, songs[tempList[1]]);
+        songs = await _audioQuery.querySongs();
         break;
       case AudioListTypes.playlist:
         // 当前歌单编号
-        var songs = await _audioQuery.queryAudiosFrom(
-          AudiosFromType.PLAYLIST,
-          tempList[2],
-        );
-        await buildPlaylist(songs, songs[tempList[1]]);
+        songs = await _audioQuery.queryAudiosFrom(
+            AudiosFromType.PLAYLIST, tempList[2]);
         break;
       case AudioListTypes.artist:
-        // statements
+        // 当前歌手编号
+        songs = await _audioQuery.queryAudiosFrom(
+            AudiosFromType.ARTIST_ID, tempList[2]);
         break;
       case AudioListTypes.album:
-        // statements
+        // 当前专辑编号
+        songs = await _audioQuery.queryAudiosFrom(
+            AudiosFromType.ALBUM_ID, tempList[2]);
         break;
-
       default:
-      // default statements
+        songs = await _audioQuery.querySongs();
     }
+    await buildPlaylist(songs, songs[tempList[1]]);
   }
 
   // 设置初始化播放列表源（这在app启动时就要加载完成）
