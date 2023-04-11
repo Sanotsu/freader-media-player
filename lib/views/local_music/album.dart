@@ -2,8 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:provider/provider.dart';
 
 import '../../common/global/constants.dart';
+import '../../models/is_long_press.dart';
 import '../../services/my_audio_query.dart';
 import '../../services/service_locator.dart';
 import 'nested_pages/audio_list_detail.dart';
@@ -59,13 +61,15 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
 
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (BuildContext ctx) {
-                      return LocalMusicAudioListDetail(
+                    // 在选中指定歌单点击后，进入音频列表，同时监控是否有对音频长按
+                    builder: (BuildContext ctx) => ListenableProvider(
+                      create: (ctx) => AudioInList(),
+                      builder: (context, child) => LocalMusicAudioListDetail(
                         audioListType: AudioListTypes.album,
                         audioListId: albums[index].id,
                         audioListTitle: albums[index].album,
-                      );
-                    },
+                      ),
+                    ),
                   ),
                 );
               },

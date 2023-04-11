@@ -6,6 +6,7 @@ import 'package:freader_music_player/common/global/constants.dart';
 import 'package:provider/provider.dart';
 
 import '../../../models/is_long_press.dart';
+import '../widgets/build_add_to_playlist_dialog.dart';
 import '../widgets/music_list_future_builder.dart';
 import '../widgets/music_player_mini_bar.dart';
 
@@ -31,40 +32,62 @@ class LocalMusicAudioListDetail extends StatefulWidget {
 class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.audioListTitle),
-        actions: <Widget>[
-          // 因为使用了consumer，在其他组件中改变了其中类的属性，这里也会识别到
-          Consumer<AudioInList>(
-            builder: (context, alp, child) {
-              print("1111xxxxxxxxxxxxxxxxxxxxxxxxxxx${alp.isLongPress}");
+    return WillPopScope(
+      onWillPop: () async {
+        // 点击appbar返回按钮或者返回键时，可以做一些操作。这里返回一个重新加载列表中的音频标识。
+        // 因为在歌单删除了音频或者添加之后，直接返回不会重新加载，显示的数量没变。
+        if (mounted) {
+          Navigator.pop(context, {"isReload": true});
+        }
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.audioListTitle),
+          actions: <Widget>[
+            // 因为使用了consumer，在其他组件中改变了其中类的属性，这里也会识别到
+            Consumer<AudioInList>(
+              builder: (context, alp, child) {
+                print(
+                  "1111xxxxxxxxxxxxxxxxxxxxxxxxxxx ${alp.isLongPress}  ${alp.currentTabName}",
+                );
 
-              /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
-              ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
-              /// 如果是默认显示的，应该有：排序、搜索、三个点（展开其他功能）
-              return alp.isLongPress
-                  ? buildLongPressButtons()
-                  : buildDefaultButtons();
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: MusicListFutureBuilder(
-              audioListType: widget.audioListType,
-              audioListId: widget.audioListId,
-              callback: (value) => print(value),
+                /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
+                ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
+                /// 如果是默认显示的，应该有：排序、搜索、三个点（展开其他功能）
+                return alp.isLongPress
+                    ? buildLongPressButtons(alp)
+                    : buildDefaultButtons();
+              },
             ),
-          ),
-          SizedBox(
-            height: 60.sp,
-            width: 1.sw,
-            child: const MusicPlayerMiniBar(),
-          ),
-        ],
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: Consumer<AudioInList>(
+                builder: (context, alp, child) {
+                  print(
+                      "1111LocalMusicAudioListDetail ${alp.isLongPress} ${alp.isAddToList} ${alp.isRemoveFromList}");
+
+                  /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
+                  ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
+                  /// 如果是默认显示的，应该有：排序、搜索、三个点（展开其他功能）
+                  return MusicListFutureBuilder(
+                    audioListType: widget.audioListType,
+                    audioListId: widget.audioListId,
+                    callback: (value) => print(value),
+                  );
+                },
+              ),
+            ),
+            SizedBox(
+              height: 60.sp,
+              width: 1.sw,
+              child: const MusicPlayerMiniBar(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -101,11 +124,11 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
     );
   }
 
-  Widget buildLongPressButtons() {
-    var alp = context.read<AudioInList>();
+  Widget buildLongPressButtons(AudioInList alp) {
+    // var alp = context.read<AudioInList>();
 
     print(
-        "buildLongPressButtonsXXXXXXXXXXXXXXX  ${alp.isLongPress} ${alp.currentTabName}");
+        "111111buildLongPressButtonsXXXXXXXXXXXXXXX  ${alp.isLongPress} ${alp.currentTabName}");
 
     return Row(
       children: [
@@ -125,24 +148,17 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
               )
             : Container(),
         IconButton(
+          icon: const Icon(Icons.add),
+          tooltip: '添加到歌单',
+          onPressed: () => buildAddToPlaylistDialog(context, alp),
+        ),
+        IconButton(
           icon: const Icon(Icons.info),
           tooltip: '详细信息',
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('This is a 详细信息'),
-                duration: Duration(seconds: 1),
-              ),
-            );
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.delete),
-          tooltip: '删除文件',
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('This is a 删除文件'),
                 duration: Duration(seconds: 1),
               ),
             );

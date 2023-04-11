@@ -267,12 +267,12 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
   }
 
   // 添加被选中的音频到指定歌单
-  addAudioToPlaylist(AudioInList alp) async {
+  addAudioToPlaylist(AudioInList alp) {
     print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ${alp.currentTabName}");
     print(selectedIndexs);
     print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     for (var e in selectedIndexs) {
-      await _audioQuery.addToPlaylist(alp.selectedPlaylistId, e.id);
+      _audioQuery.addToPlaylist(alp.selectedPlaylistId, e.id);
     }
 
     // 添加完之后，重置状态

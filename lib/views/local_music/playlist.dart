@@ -21,6 +21,9 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
   // 获取查询音乐组件实例
   final _audioQuery = getIt<MyAudioQuery>();
 
+  // 根据不同播放列表类型，构建不同的查询处理
+  late Future<List<PlaylistModel>> futureHandler;
+
   @override
   void initState() {
     super.initState();
@@ -28,24 +31,15 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
   }
 
   initData() async {
-    var plist = await _audioQuery.queryPlaylists();
-
-    print("000000000000000000000000000000");
-    print(plist);
-    print("000000000000000000000000000000");
-
-    // await _audioQuery.createPlaylist("示例歌单1");
-    // await _audioQuery.createPlaylist("测试歌单2");
-    // await _audioQuery.createPlaylist("随便歌单3");
-    // 上面创建的歌单，有id为 201059 201060 201061
+    setState(() {
+      futureHandler = _audioQuery.queryPlaylists();
+    });
 
     var plist2 = await _audioQuery.queryPlaylists();
 
-    // await _audioQuery.removeFromPlaylist(201060, 1);
-    // await _audioQuery.addToPlaylist(201060, 192715);
-
+    print("000000000000000000000000000000");
     print(plist2);
-    print(plist2.length);
+    print("000000000000000000000000000000");
   }
 
   @override
@@ -55,7 +49,7 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
 
   _buildList(context) {
     return FutureBuilder<List<PlaylistModel>>(
-      future: _audioQuery.queryPlaylists(),
+      future: futureHandler,
       builder: (context, item) {
         // Display error, if any.
         if (item.hasError) {
@@ -89,7 +83,23 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
                 print(
                   '指定歌单 ${playlists[index].playlist}  was tapped! id Is ${playlists[index].id}',
                 );
-                Navigator.of(ctx).push(
+
+                // final AudioInList yourModel =
+                //     Provider.of<AudioInList>(context, listen: false);
+
+                Navigator.of(ctx)
+                    .push(
+                  //   MaterialPageRoute(
+                  //   builder: (context) =>
+                  //       ChangeNotifierProvider<AudioInList>.value(
+                  //     value: yourModel,
+                  //     child: LocalMusicAudioListDetail(
+                  //       audioListType: AudioListTypes.playlist,
+                  //       audioListId: playlists[index].id,
+                  //       audioListTitle: playlists[index].playlist,
+                  //     ),
+                  //   ),
+                  // )
                   MaterialPageRoute(
                     // 在选中指定歌单点击后，进入音频列表，同时监控是否有对音频长按
                     builder: (BuildContext ctx) => ListenableProvider(
@@ -101,7 +111,14 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
                       ),
                     ),
                   ),
-                );
+                )
+                    .then((value) {
+                  print("这是跳转路由后返回的数据： $value");
+                  // 在pdf viewer页面返回后，重新获取pdf list，更新阅读进度
+                  if (value != null && value["isReload"]) {
+                    initData();
+                  }
+                });
               },
             );
           },
