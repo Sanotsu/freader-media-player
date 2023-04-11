@@ -5,20 +5,21 @@ class OnlineMusic extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const DefaultTabController(
-      initialIndex: 1,
-      length: 3,
-      child: Scaffold(
-        body: TabBarView(
+    return Scaffold(
+      appBar: AppBar(title: const Text("在线音乐(预留)"), actions: const <Widget>[]),
+      body: const DefaultTabController(
+        initialIndex: 1,
+        length: 3,
+        child: TabBarView(
           children: <Widget>[
             Center(
-              child: Text("It's cloudy here"),
+              child: Text("It's cloudy here tab1"),
             ),
             Center(
-              child: Text("It's rainy here"),
+              child: Text("It's rainy here tab2"),
             ),
             Center(
-              child: Text("It's sunny here"),
+              child: Text("It's sunny here tab3"),
             ),
           ],
         ),
