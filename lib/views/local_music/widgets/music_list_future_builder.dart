@@ -2,8 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:provider/provider.dart';
 
 import '../../../common/global/constants.dart';
+import '../../../models/is_long_press.dart';
 import '../../../services/my_audio_handler.dart';
 import '../../../services/my_audio_query.dart';
 import '../../../services/my_shared_preferences.dart';
@@ -16,10 +18,14 @@ import '../nested_pages/just_audio_music_player_detail.dart';
 
 class MusicListFutureBuilder extends StatefulWidget {
   const MusicListFutureBuilder(
-      {super.key, required this.audioListType, this.audioListId});
+      {super.key,
+      required this.audioListType,
+      this.audioListId,
+      required this.callback});
 
   final String audioListType;
   final int? audioListId;
+  final Function callback;
 
   @override
   State<MusicListFutureBuilder> createState() => _MusicListFutureBuilderState();
@@ -34,7 +40,20 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
   final _simpleShared = getIt<MySharedPreferences>();
 
   // 根据不同播放列表类型，构建不同的查询处理
-  late dynamic futureHandler;
+  late Future<List<SongModel>> futureHandler;
+
+  /// 音频多选的操作逻辑：
+  /// 长按指定音频，启动播放列表功能模式
+  ///     长按标志设为true，选中的音频加入指定列表，显示一些对选中音频的操作功能按钮
+  ///     实现针对不同功能按钮
+  /// 注意：播放列表为歌单，才有新增到其他歌单、从歌单移除等选择，其他列表因为是on audio query 直接获取到的，功能有些不一样
+  ///     需要判断当前的音频列表处于哪一个tab（歌单、全部、艺术家、专辑）的详情
+  ///
+  /// 注意：因为长按对歌单中音频的操作功能要显示在app bar的位置，所以这个 future Builder和冰岛audio list detail 中去
+  ///
+
+  // 被选中的item的索引列表
+  List<SongModel> selectedIndexs = [];
 
   @override
   void initState() {
@@ -43,6 +62,8 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
     initFuture();
     // 如果确定在 my audio handle中 _getInitPlaylistAndIndex 有效，这里就不再用了
     // checkPermission();
+
+    print("zzzzzzzzzzzzz------");
   }
 
   // checkPermission() async {
@@ -77,11 +98,28 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
 
   @override
   Widget build(BuildContext context) {
+    AudioInList alp = context.read<AudioInList>();
+
+    print(
+        "1111111111111111111zzzzzzzzzzz ${alp.currentTabName} ${alp.isAddToList}");
+
+    // 如果是点击了移除被选中的音频，从歌单中移除
+    // (注意：暂时只有歌单才有移除，其他几个tab是没有的)
+    if (alp.isRemoveFromList) {
+      removeSelectedAudionFromPlaylist(alp);
+    }
+    if (alp.isAddToList) {
+      addAudioToPlaylist(alp);
+    }
+    // 如果是上层使用provide取消了长按标志，这里得清空被选中的数组
+    if (!alp.isLongPress) {
+      selectedIndexs.length = 0;
+    }
+
     return Center(
       child: !_audioQuery.hasPermission
           ? noAccessToLibraryWidget()
           : FutureBuilder<List<SongModel>>(
-              // Default values:
               future: futureHandler,
               builder: (context, item) {
                 // 如果查询出错，显示错误信息
@@ -111,46 +149,74 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                         subtext = songs[index].artist ?? '未知艺术家';
                     }
 
-                    return ListTile(
-                      title: Text(songs[index].title),
-                      subtitle: Text(subtext),
-                      trailing: const Icon(Icons.arrow_forward_rounded),
-                      // 这个小部件将查询/加载图像。可以使用/创建你自己的Widget/方法，使用[queryArtwork]。
-                      leading: QueryArtworkWidget(
-                        controller: _audioQuery.onAudioQueryController,
-                        // ??好像只有querysongs获取到的 SongModel 的id才能找到图片
-                        // 其他查询播放列表、艺术家的获取的音频id和querysongs的不一样，也拿不到图片
-                        id: songs[index].id,
-                        type: ArtworkType.AUDIO,
-                      ),
-                      onTap: () async {
-                        print(
-                            '点击了歌曲${songs[index].title} id是 ${songs[index].id}');
-                        print(songs[index].runtimeType);
-
-                        // 到这里就已经查询到当前“全部歌曲”页面中所有的歌曲了，可以构建播放列表和当前音频
-                        await _audioHandler.buildPlaylist(songs, songs[index]);
-                        await _audioHandler.refreshCurrentPlaylist();
-
-                        // 将播放列表信息、被点击的音频编号\播放列表编号(全部歌曲tab除外)存入持久化
-                        await _simpleShared
-                            .setCurrentAudioListType(widget.audioListType);
-                        await _simpleShared
-                            .setCurrentAudioIndex(index.toString());
-                        if (widget.audioListType != AudioListTypes.all) {
-                          await _simpleShared.setCurrentAudioListId(
-                              widget.audioListId.toString());
-                        }
-
-                        if (!mounted) return;
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (BuildContext ctx) {
-                              return const JustAudioMusicPlayer();
-                            },
-                          ),
-                        );
+                    return GestureDetector(
+                      onLongPress: () {
+                        setState(() {
+                          // 音频item被长按了，设置标志为被长按，会显示一些操作按钮，且再单击音频是多选，而不是播放
+                          alp.changeIsLongPress(true);
+                          // 长按的时候把该item索引加入被选中的索引变量中
+                          selectedIndexs.add(songs[index]);
+                        });
+                        widget.callback('I am your sailing child');
                       },
+                      child: ListTile(
+                        selected: selectedIndexs.contains(songs[index]),
+                        title: Text(songs[index].title),
+                        subtitle: Text(subtext),
+                        trailing: const Icon(Icons.arrow_forward_rounded),
+                        // 这个小部件将查询/加载图像。可以使用/创建你自己的Widget/方法，使用[queryArtwork]。
+                        leading: QueryArtworkWidget(
+                          controller: _audioQuery.onAudioQueryController,
+                          // ??好像只有querysongs获取到的 SongModel 的id才能找到图片
+                          // 其他查询播放列表、艺术家的获取的音频id和querysongs的不一样，也拿不到图片
+                          id: songs[index].id,
+                          type: ArtworkType.AUDIO,
+                        ),
+                        onTap: () async {
+                          if (alp.isLongPress) {
+                            setState(() {
+                              // 如果已经加入被选中列表，再次点击则移除
+                              if (selectedIndexs.contains(songs[index])) {
+                                selectedIndexs.remove(songs[index]);
+                              } else {
+                                selectedIndexs.add(songs[index]);
+                              }
+                              // 如果被选中的列表清空，那就假装没有点击长按用于选择音频
+                              if (selectedIndexs.isEmpty) {
+                                alp.changeIsLongPress(false);
+                              }
+                            });
+                          } else {
+                            print(
+                                '点击了歌曲${songs[index].title} id是 ${songs[index].id}');
+                            print(songs[index].runtimeType);
+
+                            // 到这里就已经查询到当前“全部歌曲”页面中所有的歌曲了，可以构建播放列表和当前音频
+                            await _audioHandler.buildPlaylist(
+                                songs, songs[index]);
+                            await _audioHandler.refreshCurrentPlaylist();
+
+                            // 将播放列表信息、被点击的音频编号\播放列表编号(全部歌曲tab除外)存入持久化
+                            await _simpleShared
+                                .setCurrentAudioListType(widget.audioListType);
+                            await _simpleShared
+                                .setCurrentAudioIndex(index.toString());
+                            if (widget.audioListType != AudioListTypes.all) {
+                              await _simpleShared.setCurrentAudioListId(
+                                  widget.audioListId.toString());
+                            }
+
+                            if (!mounted) return;
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (BuildContext ctx) {
+                                  return const JustAudioMusicPlayer();
+                                },
+                              ),
+                            );
+                          }
+                        },
+                      ),
                     );
                   },
                 );
@@ -180,5 +246,38 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
         ],
       ),
     );
+  }
+
+  // 从歌单中移除被选中的音频
+  removeSelectedAudionFromPlaylist(AudioInList alp) {
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ${alp.currentTabName}");
+    print(selectedIndexs);
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+    for (var e in selectedIndexs) {
+      _audioQuery.removeFromPlaylist(widget.audioListId!, e.id);
+    }
+
+    // 这里我以为是不能保证一定先完成了移除再获取新的歌单音频列表，但结果暂时是正确的
+    futureHandler = _audioQuery.queryAudiosFrom(
+        AudiosFromType.PLAYLIST, widget.audioListId!);
+
+    // 移除完之后，重置从歌单移除的状态
+    Provider.of<AudioInList>(context, listen: false)
+        .changeIsRemoveFromList(false);
+  }
+
+  // 添加被选中的音频到指定歌单
+  addAudioToPlaylist(AudioInList alp) async {
+    print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ${alp.currentTabName}");
+    print(selectedIndexs);
+    print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    for (var e in selectedIndexs) {
+      await _audioQuery.addToPlaylist(alp.selectedPlaylistId, e.id);
+    }
+
+    // 添加完之后，重置状态
+    alp.changeIsAddToList(false);
+    // 重置选中的数组为空
+    selectedIndexs.length = 0;
   }
 }

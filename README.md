@@ -160,6 +160,13 @@ app
 
   - tab 主页要查询对应播放列表的数据，点击之后进入指定播放列表显示音频列表数据，再点击进入播放页面。
 
+- （2023-04-11 基本完成）**简单实现在“全部”中添加歌曲到歌单，在指定歌单中，长按可点击从歌单移除指定音频**
+
+  - “全部”显示的列表是音频的列个，其他 tab 显示的时播放列表，所以长按在 appbar 中显示功能按钮不一样，且已经在 home 页面了。
+  - 从歌单移除则已经进入了音频列表，长按显示的功能按钮在 audio list detail 中的 appbar 里。
+  - _考虑不要同一，至少全部和其他 tab 的逻辑分开。_
+  - **注意**: 添加到歌单的功能还有问题，music list builder 中删除 callback 就不行了，原因不明
+
 - 有空需要修改歌曲进度条的功能：当前时间、速度调节、音量调节、总时长……
 
 - 歌单的功能
@@ -178,3 +185,20 @@ E/MediaCodecAudioRenderer(32055):   com.google.android.exoplayer2.audio.AudioSin
 2. 询问存取等权限的时机不对
 
 调试时首次安装会中断，然后才显示获取权限的请求，然后再次连接才正常。这步获取权限的操作，应该在进入页面后询问，然后再判断，而不是直接退出才询问。
+
+3.
+
+```
+This _InheritedProviderScope<AudioInList?> widget cannot be marked as needing to build because the framework is already in the process of building widgets. A widget can be marked as needing to be built during the build phase only if one of its ancestors is currently building. This exception is allowed because the framework builds parent widgets before children, which means a dirty descendant will always be built. Otherwise, the framework might not visit this widget during this build phase.
+The widget on which setState() or markNeedsBuild() was called was: _InheritedProviderScope<AudioInList?>
+```
+
+在使用 notifyListeners()时，在重建它之前，等待构建方法完成
+
+```
+WidgetsBinding.instance.addPostFrameCallback((_) {
+  notifyListeners();
+});
+```
+
+[参看](https://stackoverflow.com/questions/60852896/widget-cannot-be-marked-as-needing-to-build-because-the-framework-is-already-in)第二个答案

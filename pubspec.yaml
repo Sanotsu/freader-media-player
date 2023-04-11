@@ -57,6 +57,8 @@ dependencies:
   flutter_neumorphic: ^3.2.0
   # GetIt是一个简单的直接服务定位器，允许将接口与具体实现分离，并从应用程序的任何地方访问具体实现(一个单例的工具箱)。
   get_it: ^7.2.0
+  # InheritedWidget的包装器 ，使它们更易于使用和可重用。（子孙传值、简单应用状态管理之类的）
+  provider: ^6.0.5
 
 dev_dependencies:
   flutter_test:

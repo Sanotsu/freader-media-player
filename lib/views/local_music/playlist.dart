@@ -2,8 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:provider/provider.dart';
 
 import '../../common/global/constants.dart';
+import '../../models/is_long_press.dart';
 import '../../services/my_audio_query.dart';
 import '../../services/service_locator.dart';
 import 'nested_pages/audio_list_detail.dart';
@@ -48,6 +50,10 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
 
   @override
   Widget build(BuildContext context) {
+    return _buildList(context);
+  }
+
+  _buildList(context) {
     return FutureBuilder<List<PlaylistModel>>(
       future: _audioQuery.queryPlaylists(),
       builder: (context, item) {
@@ -67,7 +73,7 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
 
         return ListView.builder(
           itemCount: playlists.length,
-          itemBuilder: (context, index) {
+          itemBuilder: (ctx, index) {
             return ListTile(
               title: Text(playlists[index].playlist),
               subtitle: Text(playlists[index].numOfSongs.toString()),
@@ -83,16 +89,17 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
                 print(
                   '指定歌单 ${playlists[index].playlist}  was tapped! id Is ${playlists[index].id}',
                 );
-
-                Navigator.of(context).push(
+                Navigator.of(ctx).push(
                   MaterialPageRoute(
-                    builder: (BuildContext ctx) {
-                      return LocalMusicAudioListDetail(
+                    // 在选中指定歌单点击后，进入音频列表，同时监控是否有对音频长按
+                    builder: (BuildContext ctx) => ListenableProvider(
+                      create: (ctx) => AudioInList(),
+                      builder: (context, child) => LocalMusicAudioListDetail(
                         audioListType: AudioListTypes.playlist,
                         audioListId: playlists[index].id,
                         audioListTitle: playlists[index].playlist,
-                      );
-                    },
+                      ),
+                    ),
                   ),
                 );
               },
