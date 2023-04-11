@@ -9,13 +9,13 @@ import '../../../services/my_audio_query.dart';
 import '../../../services/service_locator.dart';
 
 /// 添加到指定歌单的弹窗
-Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioInList alp) {
+Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioInList alp) async {
   // 获取查询音乐组件实例
   final audioQuery = getIt<MyAudioQuery>();
   // 每次打开添加到歌单，都没有预设被选中的
   int? selectedPlaylistId = 0;
 
-  return showDialog<void>(
+  return await showDialog<void>(
     context: ctx,
     builder: (BuildContext ctext) {
       return AlertDialog(
@@ -81,7 +81,12 @@ Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioInList alp) {
                             textStyle: Theme.of(ctext).textTheme.labelLarge,
                           ),
                           child: const Text('创建新歌单（预留）'),
-                          onPressed: () {},
+                          onPressed: () async {
+                            print("点击了新建歌单按钮11111");
+
+                            Navigator.of(ctext).pop();
+                            await _displayTextInputDialog(ctext, alp);
+                          },
                         ),
                       )
                     ]);
@@ -130,4 +135,80 @@ Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioInList alp) {
       );
     },
   );
+}
+
+_displayTextInputDialog(BuildContext context, AudioInList alp) async {
+  // 获取查询音乐组件实例
+  final audioQuery = getIt<MyAudioQuery>();
+
+  print("点击了添加新歌单");
+  var playInput = "";
+  return await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('创建新歌单'),
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return TextField(
+              onChanged: (value) {
+                setState(() {
+                  playInput = value;
+                });
+              },
+              // controller: _textFieldController,
+              decoration: const InputDecoration(hintText: "输入歌单名"),
+            );
+          }),
+          actions: <Widget>[
+            StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+              return MaterialButton(
+                color: Colors.red,
+                textColor: Colors.white,
+                child: const Text('取消'),
+                onPressed: () {
+                  setState(() {
+                    // 单击了取消功能按钮之后，立马切回长按状态为否，也取消弹窗
+                    alp.changeIsLongPress(false);
+                    Navigator.pop(context);
+                  });
+                },
+              );
+            }),
+            StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+              return MaterialButton(
+                color: Colors.green,
+                textColor: Colors.white,
+                child: const Text('确认'),
+                onPressed: () async {
+                  // 新建歌单的逻辑，同时加入歌单的逻辑。
+
+                  print("输入新建的歌单名称");
+
+                  /// 这里的逻辑就比较麻烦，因为使用的on audio query组件的限制
+                  /// 1 创建新歌单
+                  await audioQuery.createPlaylist(playInput);
+
+                  /// 2 查询所有歌单
+                  List<PlaylistModel> list = await audioQuery.queryPlaylists();
+
+                  /// 3 从歌单列表中找到刚刚新增的歌单
+                  PlaylistModel p = list
+                      .firstWhere((PlaylistModel e) => e.playlist == playInput);
+
+                  setState(() {
+                    /// 4 把被选中的音频放入歌单(通过修改provide的值)
+                    alp.changeIsAddToList(true);
+                    alp.changeSelectedPlaylistId(p.id);
+                    alp.changeIsLongPress(false);
+                    Navigator.pop(context);
+                  });
+                },
+              );
+            }),
+          ],
+        );
+      });
 }
