@@ -36,6 +36,17 @@ class AudioInList with ChangeNotifier {
     });
   }
 
+  // 2023-04-12 on audio query 组件的playlist（歌单）分类中id是重新递增的id，不是原始音频id
+  // 而其他诸如专辑、艺术家、类型等查询到的音频id又是原始id。
+  // 所以在加入歌单这个操作要分开来，如果是从歌单中添加，需要特殊表示
+  bool isAddToListFromPlaylist = false;
+  void changeIsAddToListFromPlaylist(bool flag) {
+    isAddToListFromPlaylist = flag;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+
   // 需要加入的歌单编号
   int selectedPlaylistId = 0;
   void changeSelectedPlaylistId(int id) {

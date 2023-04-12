@@ -36,10 +36,24 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
     });
 
     var plist2 = await _audioQuery.queryPlaylists();
+    var songs = await _audioQuery.queryAudiosFrom(
+      AudiosFromType.PLAYLIST,
+      201076,
+    );
+
+    // 返回是动态类型，使用的是转为指定类型
+    List<dynamic> songs2 = await _audioQuery.queryWithFilters(
+      "有一种爱叫做放手",
+      WithFiltersType.AUDIOS,
+      args: AudiosArgs.TITLE,
+    );
 
     print("000000000000000000000000000000");
     print(plist2);
+    print(songs);
+    print(songs2);
     print("000000000000000000000000000000");
+    //
   }
 
   @override
@@ -89,36 +103,30 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
 
                 Navigator.of(ctx)
                     .push(
-                  //   MaterialPageRoute(
-                  //   builder: (context) =>
-                  //       ChangeNotifierProvider<AudioInList>.value(
-                  //     value: yourModel,
-                  //     child: LocalMusicAudioListDetail(
-                  //       audioListType: AudioListTypes.playlist,
-                  //       audioListId: playlists[index].id,
-                  //       audioListTitle: playlists[index].playlist,
-                  //     ),
-                  //   ),
-                  // )
-                  MaterialPageRoute(
-                    // 在选中指定歌单点击后，进入音频列表，同时监控是否有对音频长按
-                    builder: (BuildContext ctx) => ListenableProvider(
-                      create: (ctx) => AudioInList(),
-                      builder: (context, child) => LocalMusicAudioListDetail(
-                        audioListType: AudioListTypes.playlist,
-                        audioListId: playlists[index].id,
-                        audioListTitle: playlists[index].playlist,
+                      MaterialPageRoute(
+                        // 在选中指定歌单点击后，进入音频列表，同时监控是否有对音频长按
+                        builder: (BuildContext ctx) => ListenableProvider(
+                          create: (ctx) => AudioInList(),
+                          builder: (context, child) =>
+                              LocalMusicAudioListDetail(
+                            audioListType: AudioListTypes.playlist,
+                            audioListId: playlists[index].id,
+                            audioListTitle: playlists[index].playlist,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                )
-                    .then((value) {
-                  print("这是跳转路由后返回的数据： $value");
-                  // 在pdf viewer页面返回后，重新获取pdf list，更新阅读进度
-                  if (value != null && value["isReload"]) {
-                    initData();
-                  }
-                });
+                    )
+                    .then((value) => initData());
+                //     .then(
+                //   (value) {
+                //     print("这是跳转路由后返回的数据： $value");
+                //     // 在pdf viewer页面返回后，重新获取pdf list，更新阅读进度
+                //     if (value != null && value["isReload"]) {
+                //       print("这里执行了歌单列表重新加载的逻辑");
+                //       initData();
+                //     }
+                //   },
+                // );
               },
             );
           },

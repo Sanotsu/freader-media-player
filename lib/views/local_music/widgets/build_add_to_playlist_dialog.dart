@@ -122,6 +122,8 @@ Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioInList alp) async {
               onPressed: () {
                 setState(() {
                   alp.changeSelectedPlaylistId(selectedPlaylistId!);
+
+                  print("弹窗选中的歌单编号 ${alp.selectedPlaylistId}");
                   alp.changeIsAddToList(true);
                   // 单击了添加功能按钮之后，立马切回长按状态为否，等到添加到列表完成
                   alp.changeIsLongPress(false);
@@ -188,6 +190,9 @@ _displayTextInputDialog(BuildContext context, AudioInList alp) async {
                   print("输入新建的歌单名称");
 
                   /// 这里的逻辑就比较麻烦，因为使用的on audio query组件的限制
+                  /// 0 先查看是否有同名的歌单，如果有，直接加入即可
+                  /// （不做这步，因为查询和筛选这一步始终都要做，而且新建的逻辑不清楚，可能原始库在有同名歌单时已有优化）。
+
                   /// 1 创建新歌单
                   await audioQuery.createPlaylist(playInput);
 
