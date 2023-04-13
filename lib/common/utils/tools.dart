@@ -25,3 +25,7 @@ String formatDurationToString2(Duration duration) {
   String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
   return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
 }
+
+// 音频大小，从int的byte数值转为xxMB(保留2位小数)
+String formatAudioSizeToString(int num) =>
+    "${(num / 1024 / 1024).toStringAsFixed(2)} MB";

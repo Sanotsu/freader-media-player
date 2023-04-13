@@ -83,11 +83,6 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
   _buildList(BuildContext context) {
     ListLongPress llp = context.read<ListLongPress>();
 
-    if (llp.isRenamePlaylist) {
-      print("执行将选择的音频从歌单移除的逻辑");
-      renameSelectedPlaylist(llp);
-    }
-
     // 如果是上层使用provide取消了长按标志，这里得清空被选中的数组
     if (!llp.isPlaylistLongPress) {
       print("执行取消选择的歌单的逻辑");
@@ -198,10 +193,5 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
         );
       },
     );
-  }
-
-  renameSelectedPlaylist(ListLongPress llp) {
-    _audioQuery.renamePlaylist(selectedPlaylists[0].id, llp.newPlaylistName);
-    llp.changeIsPlaylistLongPress(false);
   }
 }

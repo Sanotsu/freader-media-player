@@ -12,8 +12,11 @@ import '../../../services/service_locator.dart';
 /// 添加到指定歌单的弹窗
 /// 如果是tab中的“全部”歌曲，不用传listType。
 /// 主要是用于在歌单tab时，从A歌单到B歌单时，因为没有原始音频id，所以逻辑与其他类型的添加稍微不同。
-Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioLongPress alp,
-    {listType}) async {
+Future<void> buildAddToPlaylistDialog(
+  BuildContext ctx,
+  AudioLongPress alp,
+  String listType,
+) async {
   // 获取查询音乐组件实例
   final audioQuery = getIt<MyAudioQuery>();
   // 每次打开添加到歌单，都没有预设被选中的
@@ -86,13 +89,12 @@ Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioLongPress alp,
                           style: TextButton.styleFrom(
                             textStyle: Theme.of(ctext).textTheme.labelLarge,
                           ),
-                          child: const Text('创建新歌单（预留）'),
+                          child: const Text('创建新歌单'),
                           onPressed: () async {
                             print("点击了新建歌单按钮11111");
 
                             Navigator.of(ctext).pop();
-                            await _displayTextInputDialog(ctext, alp,
-                                listType: listType);
+                            await _displayTextInputDialog(ctext, alp, listType);
                           },
                         ),
                       )
@@ -129,7 +131,7 @@ Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioLongPress alp,
               onPressed: () {
                 // 添加被选中的音频到指定歌单
                 addAudioToPlaylist(
-                    audioQuery, alp, selectedPlaylistId!, listType);
+                    audioQuery, alp, selectedPlaylistId ?? 0, listType);
 
                 setState(() {
                   // 单击了添加功能按钮之后，立马切回长按状态为否，等到添加到列表完成
@@ -146,8 +148,11 @@ Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioLongPress alp,
   );
 }
 
-_displayTextInputDialog(BuildContext context, AudioLongPress alp,
-    {listType}) async {
+_displayTextInputDialog(
+  BuildContext context,
+  AudioLongPress alp,
+  String listType,
+) async {
   // 获取查询音乐组件实例
   final audioQuery = getIt<MyAudioQuery>();
 

@@ -19,7 +19,7 @@ class AudioLongPress with ChangeNotifier {
     });
   }
 
-  // 当前的tab是哪一个
+  // 当前的tab是哪一个（可能没用）
   String currentTabName = AudioListTypes.playlist;
   void changeCurrentTabName(String name) {
     currentTabName = name;
@@ -33,6 +33,16 @@ class AudioLongPress with ChangeNotifier {
   // 修改则是全量替换
   void changeSelectedAudioList(List<SongModel> newList) {
     selectedAudioList = newList;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+
+  // 重置音频长按的状态为初始值
+  void resetAudioLongPress() {
+    isAudioLongPress = false;
+    currentTabName = AudioListTypes.playlist;
+    selectedAudioList.length = 0;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
     });

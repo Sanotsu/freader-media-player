@@ -9,6 +9,7 @@ import '../../../models/audio_long_press.dart';
 import '../../../services/my_audio_query.dart';
 import '../../../services/service_locator.dart';
 import '../widgets/build_add_to_playlist_dialog.dart';
+import '../widgets/build_audio_info_dialog.dart';
 import '../widgets/music_list_future_builder.dart';
 import '../widgets/music_player_mini_bar.dart';
 
@@ -45,13 +46,22 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.audioListTitle),
+          title: Consumer<AudioLongPress>(
+            builder: (context, alp, child) {
+              // 选中的音频数量
+              var tempNum = alp.selectedAudioList.length;
+
+              return tempNum > 0
+                  ? Text("选中$tempNum首", style: TextStyle(fontSize: 16.sp))
+                  : Text(widget.audioListTitle);
+            },
+          ),
           actions: <Widget>[
             // 因为使用了consumer，在其他组件中改变了其中类的属性，这里也会识别到
             Consumer<AudioLongPress>(
               builder: (context, alp, child) {
                 print(
-                  "1111xxxxxxxxxxxxxxxxxxxxxxxxxxx ${alp.isAudioLongPress}  ${alp.currentTabName}",
+                  "1111xxxxxxxxxxxxxxxxxxxxxxxxxxx ${alp.isAudioLongPress}  ${alp.currentTabName} ${alp.selectedAudioList.length}",
                 );
 
                 /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
@@ -160,20 +170,13 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
           onPressed: () => buildAddToPlaylistDialog(
             context,
             alp,
-            listType: widget.audioListType,
+            widget.audioListType,
           ),
         ),
         IconButton(
           icon: const Icon(Icons.info),
           tooltip: '详细信息',
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('This is a 详细信息'),
-                duration: Duration(seconds: 1),
-              ),
-            );
-          },
+          onPressed: () => buildAudioInfoDialog(context, alp),
         ),
         IconButton(
           icon: const Icon(Icons.more_vert),

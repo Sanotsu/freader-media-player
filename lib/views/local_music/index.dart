@@ -18,6 +18,8 @@ import 'all.dart';
 import 'artist.dart';
 import 'playlist.dart';
 import 'widgets/build_add_to_playlist_dialog.dart';
+import 'widgets/build_audio_info_dialog.dart';
+import 'widgets/common_small_widgets.dart';
 import 'widgets/music_player_mini_bar.dart';
 
 /// 正常来讲，应该把AudioPlayer处理成全局单例的，例如使用get_it，palyer的所有操作封装为一个service class，然后全局使用。
@@ -50,7 +52,22 @@ class _LocalMusicState extends State<LocalMusic> {
   /// 构建标题工具栏
   _buildAppBar(BuildContext context) {
     return AppBar(
-      title: const Text("本地音乐"),
+      title: Consumer2<AudioLongPress, ListLongPress>(
+        builder: (context, alp, llp, child) {
+          // 选中的音频数量
+          var audioNum = alp.selectedAudioList.length;
+          // 选中的歌单数量
+          var listNum = llp.selectedPlaylistList.length;
+
+          if (audioNum > 0) {
+            return Text("选中$audioNum首", style: TextStyle(fontSize: 16.sp));
+          } else if (listNum > 0) {
+            return Text("选中$listNum个", style: TextStyle(fontSize: 16.sp));
+          } else {
+            return const Text("本地音乐");
+          }
+        },
+      ),
       actions: <Widget>[
         /// 在“全部”tab长按，是根据音频来显示按钮。其他3个，则是类型子列表来显示
         /// 如果没有长按音频也没有长按列表，则显示默认工具按钮
@@ -67,6 +84,7 @@ class _LocalMusicState extends State<LocalMusic> {
       child: Builder(builder: (BuildContext context) {
         final TabController tabController = DefaultTabController.of(context);
         AudioLongPress alp = context.read<AudioLongPress>();
+        ListLongPress llp = context.read<ListLongPress>();
         tabController.addListener(() {
           // 如果tab的所以改变了，这里可以获取到，同时修改provide当前tab的名称
           if (!tabController.indexIsChanging) {
@@ -76,14 +94,22 @@ class _LocalMusicState extends State<LocalMusic> {
             setState(() {
               if (tabController.index == 0) {
                 alp.changeCurrentTabName(AudioListTypes.playlist);
+                // 切换到歌单列表，其他地方长按选中的音频，都取消掉
+                alp.resetAudioLongPress();
               } else if (tabController.index == 1) {
                 alp.changeCurrentTabName(AudioListTypes.all);
+                // 不是歌单列表，重置歌单长按状态
+                llp.resetListLongPress();
               } else if (tabController.index == 2) {
                 alp.changeCurrentTabName(AudioListTypes.artist);
+                // 不是歌单列表，重置歌单长按状态
+                llp.resetListLongPress();
                 print(
                     "22222222222222222222 ${tabController.index} ${alp.currentTabName}");
               } else if (tabController.index == 3) {
                 alp.changeCurrentTabName(AudioListTypes.album);
+                // 不是歌单列表，重置歌单长按状态
+                llp.resetListLongPress();
               }
             });
           }
@@ -288,24 +314,26 @@ class _LocalMusicState extends State<LocalMusic> {
         return AlertDialog(
           title: const Text('歌单属性'),
           content: SizedBox(
-            height: 250.sp,
             width: double.maxFinite,
-            child: ListView(children: <Widget>[
-              _buildRowText("歌单名称", list.playlist),
-              _buildRowText("歌曲数量", list.numOfSongs.toString()),
-              _buildRowText("歌单编号", list.id.toString()),
-              _buildRowText(
-                  "创建时间",
-                  list.dateAdded != null
-                      ? formatTimestampToString(list.dateAdded!)
-                      : ""),
-              _buildRowText(
-                  "修改时间",
-                  list.dateAdded != null
-                      ? formatTimestampToString(list.dateModified!)
-                      : ""),
-              _buildRowText("歌单位置", list.data.toString()),
-            ]),
+            child: ListView(
+              shrinkWrap: true, // 自动根据内容的高度显示list的高度
+              children: <Widget>[
+                buildRowText("歌单名称", list.playlist),
+                buildRowText("歌曲数量", list.numOfSongs.toString()),
+                buildRowText("歌单编号", list.id.toString()),
+                buildRowText(
+                    "创建时间",
+                    list.dateAdded != null
+                        ? formatTimestampToString(list.dateAdded!)
+                        : ""),
+                buildRowText(
+                    "修改时间",
+                    list.dateModified != null
+                        ? formatTimestampToString(list.dateModified!)
+                        : ""),
+                buildRowText("歌单位置", list.data.toString()),
+              ],
+            ),
           ),
           actions: <Widget>[
             TextButton(
@@ -329,36 +357,6 @@ class _LocalMusicState extends State<LocalMusic> {
     );
   }
 
-  // 构建一行依次为标签+属性的row widget
-  _buildRowText(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          flex: 1,
-          child: Text(
-            label, // 文字内容
-            overflow: TextOverflow.ellipsis, // 过长显示省略号
-            style: const TextStyle(fontWeight: FontWeight.bold), // 文字样式
-          ),
-        ),
-        Expanded(
-          flex: 2,
-          child: Text(
-            value, // 文字内容
-            // overflow: TextOverflow.ellipsis, // 过长显示省略号
-            overflow: TextOverflow.visible, // 过长显示省略号
-            style: TextStyle(
-              fontWeight: FontWeight.normal,
-              fontSize: 14.sp,
-              color: const Color.fromARGB(255, 75, 72, 72),
-            ), // 文字样式
-          ),
-        )
-      ],
-    );
-  }
-
   // 长按歌单后的工具按钮（修改名称、详情、删除）
   _buildLongPressButtons() {
     return Row(
@@ -375,11 +373,28 @@ class _LocalMusicState extends State<LocalMusic> {
                 ? IconButton(
                     icon: const Icon(Icons.add),
                     tooltip: '加入歌单',
-                    onPressed: () => buildAddToPlaylistDialog(context, alp),
+                    onPressed: () => buildAddToPlaylistDialog(
+                        context, alp, AudioListTypes.all),
                   )
                 : Container();
           },
         ),
+        Consumer<AudioLongPress>(
+          builder: (context, alp, child) {
+            print(
+              "xxxxxxxxxxxxxxxxxxxxxxxxxxx ${alp.isAudioLongPress}  ",
+            );
+            return alp.isAudioLongPress &&
+                    alp.currentTabName == AudioListTypes.all
+                ? IconButton(
+                    icon: const Icon(Icons.info),
+                    tooltip: '详细信息',
+                    onPressed: () => buildAudioInfoDialog(context, alp),
+                  )
+                : Container();
+          },
+        ),
+
         // 如果是“歌单”tab中指定单个歌单被长按选中，可显示修改
         Consumer<ListLongPress>(
           builder: (context, llp, child) =>
