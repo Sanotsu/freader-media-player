@@ -368,7 +368,7 @@ class _LocalMusicState extends State<LocalMusic> {
         Consumer<AudioLongPress>(
           builder: (context, alp, child) {
             print(
-              "xxxxxxxxxxxxxxxxxxxxxxxxxxx ${alp.isAudioLongPress} ${alp.isAddToList} ${alp.isRemoveFromList}",
+              "xxxxxxxxxxxxxxxxxxxxxxxxxxx ${alp.isAudioLongPress}  ",
             );
             return alp.isAudioLongPress &&
                     alp.currentTabName == AudioListTypes.all

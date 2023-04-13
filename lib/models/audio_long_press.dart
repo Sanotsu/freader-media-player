@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 
 import '../common/global/constants.dart';
 
@@ -18,48 +19,20 @@ class AudioLongPress with ChangeNotifier {
     });
   }
 
-  // 是否点击了从列表中移除被选中的音频
-  bool isRemoveFromList = false;
-  void changeIsRemoveFromList(bool flag) {
-    isRemoveFromList = flag;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
-  }
-
-  // 是否点击了添加被选中的音频到指定歌单
-  bool isAddToList = false;
-  void changeIsAddToList(bool flag) {
-    isAddToList = flag;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
-  }
-
-  // 2023-04-12 on audio query 组件的playlist（歌单）分类中id是重新递增的id，不是原始音频id
-  // 而其他诸如专辑、艺术家、类型等查询到的音频id又是原始id。
-  // 所以在加入歌单这个操作要分开来，如果是从歌单中添加，需要特殊表示
-  bool isAddToListFromPlaylist = false;
-  void changeIsAddToListFromPlaylist(bool flag) {
-    isAddToListFromPlaylist = flag;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
-  }
-
-  // 需要加入的歌单编号
-  int selectedPlaylistId = 0;
-  void changeSelectedPlaylistId(int id) {
-    selectedPlaylistId = id;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
-  }
-
   // 当前的tab是哪一个
   String currentTabName = AudioListTypes.playlist;
   void changeCurrentTabName(String name) {
     currentTabName = name;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+
+  // 被选中的歌单列表
+  List<SongModel> selectedAudioList = [];
+  // 修改则是全量替换
+  void changeSelectedAudioList(List<SongModel> newList) {
+    selectedAudioList = newList;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
     });

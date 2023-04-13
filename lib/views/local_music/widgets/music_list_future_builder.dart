@@ -104,26 +104,14 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
 
     // 这个alp.currentTabName可能不太对
     print(
-        "1111111111111111111zzzzzzzzzzz ${alp.currentTabName} ${alp.isAddToList} ${widget.audioListType}");
+        "1111111111111111111zzzzzzzzzzz ${alp.currentTabName}  ${widget.audioListType}");
 
-    // 如果是点击了移除被选中的音频，从歌单中移除
-    // (注意：暂时只有歌单才有移除，其他几个tab是没有的)
-    if (alp.isRemoveFromList) {
-      print("执行将选择的音频从歌单移除的逻辑");
-      removeSelectedAudionFromPlaylist(alp);
-    }
-    if (alp.isAddToList) {
-      print("执行将选择的音频 添加到歌单的逻辑");
-      if (widget.audioListType != AudioListTypes.playlist) {
-        addAudioToPlaylist(alp);
-      } else {
-        addAudioFromPlaylistToPlaylist(alp);
-      }
-    }
     // 如果是上层使用provide取消了长按标志，这里得清空被选中的数组
     if (!alp.isAudioLongPress) {
       print("执行取消选择的音频的逻辑");
       selectedIndexs.length = 0;
+      // 这里我以为是不能保证一定先完成了移除再获取新的歌单音频列表，但结果暂时是正确的
+      initFuture();
     }
 
     return Center(
@@ -171,6 +159,8 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                           alp.changeIsAudioLongPress(true);
                           // 长按的时候把该item索引加入被选中的索引变量中
                           selectedIndexs.add(songs[index]);
+                          // 保存被选中的音频
+                          alp.changeSelectedAudioList(selectedIndexs);
                         });
                         widget.callback('I am your sailing child');
                       },
@@ -209,6 +199,9 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                               if (selectedIndexs.isEmpty) {
                                 alp.changeIsAudioLongPress(false);
                               }
+
+                              // 不管如何，点击了，就要更新被选中的歌单列表
+                              alp.changeSelectedAudioList(selectedIndexs);
                             });
                           } else {
                             print(
@@ -270,64 +263,5 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
         ],
       ),
     );
-  }
-
-  // 从歌单中移除被选中的音频
-  removeSelectedAudionFromPlaylist(AudioLongPress alp) {
-    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ${alp.currentTabName}");
-    print(selectedIndexs);
-    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-    for (var e in selectedIndexs) {
-      _audioQuery.removeFromPlaylist(widget.audioListId!, e.id);
-    }
-
-    // 这里我以为是不能保证一定先完成了移除再获取新的歌单音频列表，但结果暂时是正确的
-    futureHandler = _audioQuery.queryAudiosFrom(
-        AudiosFromType.PLAYLIST, widget.audioListId!);
-
-    // 移除完之后，重置从歌单移除的状态
-    Provider.of<AudioLongPress>(context, listen: false)
-        .changeIsRemoveFromList(false);
-  }
-
-  // 添加被选中的音频到指定歌单
-  addAudioToPlaylist(AudioLongPress alp) {
-    print(
-      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ${alp.currentTabName} ${alp.selectedPlaylistId}",
-    );
-    print(selectedIndexs);
-    print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    for (var e in selectedIndexs) {
-      _audioQuery.addToPlaylist(alp.selectedPlaylistId, e.id);
-    }
-
-    // 添加完之后，重置状态
-    alp.changeIsAddToList(false);
-  }
-
-  // 从歌单中添加到歌单，与其他tab添加到歌单逻辑不同，因为前者的音频id不是原始id，而是重新赋值的id
-  addAudioFromPlaylistToPlaylist(AudioLongPress alp) {
-    print(
-      "aaaaaaaaaaaaaaaaaaddAudioFromPlaylistToPlaylist ${alp.currentTabName} ${alp.selectedPlaylistId}",
-    );
-    print(selectedIndexs);
-    print("aaaaaaaaaaaaaaaaddAudioFromPlaylistToPlaylist");
-    for (var e in selectedIndexs) {
-      // 选择的音频，通过名称查询到原始音频信息列表
-      _audioQuery
-          .queryWithFilters(
-        e.title,
-        WithFiltersType.AUDIOS,
-      )
-          .then((songs) {
-        // 假设同名的歌曲就一首，有多首也只取第一首放入指定歌单
-        var song = SongModel(songs[0]);
-
-        _audioQuery.addToPlaylist(alp.selectedPlaylistId, song.id);
-      });
-    }
-
-    // 添加完之后，重置状态
-    alp.changeIsAddToList(false);
   }
 }

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freader_music_player/common/global/constants.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 import '../../../models/audio_long_press.dart';
@@ -9,11 +10,16 @@ import '../../../services/my_audio_query.dart';
 import '../../../services/service_locator.dart';
 
 /// 添加到指定歌单的弹窗
-Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioLongPress alp) async {
+/// 如果是tab中的“全部”歌曲，不用传listType。
+/// 主要是用于在歌单tab时，从A歌单到B歌单时，因为没有原始音频id，所以逻辑与其他类型的添加稍微不同。
+Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioLongPress alp,
+    {listType}) async {
   // 获取查询音乐组件实例
   final audioQuery = getIt<MyAudioQuery>();
   // 每次打开添加到歌单，都没有预设被选中的
   int? selectedPlaylistId = 0;
+
+  print("buildAddToPlaylistDialog====  $listType");
 
   return await showDialog<void>(
     context: ctx,
@@ -85,7 +91,8 @@ Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioLongPress alp) asyn
                             print("点击了新建歌单按钮11111");
 
                             Navigator.of(ctext).pop();
-                            await _displayTextInputDialog(ctext, alp);
+                            await _displayTextInputDialog(ctext, alp,
+                                listType: listType);
                           },
                         ),
                       )
@@ -120,16 +127,16 @@ Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioLongPress alp) asyn
               ),
               child: const Text('添加'),
               onPressed: () {
-                setState(() {
-                  alp.changeSelectedPlaylistId(selectedPlaylistId!);
+                // 添加被选中的音频到指定歌单
+                addAudioToPlaylist(
+                    audioQuery, alp, selectedPlaylistId!, listType);
 
-                  print("弹窗选中的歌单编号 ${alp.selectedPlaylistId}");
-                  alp.changeIsAddToList(true);
+                setState(() {
                   // 单击了添加功能按钮之后，立马切回长按状态为否，等到添加到列表完成
                   alp.changeIsAudioLongPress(false);
+                  // 关闭弹窗
+                  Navigator.of(ctext).pop();
                 });
-
-                Navigator.of(ctext).pop();
               },
             );
           }),
@@ -139,7 +146,8 @@ Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioLongPress alp) asyn
   );
 }
 
-_displayTextInputDialog(BuildContext context, AudioLongPress alp) async {
+_displayTextInputDialog(BuildContext context, AudioLongPress alp,
+    {listType}) async {
   // 获取查询音乐组件实例
   final audioQuery = getIt<MyAudioQuery>();
 
@@ -187,8 +195,6 @@ _displayTextInputDialog(BuildContext context, AudioLongPress alp) async {
                 onPressed: () async {
                   // 新建歌单的逻辑，同时加入歌单的逻辑。
 
-                  print("输入新建的歌单名称");
-
                   /// 这里的逻辑就比较麻烦，因为使用的on audio query组件的限制
                   /// 0 先查看是否有同名的歌单，如果有，直接加入即可
                   /// （不做这步，因为查询和筛选这一步始终都要做，而且新建的逻辑不清楚，可能原始库在有同名歌单时已有优化）。
@@ -203,10 +209,13 @@ _displayTextInputDialog(BuildContext context, AudioLongPress alp) async {
                   PlaylistModel p = list
                       .firstWhere((PlaylistModel e) => e.playlist == playInput);
 
+                  print(
+                      "输入新建的歌单名称 $playInput ${p.id} ${alp.selectedAudioList}");
+
+                  /// 4 添加歌单中被选中的音频到指定另一歌单
+                  addAudioToPlaylist(audioQuery, alp, p.id, listType);
+
                   setState(() {
-                    /// 4 把被选中的音频放入歌单(通过修改provide的值)
-                    alp.changeIsAddToList(true);
-                    alp.changeSelectedPlaylistId(p.id);
                     alp.changeIsAudioLongPress(false);
                     Navigator.pop(context);
                   });
@@ -216,4 +225,30 @@ _displayTextInputDialog(BuildContext context, AudioLongPress alp) async {
           ],
         );
       });
+}
+
+// 添加音频到歌单(根据来源不同，操作有一点差别:如果是从歌单到歌单，多一步查询原始音频id)
+addAudioToPlaylist(
+  MyAudioQuery maq,
+  AudioLongPress alp,
+  int playlistId,
+  String listType,
+) {
+  if (listType != AudioListTypes.playlist) {
+    print("不是从A歌单到B歌单添加音频");
+    // 不是从A歌单到B歌单添加音频
+    for (var e in alp.selectedAudioList) {
+      maq.addToPlaylist(playlistId, e.id);
+    }
+  } else {
+    // 如果是A歌单到B歌单，选择的音频，通过名称查询到原始音频信息列表
+    print("如果是A歌单到B歌单，选择的音频，通过名称查询到原始音频信息列表");
+    for (var e in alp.selectedAudioList) {
+      maq.queryWithFilters(e.title, WithFiltersType.AUDIOS).then((songs) {
+        // 假设同名的歌曲就一首，有多首也只取第一首放入指定歌单
+        print("${SongModel(songs[0]).id}");
+        maq.addToPlaylist(playlistId, SongModel(songs[0]).id);
+      });
+    }
+  }
 }

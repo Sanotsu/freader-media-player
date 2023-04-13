@@ -6,6 +6,8 @@ import 'package:freader_music_player/common/global/constants.dart';
 import 'package:provider/provider.dart';
 
 import '../../../models/audio_long_press.dart';
+import '../../../services/my_audio_query.dart';
+import '../../../services/service_locator.dart';
 import '../widgets/build_add_to_playlist_dialog.dart';
 import '../widgets/music_list_future_builder.dart';
 import '../widgets/music_player_mini_bar.dart';
@@ -68,7 +70,7 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
               child: Consumer<AudioLongPress>(
                 builder: (context, alp, child) {
                   print(
-                      "1111LocalMusicAudioListDetail ${alp.isAudioLongPress} ${alp.isAddToList} ${alp.isRemoveFromList}");
+                      "1111LocalMusicAudioListDetail ${alp.isAudioLongPress} ");
 
                   /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
                   ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
@@ -126,9 +128,11 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
 
   Widget buildLongPressButtons(AudioLongPress alp) {
     // var alp = context.read<AudioInList>();
-
+    // 获取查询音乐组件实例
+    final audioQuery = getIt<MyAudioQuery>();
     print(
-        "111111buildLongPressButtonsXXXXXXXXXXXXXXX  ${alp.isAudioLongPress} ${alp.currentTabName}");
+      "111111buildLongPressButtonsXXXXXXXXXXXXXXX  ${alp.isAudioLongPress} ${alp.currentTabName}  ${widget.audioListType} ${alp.selectedAudioList}",
+    );
 
     return Row(
       children: [
@@ -138,11 +142,14 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
                 icon: const Icon(Icons.remove),
                 tooltip: '从列表中移除',
                 onPressed: () {
+                  // 长按是保存被选中的音频，直接在这里取得后进行移除
+                  for (var e in alp.selectedAudioList) {
+                    audioQuery.removeFromPlaylist(widget.audioListId, e.id);
+                  }
                   setState(() {
-                    // 修改移除歌单中指定音频标志为true
-                    alp.changeIsRemoveFromList(true);
                     // 单击了功能按钮之后，立马切回长按状态为否
                     alp.changeIsAudioLongPress(false);
+                    alp.changeSelectedAudioList([]);
                   });
                 },
               )
@@ -150,7 +157,11 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
         IconButton(
           icon: const Icon(Icons.add),
           tooltip: '添加到歌单',
-          onPressed: () => buildAddToPlaylistDialog(context, alp),
+          onPressed: () => buildAddToPlaylistDialog(
+            context,
+            alp,
+            listType: widget.audioListType,
+          ),
         ),
         IconButton(
           icon: const Icon(Icons.info),

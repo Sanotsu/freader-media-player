@@ -20,7 +20,7 @@ class _LocalMusicAllState extends State<LocalMusicAll> {
     return Consumer<AudioLongPress>(
       builder: (context, alp, child) {
         print(
-            "1111xxxxLocalMusicAllxxx ${alp.isAudioLongPress} ${alp.isAddToList} ${alp.isRemoveFromList}");
+            "1111xxxxLocalMusicAllxxx ${alp.isAudioLongPress} ");
 
         /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
         ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
