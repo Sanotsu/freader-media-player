@@ -5,7 +5,7 @@ import 'package:on_audio_query/on_audio_query.dart';
 import 'package:provider/provider.dart';
 
 import '../../common/global/constants.dart';
-import '../../models/is_long_press.dart';
+import '../../models/audio_long_press.dart';
 import '../../services/my_audio_query.dart';
 import '../../services/service_locator.dart';
 import 'nested_pages/audio_list_detail.dart';
@@ -65,7 +65,7 @@ class _LocalMusicArtistState extends State<LocalMusicArtist> {
                   MaterialPageRoute(
                     // 在选中指定歌单点击后，进入音频列表，同时监控是否有对音频长按
                     builder: (BuildContext ctx) => ListenableProvider(
-                      create: (ctx) => AudioInList(),
+                      create: (ctx) => AudioLongPress(),
                       builder: (context, child) => LocalMusicAudioListDetail(
                         audioListType: AudioListTypes.artist,
                         audioListId: artists[index].id,

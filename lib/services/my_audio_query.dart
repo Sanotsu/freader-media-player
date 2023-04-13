@@ -100,6 +100,10 @@ class MyAudioQuery {
   Future<bool> removePlaylist(int playlistId) =>
       _query.removePlaylist(playlistId);
 
+  // 重命名歌单
+  Future<bool> renamePlaylist(int playlistId, String newName) =>
+      _query.renamePlaylist(playlistId, newName);
+
   // 将音频添加到歌单中
   Future<bool> addToPlaylist(int playlistId, int audioId) =>
       _query.addToPlaylist(playlistId, audioId);

@@ -5,7 +5,7 @@ import 'package:on_audio_query/on_audio_query.dart';
 import 'package:provider/provider.dart';
 
 import '../../../common/global/constants.dart';
-import '../../../models/is_long_press.dart';
+import '../../../models/audio_long_press.dart';
 import '../../../services/my_audio_handler.dart';
 import '../../../services/my_audio_query.dart';
 import '../../../services/my_shared_preferences.dart';
@@ -98,7 +98,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
 
   @override
   Widget build(BuildContext context) {
-    AudioInList alp = context.read<AudioInList>();
+    AudioLongPress alp = context.read<AudioLongPress>();
 
     // 这个alp.currentTabName可能不太对
     print(
@@ -119,7 +119,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
       }
     }
     // 如果是上层使用provide取消了长按标志，这里得清空被选中的数组
-    if (!alp.isLongPress) {
+    if (!alp.isAudioLongPress) {
       print("执行取消选择的音频的逻辑");
       selectedIndexs.length = 0;
     }
@@ -161,7 +161,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                       onLongPress: () {
                         setState(() {
                           // 音频item被长按了，设置标志为被长按，会显示一些操作按钮，且再单击音频是多选，而不是播放
-                          alp.changeIsLongPress(true);
+                          alp.changeIsAudioLongPress(true);
                           // 长按的时候把该item索引加入被选中的索引变量中
                           selectedIndexs.add(songs[index]);
                         });
@@ -181,7 +181,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                           type: ArtworkType.AUDIO,
                         ),
                         onTap: () async {
-                          if (alp.isLongPress) {
+                          if (alp.isAudioLongPress) {
                             setState(() {
                               // 如果已经加入被选中列表，再次点击则移除
                               if (selectedIndexs.contains(songs[index])) {
@@ -191,7 +191,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                               }
                               // 如果被选中的列表清空，那就假装没有点击长按用于选择音频
                               if (selectedIndexs.isEmpty) {
-                                alp.changeIsLongPress(false);
+                                alp.changeIsAudioLongPress(false);
                               }
                             });
                           } else {
@@ -257,7 +257,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
   }
 
   // 从歌单中移除被选中的音频
-  removeSelectedAudionFromPlaylist(AudioInList alp) {
+  removeSelectedAudionFromPlaylist(AudioLongPress alp) {
     print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ${alp.currentTabName}");
     print(selectedIndexs);
     print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
@@ -270,12 +270,12 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
         AudiosFromType.PLAYLIST, widget.audioListId!);
 
     // 移除完之后，重置从歌单移除的状态
-    Provider.of<AudioInList>(context, listen: false)
+    Provider.of<AudioLongPress>(context, listen: false)
         .changeIsRemoveFromList(false);
   }
 
   // 添加被选中的音频到指定歌单
-  addAudioToPlaylist(AudioInList alp) {
+  addAudioToPlaylist(AudioLongPress alp) {
     print(
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ${alp.currentTabName} ${alp.selectedPlaylistId}",
     );
@@ -290,7 +290,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
   }
 
   // 从歌单中添加到歌单，与其他tab添加到歌单逻辑不同，因为前者的音频id不是原始id，而是重新赋值的id
-  addAudioFromPlaylistToPlaylist(AudioInList alp) {
+  addAudioFromPlaylistToPlaylist(AudioLongPress alp) {
     print(
       "aaaaaaaaaaaaaaaaaaddAudioFromPlaylistToPlaylist ${alp.currentTabName} ${alp.selectedPlaylistId}",
     );

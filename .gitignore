@@ -49,3 +49,5 @@ ios
 **/_tests
 
 **/assets/audio
+
+.vscode

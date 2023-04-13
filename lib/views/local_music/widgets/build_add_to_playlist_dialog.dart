@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
-import '../../../models/is_long_press.dart';
+import '../../../models/audio_long_press.dart';
 import '../../../services/my_audio_query.dart';
 import '../../../services/service_locator.dart';
 
 /// 添加到指定歌单的弹窗
-Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioInList alp) async {
+Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioLongPress alp) async {
   // 获取查询音乐组件实例
   final audioQuery = getIt<MyAudioQuery>();
   // 每次打开添加到歌单，都没有预设被选中的
@@ -105,7 +105,7 @@ Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioInList alp) async {
                 onPressed: () {
                   setState(() {
                     // 单击了取消功能按钮之后，立马切回长按状态为否
-                    alp.changeIsLongPress(false);
+                    alp.changeIsAudioLongPress(false);
                   });
                   Navigator.of(ctext).pop();
                 },
@@ -126,7 +126,7 @@ Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioInList alp) async {
                   print("弹窗选中的歌单编号 ${alp.selectedPlaylistId}");
                   alp.changeIsAddToList(true);
                   // 单击了添加功能按钮之后，立马切回长按状态为否，等到添加到列表完成
-                  alp.changeIsLongPress(false);
+                  alp.changeIsAudioLongPress(false);
                 });
 
                 Navigator.of(ctext).pop();
@@ -139,7 +139,7 @@ Future<void> buildAddToPlaylistDialog(BuildContext ctx, AudioInList alp) async {
   );
 }
 
-_displayTextInputDialog(BuildContext context, AudioInList alp) async {
+_displayTextInputDialog(BuildContext context, AudioLongPress alp) async {
   // 获取查询音乐组件实例
   final audioQuery = getIt<MyAudioQuery>();
 
@@ -172,7 +172,7 @@ _displayTextInputDialog(BuildContext context, AudioInList alp) async {
                 onPressed: () {
                   setState(() {
                     // 单击了取消功能按钮之后，立马切回长按状态为否，也取消弹窗
-                    alp.changeIsLongPress(false);
+                    alp.changeIsAudioLongPress(false);
                     Navigator.pop(context);
                   });
                 },
@@ -207,7 +207,7 @@ _displayTextInputDialog(BuildContext context, AudioInList alp) async {
                     /// 4 把被选中的音频放入歌单(通过修改provide的值)
                     alp.changeIsAddToList(true);
                     alp.changeSelectedPlaylistId(p.id);
-                    alp.changeIsLongPress(false);
+                    alp.changeIsAudioLongPress(false);
                     Navigator.pop(context);
                   });
                 },

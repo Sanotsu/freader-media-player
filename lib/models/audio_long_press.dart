@@ -8,11 +8,11 @@ import '../common/global/constants.dart';
 /// 在具体使用的地方要进行使用 Consumer 组件，或者从context中调用方法
 ///     var alp = context.read<AudioLongPress>();
 ///     alp.changeIsLongPress(true)
-class AudioInList with ChangeNotifier {
+class AudioLongPress with ChangeNotifier {
   // 音频是否被长按
-  bool isLongPress = false;
-  void changeIsLongPress(bool flag) {
-    isLongPress = flag;
+  bool isAudioLongPress = false;
+  void changeIsAudioLongPress(bool flag) {
+    isAudioLongPress = flag;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
     });

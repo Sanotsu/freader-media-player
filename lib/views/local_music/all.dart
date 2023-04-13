@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../common/global/constants.dart';
-import '../../models/is_long_press.dart';
+import '../../models/audio_long_press.dart';
 import 'widgets/music_list_future_builder.dart';
 
 class LocalMusicAll extends StatefulWidget {
@@ -17,10 +17,10 @@ class LocalMusicAll extends StatefulWidget {
 class _LocalMusicAllState extends State<LocalMusicAll> {
   @override
   Widget build(BuildContext context) {
-    return Consumer<AudioInList>(
+    return Consumer<AudioLongPress>(
       builder: (context, alp, child) {
         print(
-            "1111xxxxLocalMusicAllxxx ${alp.isLongPress} ${alp.isAddToList} ${alp.isRemoveFromList}");
+            "1111xxxxLocalMusicAllxxx ${alp.isAudioLongPress} ${alp.isAddToList} ${alp.isRemoveFromList}");
 
         /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
         ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
