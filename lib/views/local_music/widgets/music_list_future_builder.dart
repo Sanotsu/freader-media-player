@@ -1,10 +1,12 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:provider/provider.dart';
 
 import '../../../common/global/constants.dart';
+import '../../../common/utils/tools.dart';
 import '../../../models/audio_long_press.dart';
 import '../../../services/my_audio_handler.dart';
 import '../../../services/my_audio_query.dart';
@@ -157,6 +159,11 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                         subtext = songs[index].artist ?? '未知艺术家';
                     }
 
+                    // 歌曲的时长，格式化为hh:mm:ss 格式
+                    var songDurationStr = formatDurationToString(
+                      Duration(milliseconds: songs[index].duration!),
+                    );
+
                     return GestureDetector(
                       onLongPress: () {
                         setState(() {
@@ -171,15 +178,24 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                         selected: selectedIndexs.contains(songs[index]),
                         title: Text(songs[index].title),
                         subtitle: Text(subtext),
-                        trailing: const Icon(Icons.arrow_forward_rounded),
-                        // 这个小部件将查询/加载图像。可以使用/创建你自己的Widget/方法，使用[queryArtwork]。
-                        leading: QueryArtworkWidget(
-                          controller: _audioQuery.onAudioQueryController,
-                          // ??好像只有querysongs获取到的 SongModel 的id才能找到图片
-                          // 其他查询播放列表、艺术家的获取的音频id和querysongs的不一样，也拿不到图片
-                          id: songs[index].id,
-                          type: ArtworkType.AUDIO,
-                        ),
+                        trailing: Text(songDurationStr),
+                        // 不设置默认为40，需要几乎不占位的leading则需要减少该值
+                        minLeadingWidth: 2.sp,
+                        // 这个小部件将查询/加载图像。
+                        // 因为相关组件的限制，歌单内的音频id不是原始id，无法显示指定的缩略图，所以不显示
+                        leading: (widget.audioListType !=
+                                AudioListTypes.playlist)
+                            ? QueryArtworkWidget(
+                                controller: _audioQuery.onAudioQueryController,
+                                // ??好像只有querysongs获取到的 SongModel 的id才能找到图片
+                                // 其他查询播放列表、艺术家的获取的音频id和querysongs的不一样，也拿不到图片
+                                id: songs[index].id,
+                                type: ArtworkType.AUDIO,
+                              )
+                            : SizedBox(
+                                height: 2.sp,
+                                width: 2.sp,
+                              ),
                         onTap: () async {
                           if (alp.isAudioLongPress) {
                             setState(() {

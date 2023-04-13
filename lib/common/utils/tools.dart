@@ -14,3 +14,14 @@ String formatTimestampToString(int timestamp) {
       .add_Hms()
       .format(DateTime.fromMillisecondsSinceEpoch(timestamp));
 }
+
+// 格式化Duration为 HH:MM:SS格式
+formatDurationToString(Duration d) =>
+    d.toString().split('.').first.padLeft(8, "0");
+
+String formatDurationToString2(Duration duration) {
+  String twoDigits(int n) => n.toString().padLeft(2, "0");
+  String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+  String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+  return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+}

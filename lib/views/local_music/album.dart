@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:provider/provider.dart';
 
@@ -42,17 +43,19 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
 
         return ListView.builder(
           itemCount: albums.length,
+          itemExtent: 80.sp, // 每个item内部组件的高度
           itemBuilder: (context, index) {
             return ListTile(
               title: Text(albums[index].album),
-              subtitle: Text(albums[index].numOfSongs.toString()),
-              trailing: const Icon(Icons.arrow_forward_rounded),
-              // 这个小部件将查询/加载图像。可以使用/创建你自己的Widget/方法，使用[queryArtwork]。
+              subtitle: Text("${albums[index].numOfSongs.toString()} 首歌曲"),
+              minLeadingWidth: 100.sp, // 左侧缩略图标的最小宽度
+              // 这个小部件将查询/加载图像。
               leading: QueryArtworkWidget(
                 controller: _audioQuery.onAudioQueryController,
                 // 显示根据专辑id查询的专辑图片
                 id: albums[index].id,
                 type: ArtworkType.ALBUM,
+                artworkBorder: const BorderRadius.all(Radius.zero), // 缩略图不显示圆角
               ),
               onTap: () {
                 print(

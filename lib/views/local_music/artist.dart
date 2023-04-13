@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:provider/provider.dart';
 
@@ -42,19 +43,23 @@ class _LocalMusicArtistState extends State<LocalMusicArtist> {
 
         return ListView.builder(
           itemCount: artists.length,
+          itemExtent: 80.sp, // 每个item内部组件的高度
           itemBuilder: (context, index) {
             return ListTile(
+              minLeadingWidth: 100.sp, // 左侧缩略图标的最小宽度
               title: Text(artists[index].artist),
               subtitle: Text(
                 "${artists[index].numberOfTracks.toString()} 张专辑 ${artists[index].numberOfTracks.toString()} 首歌曲",
               ),
-              trailing: const Icon(Icons.arrow_forward_rounded),
               // 这个小部件将查询/加载图像。可以使用/创建你自己的Widget/方法，使用[queryArtwork]。
               leading: QueryArtworkWidget(
                 controller: _audioQuery.onAudioQueryController,
                 // 显示根据歌手id查询的歌手图片
                 id: artists[index].id,
                 type: ArtworkType.ARTIST,
+                artworkBorder: const BorderRadius.all(Radius.zero), // 缩略图不显示圆角
+                // artworkWidth: 100.sp, // 默认是50*50的大小
+                // artworkHeight: 100.sp, // 这个高度显示不太对
               ),
               onTap: () {
                 print(

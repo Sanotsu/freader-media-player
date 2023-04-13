@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freader_music_player/models/list_long_press.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:provider/provider.dart';
@@ -118,14 +119,18 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
             return ListTile(
               selected: selectedPlaylists.contains(playlists[index]),
               title: Text(playlists[index].playlist),
-              subtitle: Text(playlists[index].numOfSongs.toString()),
-              trailing: const Icon(Icons.arrow_forward_rounded),
-              // 这个小部件将查询/加载图像。可以使用/创建你自己的Widget/方法，使用[queryArtwork]。
-              leading: QueryArtworkWidget(
-                controller: _audioQuery.onAudioQueryController,
-                // 显示根据歌手id查询的歌手图片
-                id: playlists[index].id,
-                type: ArtworkType.PLAYLIST,
+              subtitle: Text("${playlists[index].numOfSongs.toString()} 首歌曲"),
+              // 歌单可以不要缩略图，反2.7.0的相关组件依赖也查不到原始音频id
+              // leading: QueryArtworkWidget(
+              //   controller: _audioQuery.onAudioQueryController,
+              //   // 显示根据歌手id查询的歌手图片
+              //   id: playlists[index].id,
+              //   type: ArtworkType.PLAYLIST,
+              //   artworkBorder: const BorderRadius.all(Radius.zero), // 缩略图不显示圆角
+              // ),
+              leading: SizedBox(
+                height: 50.sp,
+                width: 50.sp,
               ),
               onLongPress: () {
                 setState(() {
