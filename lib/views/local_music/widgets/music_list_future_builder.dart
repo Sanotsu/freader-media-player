@@ -19,15 +19,19 @@ import '../nested_pages/just_audio_music_player_detail.dart';
 /// 根据不同类型，调用不同查询方法
 
 class MusicListFutureBuilder extends StatefulWidget {
-  const MusicListFutureBuilder(
-      {super.key,
-      required this.audioListType,
-      this.audioListId,
-      required this.callback});
+  const MusicListFutureBuilder({
+    super.key,
+    required this.audioListType,
+    this.audioListId,
+    required this.callback,
+    this.queryInputted,
+  });
 
   final String audioListType;
   final int? audioListId;
   final Function callback;
+  // 2023-04-14 如果是主页面“全部”tab的查询结果，可能把查询条件传过来。如果有，则用它；没有，才使用initFuture。
+  final String? queryInputted;
 
   @override
   State<MusicListFutureBuilder> createState() => _MusicListFutureBuilderState();
@@ -42,7 +46,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
   final _simpleShared = getIt<MySharedPreferences>();
 
   // 根据不同播放列表类型，构建不同的查询处理
-  late Future<List<SongModel>> futureHandler;
+  late Future<List<dynamic>> futureHandler;
 
   /// 音频多选的操作逻辑：
   /// 长按指定音频，启动播放列表功能模式
@@ -59,13 +63,13 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
 
   @override
   void initState() {
+    print("zzzzzzzzzzzzz------ ${widget.queryInputted}");
+
     super.initState();
     _audioQuery.setLogConfig();
     initFuture();
     // 如果确定在 my audio handle中 _getInitPlaylistAndIndex 有效，这里就不再用了
     // checkPermission();
-
-    print("zzzzzzzzzzzzz------");
   }
 
   // checkPermission() async {
@@ -75,7 +79,19 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
 
   initFuture() async {
     print("传入music list future builder的播放列表类型和编号------------");
-    print("${widget.audioListType},,,${widget.audioListId}");
+    print(
+        "${widget.audioListType},,,${widget.audioListId} ${widget.queryInputted}");
+
+    // 只要有传入查询条件就用这个，传空字串则查询所有
+    if (widget.queryInputted != null) {
+      print("all tab 查询的内容 ${widget.queryInputted}------------");
+
+      futureHandler = _audioQuery.queryWithFilters(
+        widget.queryInputted!,
+        WithFiltersType.AUDIOS,
+      );
+      return;
+    }
 
     switch (widget.audioListType) {
       case AudioListTypes.all:
@@ -117,7 +133,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
     return Center(
       child: !_audioQuery.hasPermission
           ? noAccessToLibraryWidget()
-          : FutureBuilder<List<SongModel>>(
+          : FutureBuilder<List<dynamic>>(
               future: futureHandler,
               builder: (context, item) {
                 // 如果查询出错，显示错误信息
@@ -132,24 +148,33 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                 if (item.data!.isEmpty) return const Text("Nothing found!");
 
                 // 最后就是得到了歌曲列表，统一处理
-                List<SongModel> songs = item.data!;
+                //(知道这里的动态其实是song model，就这样转型供下面使用)
+                // List<dynamic> songs = item.data!;
+                // 注意：如果是tab页查询结果，才需要转型；否则，本身就是查询的song model类型，再转就失败了
+                List<SongModel> songs = (widget.queryInputted != null)
+                    ? item.data!.map((e) => SongModel(e)).toList()
+                    : item.data! as List<SongModel>;
 
                 return ListView.builder(
                   itemCount: songs.length,
                   itemBuilder: (context, index) {
                     // 歌手分类子标题就是专辑名，专辑分类子标题就是歌手
+
+                    print(
+                        "构建音频列表=========================$index ${songs[index]} ${songs[index].runtimeType}");
+                    SongModel song = songs[index];
                     var subtext = "";
                     switch (widget.audioListType) {
                       case AudioListTypes.artist:
-                        subtext = "专辑: ${songs[index].album}";
+                        subtext = "专辑: ${song.album}";
                         break;
                       default:
-                        subtext = songs[index].artist ?? '未知艺术家';
+                        subtext = song.artist ?? '未知艺术家';
                     }
 
                     // 歌曲的时长，格式化为hh:mm:ss 格式
                     var songDurationStr = formatDurationToString(
-                      Duration(milliseconds: songs[index].duration!),
+                      Duration(milliseconds: song.duration!),
                     );
 
                     return GestureDetector(
@@ -158,15 +183,15 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                           // 音频item被长按了，设置标志为被长按，会显示一些操作按钮，且再单击音频是多选，而不是播放
                           alp.changeIsAudioLongPress(true);
                           // 长按的时候把该item索引加入被选中的索引变量中
-                          selectedIndexs.add(songs[index]);
+                          selectedIndexs.add(song);
                           // 保存被选中的音频
                           alp.changeSelectedAudioList(selectedIndexs);
                         });
                         widget.callback('I am your sailing child');
                       },
                       child: ListTile(
-                        selected: selectedIndexs.contains(songs[index]),
-                        title: Text(songs[index].title),
+                        selected: selectedIndexs.contains(song),
+                        title: Text(song.title),
                         subtitle: Text(subtext),
                         trailing: Text(songDurationStr),
                         // 不设置默认为40，需要几乎不占位的leading则需要减少该值
@@ -179,7 +204,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                                 controller: _audioQuery.onAudioQueryController,
                                 // ??好像只有querysongs获取到的 SongModel 的id才能找到图片
                                 // 其他查询播放列表、艺术家的获取的音频id和querysongs的不一样，也拿不到图片
-                                id: songs[index].id,
+                                id: song.id,
                                 type: ArtworkType.AUDIO,
                               )
                             : SizedBox(
@@ -190,10 +215,10 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                           if (alp.isAudioLongPress) {
                             setState(() {
                               // 如果已经加入被选中列表，再次点击则移除
-                              if (selectedIndexs.contains(songs[index])) {
-                                selectedIndexs.remove(songs[index]);
+                              if (selectedIndexs.contains(song)) {
+                                selectedIndexs.remove(song);
                               } else {
-                                selectedIndexs.add(songs[index]);
+                                selectedIndexs.add(song);
                               }
                               // 如果被选中的列表清空，那就假装没有点击长按用于选择音频
                               if (selectedIndexs.isEmpty) {
@@ -204,13 +229,16 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                               alp.changeSelectedAudioList(selectedIndexs);
                             });
                           } else {
-                            print(
-                                '点击了歌曲${songs[index].title} id是 ${songs[index].id}');
-                            print(songs[index].runtimeType);
+                            print('点击了歌曲${song.title} id是 ${song.id}');
+                            print(song.runtimeType);
 
-                            // 到这里就已经查询到当前“全部歌曲”页面中所有的歌曲了，可以构建播放列表和当前音频
+                            // 到这里就已经查询到当前“tab”页面中所有的歌曲了，可以构建播放列表和当前音频
+                            // 如果是条件查询，则是条件查询结果构成的歌单
                             await _audioHandler.buildPlaylist(
-                                songs, songs[index]);
+                              // songs.map((e) => SongModel(e)).toList(),
+                              songs,
+                              song,
+                            );
                             await _audioHandler.refreshCurrentPlaylist();
 
                             // 将播放列表信息、被点击的音频编号\播放列表编号(全部歌曲tab除外)存入持久化

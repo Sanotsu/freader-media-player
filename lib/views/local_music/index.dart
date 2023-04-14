@@ -16,10 +16,12 @@ import '../../services/service_locator.dart';
 import 'album.dart';
 import 'all.dart';
 import 'artist.dart';
+import 'nested_pages/audio_list_detail.dart';
 import 'playlist.dart';
 import 'widgets/build_add_to_playlist_dialog.dart';
 import 'widgets/build_audio_info_dialog.dart';
 import 'widgets/common_small_widgets.dart';
+import 'widgets/music_list_future_builder.dart';
 import 'widgets/music_player_mini_bar.dart';
 
 /// 正常来讲，应该把AudioPlayer处理成全局单例的，例如使用get_it，palyer的所有操作封装为一个service class，然后全局使用。
@@ -33,7 +35,16 @@ class LocalMusic extends StatefulWidget {
 }
 
 class _LocalMusicState extends State<LocalMusic> {
-  bool isShowDefaultButton = true;
+  // 是否点击了查询按钮
+  bool _iSClickSearch = false;
+  // 查询的结果集(歌单、音频、歌手、专辑各个结果的类型不一样，所以要动态)
+  List<dynamic> _searchIndexList = [];
+  // 当前搜索所在的tab名称，用于构建对应类别的查询结果列表（进入app默认是歌单tab）
+  // 正常来讲，这个值只会是4个tab的值，不会有其他的（在switch case中需要，如果出现其他，则是哪里出了问题）
+  String tabNameOnSearch = AudioListTypes.playlist;
+
+  // 输入的查询条件字符串
+  String searchedInput = "";
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +55,8 @@ class _LocalMusicState extends State<LocalMusic> {
       ],
       child: Scaffold(
         appBar: _buildAppBar(context),
-        body: _buildBody(context),
+        // 如果没有点击查询按钮，显示正常的音频相关内容；如果点击了，显示简单的查询结果列表内容
+        body: !_iSClickSearch ? _buildBody(context) : _searchListView(),
       ),
     );
   }
@@ -54,17 +66,22 @@ class _LocalMusicState extends State<LocalMusic> {
     return AppBar(
       title: Consumer2<AudioLongPress, ListLongPress>(
         builder: (context, alp, llp, child) {
-          // 选中的音频数量
-          var audioNum = alp.selectedAudioList.length;
-          // 选中的歌单数量
-          var listNum = llp.selectedPlaylistList.length;
+          /// 如果不是搜索状态显示标题；如果是，显示搜索框
+          if (!_iSClickSearch) {
+            // 选中的音频数量
+            var audioNum = alp.selectedAudioList.length;
+            // 选中的歌单数量
+            var listNum = llp.selectedPlaylistList.length;
 
-          if (audioNum > 0) {
-            return Text("选中$audioNum首", style: TextStyle(fontSize: 16.sp));
-          } else if (listNum > 0) {
-            return Text("选中$listNum个", style: TextStyle(fontSize: 16.sp));
+            if (audioNum > 0) {
+              return Text("选中$audioNum首", style: TextStyle(fontSize: 16.sp));
+            } else if (listNum > 0) {
+              return Text("选中$listNum个", style: TextStyle(fontSize: 16.sp));
+            } else {
+              return const Text("本地音乐");
+            }
           } else {
-            return const Text("本地音乐");
+            return _searchTextField(alp);
           }
         },
       ),
@@ -85,6 +102,7 @@ class _LocalMusicState extends State<LocalMusic> {
         final TabController tabController = DefaultTabController.of(context);
         AudioLongPress alp = context.read<AudioLongPress>();
         ListLongPress llp = context.read<ListLongPress>();
+
         tabController.addListener(() {
           // 如果tab的所以改变了，这里可以获取到，同时修改provide当前tab的名称
           if (!tabController.indexIsChanging) {
@@ -114,6 +132,22 @@ class _LocalMusicState extends State<LocalMusic> {
             });
           }
         });
+
+        // 保持当前tab在预定的tab（比如关闭搜索框后重新加载本地音乐首页，需要保持在搜索框打开时的tab，而不是默认的歌单tab）
+        if (alp.currentTabName == AudioListTypes.all) {
+          tabController.animateTo(1);
+          tabNameOnSearch = AudioListTypes.all;
+        } else if (alp.currentTabName == AudioListTypes.artist) {
+          tabController.animateTo(2);
+          tabNameOnSearch = AudioListTypes.artist;
+        } else if (alp.currentTabName == AudioListTypes.album) {
+          tabController.animateTo(3);
+          tabNameOnSearch = AudioListTypes.album;
+        } else {
+          tabController.animateTo(0);
+          tabNameOnSearch = AudioListTypes.playlist;
+        }
+
         return Center(
           child: Column(
             children: <Widget>[
@@ -439,36 +473,230 @@ class _LocalMusicState extends State<LocalMusic> {
             ? SizedBox(
                 height: 20.sp,
                 child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.search),
-                      tooltip: '音频查询',
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('最外层的音频查询'),
-                            duration: Duration(seconds: 1),
+                  // 如果没点击搜索按钮，正常显示预设的搜索、排序按钮；如果点击了搜索按钮，展示了搜索框，这里按钮也变成清除。
+                  children: !_iSClickSearch
+                      ? [
+                          IconButton(
+                            icon: const Icon(Icons.search),
+                            tooltip: '音频查询',
+                            onPressed: () {
+                              setState(() {
+                                _iSClickSearch = true;
+                                _searchIndexList = [];
+                              });
+                              // ScaffoldMessenger.of(context).showSnackBar(
+                              //   const SnackBar(
+                              //     content: Text('最外层的音频查询'),
+                              //     duration: Duration(seconds: 1),
+                              //   ),
+                              // );
+                            },
                           ),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.sort),
-                      tooltip: '排序',
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('最外层的排序'),
-                            duration: Duration(seconds: 1),
+                          IconButton(
+                            icon: const Icon(Icons.sort),
+                            tooltip: '排序',
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('最外层的排序'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
-                  ],
+                        ]
+                      : [
+                          IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                setState(() {
+                                  _iSClickSearch = false;
+                                });
+                              })
+                        ],
                 ),
               )
             : Container();
       },
     );
+  }
+
+  // 查询框
+  Widget _searchTextField(AudioLongPress alp) {
+    print(
+        "alp.currentTabName _searchTextField-------------${alp.currentTabName}");
+
+    // 获取查询音乐组件实例
+    final audioQuery = getIt<MyAudioQuery>();
+
+    return TextField(
+      onChanged: (String inputStr) async {
+        // 根据当前tab不同，查询的结果也不一样
+        WithFiltersType tempType;
+        switch (alp.currentTabName) {
+          case AudioListTypes.playlist:
+            tempType = WithFiltersType.PLAYLISTS;
+            break;
+          case AudioListTypes.all:
+            tempType = WithFiltersType.AUDIOS;
+            break;
+          case AudioListTypes.artist:
+            tempType = WithFiltersType.ARTISTS;
+            break;
+          case AudioListTypes.album:
+            tempType = WithFiltersType.ALBUMS;
+            break;
+          default:
+            tempType = WithFiltersType.AUDIOS;
+        }
+
+        var searchedList =
+            await audioQuery.queryWithFilters(inputStr, tempType);
+
+        print("查询得到的结果 $searchedList");
+
+        setState(() {
+          searchedInput = inputStr;
+          _searchIndexList = [];
+          _searchIndexList = searchedList;
+        });
+      },
+      autofocus: true,
+      cursorColor: Colors.white,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+      ),
+      textInputAction: TextInputAction.search,
+      decoration: const InputDecoration(
+        enabledBorder:
+            UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+        focusedBorder:
+            UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+        hintText: 'Search',
+        hintStyle: TextStyle(
+          color: Colors.white60,
+          fontSize: 20,
+        ),
+      ),
+    );
+  }
+
+  // 查询结果框
+  Widget _searchListView() {
+    print("查询结果组件中的tabNameOnSearch $tabNameOnSearch");
+
+    // 如果是“全部”歌曲里的查询，就不在这里构建结果列表，而是直接到下一层音频列表中构建
+    // 其他的tab就在这里构建列表
+    return tabNameOnSearch == AudioListTypes.all
+        ? Consumer<AudioLongPress>(
+            builder: (context, alp, child) {
+              print("1111xxxxLocalMusicAllxxx ${alp.isAudioLongPress} ");
+
+              /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
+              ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
+              /// 如果是默认显示的，应该有：排序、搜索、三个点（展开其他功能）
+              return MusicListFutureBuilder(
+                audioListType: AudioListTypes.all,
+                queryInputted: searchedInput,
+                // 删除了这个测试的callback，从全部歌曲添加指定音频到指定歌单会不生效，原因不明。
+                callback: (value) => print(value),
+              );
+            },
+          )
+        : ListView.builder(
+            itemCount: _searchIndexList.length,
+            itemBuilder: (context, index) {
+              // 查询的结果项
+              var item = _searchIndexList[index];
+
+              // 根据当前tab不同，查询的结果也不一样
+              if (_searchIndexList.isNotEmpty && item != null) {
+                if (tabNameOnSearch == AudioListTypes.playlist) {
+                  PlaylistModel temp = PlaylistModel(item);
+                  return Card(
+                    child: ListTile(
+                      title: Text(temp.playlist),
+                      onTap: () {
+                        print(
+                          '歌单查询结果中的 ${temp.playlist} 被点击! id Is ${temp.id}',
+                        );
+
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            // 在选中指定歌单点击后，进入音频列表，同时监控是否有对音频长按
+                            builder: (BuildContext ctx) => ListenableProvider(
+                              create: (ctx) => AudioLongPress(),
+                              builder: (context, child) =>
+                                  LocalMusicAudioListDetail(
+                                audioListType: AudioListTypes.playlist,
+                                audioListId: temp.id,
+                                audioListTitle: temp.playlist,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else if (tabNameOnSearch == AudioListTypes.artist) {
+                  ArtistModel temp = ArtistModel(item);
+                  return Card(
+                    child: ListTile(
+                      title: Text(temp.artist),
+                      onTap: () {
+                        print(
+                          '歌手查询结果中的 ${temp.artist} 被点击! id Is ${temp.id}',
+                        );
+
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            // 在选中指定歌单点击后，进入音频列表，同时监控是否有对音频长按
+                            builder: (BuildContext ctx) => ListenableProvider(
+                              create: (ctx) => AudioLongPress(),
+                              builder: (context, child) =>
+                                  LocalMusicAudioListDetail(
+                                audioListType: AudioListTypes.artist,
+                                audioListId: temp.id,
+                                audioListTitle: temp.artist,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else {
+                  AlbumModel temp = AlbumModel(item);
+                  return Card(
+                    child: ListTile(
+                      title: Text(temp.album),
+                      onTap: () {
+                        print(
+                          '专辑查询结果中的 ${temp.album} 被点击! id Is ${temp.id}',
+                        );
+
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            // 在选中指定歌单点击后，进入音频列表，同时监控是否有对音频长按
+                            builder: (BuildContext ctx) => ListenableProvider(
+                              create: (ctx) => AudioLongPress(),
+                              builder: (context, child) =>
+                                  LocalMusicAudioListDetail(
+                                audioListType: AudioListTypes.album,
+                                audioListId: temp.id,
+                                audioListTitle: temp.album,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }
+              } else {
+                return const Card(child: ListTile(title: Text("无结果")));
+              }
+            });
   }
 }

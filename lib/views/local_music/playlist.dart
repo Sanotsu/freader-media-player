@@ -48,7 +48,7 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
 
     // 返回是动态类型，使用的是转为指定类型
     List<dynamic> songs2 = await _audioQuery.queryWithFilters(
-      "有一种爱叫做放手",
+      "一",
       WithFiltersType.AUDIOS,
       args: AudiosArgs.TITLE,
     );
@@ -60,7 +60,7 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
     print(plist2);
     print(songs);
     print(songs2);
-    print("000000000000000000000000000000");
+    print("000000000000000000000000000000 ${SongModel(songs2[0])}");
     //
   }
 
