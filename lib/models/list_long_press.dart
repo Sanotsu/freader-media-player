@@ -1,11 +1,21 @@
+// ignore_for_file: constant_identifier_names
+
 // 歌单、专辑、歌手等tab层面的列表被长按的时候做通知
 import 'package:flutter/widgets.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
+enum LongPressStats {
+  INIT,
+  YES,
+  NO,
+}
+
 class ListLongPress with ChangeNotifier {
   // 歌单是否被长按
-  bool isPlaylistLongPress = false;
-  void changeIsPlaylistLongPress(bool flag) {
+  // 进一步说明:如果默认就是false，那么如何区分初始化的false和取消长按后的false？
+  // 修改成int或者枚举
+  LongPressStats isPlaylistLongPress = LongPressStats.INIT;
+  void changeIsPlaylistLongPress(LongPressStats flag) {
     isPlaylistLongPress = flag;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
@@ -24,8 +34,17 @@ class ListLongPress with ChangeNotifier {
 
   // 重置列表长按的状态为初始值
   void resetListLongPress() {
-    isPlaylistLongPress = false;
+    isPlaylistLongPress = LongPressStats.INIT;
     selectedPlaylistList.length = 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+
+  // xxxxx 本地音乐主页的appbar的搜索字符串(不搜索的时候，置为null，和空字串查询所有做区分)
+  String? localMusicAppBarSearchInput;
+  void changeLocalMusicAppBarSearchInput(String? string) {
+    localMusicAppBarSearchInput = string;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
     });

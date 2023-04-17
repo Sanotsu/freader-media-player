@@ -56,7 +56,8 @@ class _LocalMusicState extends State<LocalMusic> {
       child: Scaffold(
         appBar: _buildAppBar(context),
         // 如果没有点击查询按钮，显示正常的音频相关内容；如果点击了，显示简单的查询结果列表内容
-        body: !_iSClickSearch ? _buildBody(context) : _searchListView(),
+        // body: !_iSClickSearch ? _buildBody(context) : _searchListView(),
+        body: _buildBody(context),
       ),
     );
   }
@@ -81,7 +82,7 @@ class _LocalMusicState extends State<LocalMusic> {
               return const Text("本地音乐");
             }
           } else {
-            return _searchTextField(alp);
+            return _searchTextField(alp, llp);
           }
         },
       ),
@@ -118,6 +119,8 @@ class _LocalMusicState extends State<LocalMusic> {
                 alp.changeCurrentTabName(AudioListTypes.all);
                 // 不是歌单列表，重置歌单长按状态
                 llp.resetListLongPress();
+                print(
+                    "11111111111111111111 ${tabController.index} ${alp.currentTabName}");
               } else if (tabController.index == 2) {
                 alp.changeCurrentTabName(AudioListTypes.artist);
                 // 不是歌单列表，重置歌单长按状态
@@ -127,6 +130,8 @@ class _LocalMusicState extends State<LocalMusic> {
               } else if (tabController.index == 3) {
                 alp.changeCurrentTabName(AudioListTypes.album);
                 // 不是歌单列表，重置歌单长按状态
+                print(
+                    "33333333333333333333 ${tabController.index} ${alp.currentTabName}");
                 llp.resetListLongPress();
               }
             });
@@ -244,10 +249,8 @@ class _LocalMusicState extends State<LocalMusic> {
                   child: const Text('取消'),
                   onPressed: () {
                     setState(() {
-                      // 单击了取消功能按钮之后，立马切回长按状态为否，也取消弹窗
-                      llp.changeIsPlaylistLongPress(false);
-                      // 清空被选中的歌单列表
-                      llp.changeSelectedPlaylists([]);
+                      // 单击了取消功能按钮之后，立马切回长按状态为否，清空被选中的歌单列表,也取消弹窗
+                      llp.resetListLongPress();
                       Navigator.pop(context);
                     });
                   },
@@ -276,7 +279,7 @@ class _LocalMusicState extends State<LocalMusic> {
                     // );
 
                     setState(() {
-                      llp.changeIsPlaylistLongPress(false);
+                      llp.changeIsPlaylistLongPress(LongPressStats.NO);
                       Navigator.pop(context);
                     });
                   },
@@ -306,10 +309,8 @@ class _LocalMusicState extends State<LocalMusic> {
               child: const Text('取消'),
               onPressed: () {
                 setState(() {
-                  // 单击了取消功能按钮之后，立马切回长按状态为否，也取消弹窗
-                  llp.changeIsPlaylistLongPress(false);
-                  // 清空被选中的歌单列表
-                  llp.changeSelectedPlaylists([]);
+                  // 单击了取消功能按钮之后，立马切回长按状态为否，清空被选中的歌单列表,也取消弹窗
+                  llp.resetListLongPress();
                   Navigator.pop(context);
                 });
               },
@@ -325,8 +326,8 @@ class _LocalMusicState extends State<LocalMusic> {
                 }
 
                 setState(() {
-                  llp.changeIsPlaylistLongPress(false);
-                  llp.changeSelectedPlaylists([]);
+                  // 单击了取消功能按钮之后，立马切回长按状态为否，清空被选中的歌单列表,也取消弹窗
+                  llp.resetListLongPress();
                   Navigator.pop(context);
                 });
               },
@@ -377,10 +378,8 @@ class _LocalMusicState extends State<LocalMusic> {
               child: const Text('确认'),
               onPressed: () {
                 setState(() {
-                  // 单击了取消功能按钮之后，立马切回长按状态为否，也取消弹窗
-                  llp.changeIsPlaylistLongPress(false);
-                  // 清空被选中的歌单列表
-                  llp.changeSelectedPlaylists([]);
+                  // 单击了取消功能按钮之后，立马切回长按状态为否，清空被选中的歌单列表,也取消弹窗
+                  llp.resetListLongPress();
                   Navigator.pop(context);
                 });
               },
@@ -400,7 +399,7 @@ class _LocalMusicState extends State<LocalMusic> {
         Consumer<AudioLongPress>(
           builder: (context, alp, child) {
             print(
-              "xxxxxxxxxxxxxxxxxxxxxxxxxxx ${alp.isAudioLongPress}  ",
+              "xxxxxxxxxxxxxxxxxxxxxxxxxxx加入歌单 ${alp.isAudioLongPress}  ",
             );
             return alp.isAudioLongPress &&
                     alp.currentTabName == AudioListTypes.all
@@ -416,7 +415,7 @@ class _LocalMusicState extends State<LocalMusic> {
         Consumer<AudioLongPress>(
           builder: (context, alp, child) {
             print(
-              "xxxxxxxxxxxxxxxxxxxxxxxxxxx ${alp.isAudioLongPress}  ",
+              "xxxxxxxxxxxxxxxxxxxxxxxxxxx详细信息 ${alp.isAudioLongPress}  ",
             );
             return alp.isAudioLongPress &&
                     alp.currentTabName == AudioListTypes.all
@@ -432,7 +431,8 @@ class _LocalMusicState extends State<LocalMusic> {
         // 如果是“歌单”tab中指定单个歌单被长按选中，可显示修改
         Consumer<ListLongPress>(
           builder: (context, llp, child) =>
-              llp.isPlaylistLongPress && llp.selectedPlaylistList.length == 1
+              llp.isPlaylistLongPress == LongPressStats.YES &&
+                      llp.selectedPlaylistList.length == 1
                   ? IconButton(
                       icon: const Icon(Icons.edit),
                       tooltip: '修改歌单名称',
@@ -443,7 +443,8 @@ class _LocalMusicState extends State<LocalMusic> {
         // 如果是“歌单”tab中指定单个歌单被长按选中，可显示查看信息
         Consumer<ListLongPress>(
           builder: (context, llp, child) =>
-              llp.isPlaylistLongPress && llp.selectedPlaylistList.length == 1
+              llp.isPlaylistLongPress == LongPressStats.YES &&
+                      llp.selectedPlaylistList.length == 1
                   ? IconButton(
                       icon: const Icon(Icons.info),
                       tooltip: '查看信息(暂不做)',
@@ -453,13 +454,14 @@ class _LocalMusicState extends State<LocalMusic> {
         ),
         // 如果是“歌单”tab中指定多个歌单被长按选中，可显示删除
         Consumer<ListLongPress>(
-          builder: (context, llp, child) => llp.isPlaylistLongPress
-              ? IconButton(
-                  icon: const Icon(Icons.delete),
-                  tooltip: '删除选中的歌单',
-                  onPressed: () => _buildRemovePlaylistDialog(context, llp),
-                )
-              : Container(),
+          builder: (context, llp, child) =>
+              llp.isPlaylistLongPress == LongPressStats.YES
+                  ? IconButton(
+                      icon: const Icon(Icons.delete),
+                      tooltip: '删除选中的歌单',
+                      onPressed: () => _buildRemovePlaylistDialog(context, llp),
+                    )
+                  : Container(),
         ),
       ],
     );
@@ -469,7 +471,8 @@ class _LocalMusicState extends State<LocalMusic> {
   _buildDefaultButtons() {
     return Consumer2<AudioLongPress, ListLongPress>(
       builder: (context, alp, llp, child) {
-        return !alp.isAudioLongPress && !llp.isPlaylistLongPress
+        return !alp.isAudioLongPress &&
+                llp.isPlaylistLongPress != LongPressStats.YES
             ? SizedBox(
                 height: 20.sp,
                 child: Row(
@@ -484,12 +487,6 @@ class _LocalMusicState extends State<LocalMusic> {
                                 _iSClickSearch = true;
                                 _searchIndexList = [];
                               });
-                              // ScaffoldMessenger.of(context).showSnackBar(
-                              //   const SnackBar(
-                              //     content: Text('最外层的音频查询'),
-                              //     duration: Duration(seconds: 1),
-                              //   ),
-                              // );
                             },
                           ),
                           IconButton(
@@ -511,6 +508,7 @@ class _LocalMusicState extends State<LocalMusic> {
                               onPressed: () {
                                 setState(() {
                                   _iSClickSearch = false;
+                                  llp.changeLocalMusicAppBarSearchInput(null);
                                 });
                               })
                         ],
@@ -522,43 +520,44 @@ class _LocalMusicState extends State<LocalMusic> {
   }
 
   // 查询框
-  Widget _searchTextField(AudioLongPress alp) {
+  Widget _searchTextField(AudioLongPress alp, ListLongPress llp) {
     print(
         "alp.currentTabName _searchTextField-------------${alp.currentTabName}");
 
     // 获取查询音乐组件实例
-    final audioQuery = getIt<MyAudioQuery>();
+    // final audioQuery = getIt<MyAudioQuery>();
 
     return TextField(
       onChanged: (String inputStr) async {
         // 根据当前tab不同，查询的结果也不一样
-        WithFiltersType tempType;
-        switch (alp.currentTabName) {
-          case AudioListTypes.playlist:
-            tempType = WithFiltersType.PLAYLISTS;
-            break;
-          case AudioListTypes.all:
-            tempType = WithFiltersType.AUDIOS;
-            break;
-          case AudioListTypes.artist:
-            tempType = WithFiltersType.ARTISTS;
-            break;
-          case AudioListTypes.album:
-            tempType = WithFiltersType.ALBUMS;
-            break;
-          default:
-            tempType = WithFiltersType.AUDIOS;
-        }
+        // WithFiltersType tempType;
+        // switch (alp.currentTabName) {
+        //   case AudioListTypes.playlist:
+        //     tempType = WithFiltersType.PLAYLISTS;
+        //     break;
+        //   case AudioListTypes.all:
+        //     tempType = WithFiltersType.AUDIOS;
+        //     break;
+        //   case AudioListTypes.artist:
+        //     tempType = WithFiltersType.ARTISTS;
+        //     break;
+        //   case AudioListTypes.album:
+        //     tempType = WithFiltersType.ALBUMS;
+        //     break;
+        //   default:
+        //     tempType = WithFiltersType.AUDIOS;
+        // }
 
-        var searchedList =
-            await audioQuery.queryWithFilters(inputStr, tempType);
+        // var searchedList =
+        //     await audioQuery.queryWithFilters(inputStr, tempType);
 
-        print("查询得到的结果 $searchedList");
+        // print("查询得到的结果 $searchedList");
+        llp.changeLocalMusicAppBarSearchInput(inputStr);
 
         setState(() {
           searchedInput = inputStr;
-          _searchIndexList = [];
-          _searchIndexList = searchedList;
+          // _searchIndexList = [];
+          // _searchIndexList = searchedList;
         });
       },
       autofocus: true,
@@ -613,6 +612,10 @@ class _LocalMusicState extends State<LocalMusic> {
               // 根据当前tab不同，查询的结果也不一样
               if (_searchIndexList.isNotEmpty && item != null) {
                 if (tabNameOnSearch == AudioListTypes.playlist) {
+                  print(
+                    '歌单查询结果中的itemitemitemitemitemitemitemitemitem $item ',
+                  );
+
                   PlaylistModel temp = PlaylistModel(item);
                   return Card(
                     child: ListTile(

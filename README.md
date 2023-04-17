@@ -133,6 +133,19 @@ app
 
 ---
 
+- local-music-index: 带 appbar 的 Scaffold，内部有 TabBarView 包含以下内容：
+  - playlist/artis/album: futureBuilder 构建 listview
+    - audio-list-detail: 带 appbar 的 Scaffold
+      - music-list-future-builder: futureBuilder 构建 listview
+        - music-player-detail: 单独 Scaffold 音频播放页面
+          - common: 音频播放页面的 seekBar 等小组件
+  - all: futureBuilder 构建 listview
+    - music-list-future-builder: futureBuilder 构建 listview
+      - music-player-detail: 单独 Scaffold 音频播放页面
+        - common: 音频播放页面的 seekBar 等小组件
+
+---
+
 依赖（like 数量为 2023-04-03 统计）：
 
 - on_audio_query: ^2.7.0 获取本地音乐信息
@@ -238,6 +251,16 @@ app
       - 所有前 3 者点开搜索框，[结果集是空的]，输入之后显示符合条件的结果；后者点开搜索框先是[全部音频内容]，输入条件之后再过滤符合条件的
 
   - 如果要改成一致的，则把 index 中的查询，改到各个 tab 具体页面中去，和“全部”类似，通过传入“查询条件”区分构建的内容。
+
+- 2023-04-12 基本完成）**重构全局歌单的查询显示在 tab 原始位置下，不构建新的结果显示页面**，还有以下问题：
+
+  - 1 因为 条件查询的 queryWithFilters 接口返回的 playlist 和 默认的 queryPlaylists 接口返回的数据不一致，在 playlist.dart 文件中处理不能直接统一处理。
+    - 而且前者因为结果中缺少 numOfSongs 属性，导致直接转为 PlaylistModel 也会失败。
+    - 所以是区分两者来源，前者转为 map 之后，再通过 id 使用 queryAudiosFrom 接口查询到音频列表，补上缺少的属性，再转为 PlaylistModel。
+  - 2 因为上面多次异步操作，playlist.dart 构建歌单列表组件使用了 FutureBuilder->ListView.builder ->FutureBuilder->ListTile 的嵌套，有可能因为此，导致在判断指定歌单是否被长按选中/取消、加入到被选中列表等地方，原本 contains 方法无效，都改为 where 或者 removeWhere
+  - 3 一次长按然后点击变为多选或者取消，会导致 playlist.dart 构建中的打印出现 3 次，说明可能重新 build 了该组件 3 次。虽然功能算实现了。
+    - 但这个重复渲染的原因可能是长按和点击回调函数中的 setstate 改变状态时修改了 LongPress 的 model，而 playlist 或其上层可能使用了 Consumer 对应的 model 导致检测到异动重新渲染了。
+    - 要如何改正优化暂不确定。
 
 - **Bugs**:
 
