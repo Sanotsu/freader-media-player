@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../../common/global/constants.dart';
 import '../../models/audio_long_press.dart';
+import '../../models/list_long_press.dart';
 import '../../services/my_audio_query.dart';
 import '../../services/service_locator.dart';
 import 'nested_pages/audio_list_detail.dart';
@@ -22,10 +23,41 @@ class _LocalMusicArtistState extends State<LocalMusicArtist> {
   // 获取查询音乐组件实例
   final _audioQuery = getIt<MyAudioQuery>();
 
+  // 根据不同歌手类型(查询所有歌手或者条件查询歌手)，构建不同的查询处理
+  late Future<List<dynamic>> futureHandler;
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<ArtistModel>>(
-      future: _audioQuery.queryArtists(),
+    return Consumer<ListLongPress>(
+      builder: (context, llp, child) {
+        print(
+          "localmusic index 下artist中 ${llp.isPlaylistLongPress} ${llp.selectedPlaylistList.length} ${llp.localMusicAppBarSearchInput}",
+        );
+
+        /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
+        ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
+        /// 如果是默认显示的，应该有：排序、搜索、三个点（展开其他功能）
+        return _buildList(context, llp);
+      },
+    );
+  }
+
+  _buildList(BuildContext context, ListLongPress llp) {
+    // 如果是主页上歌单的条件查询
+    if (llp.localMusicAppBarSearchInput != null) {
+      print("执行了条件查询的逻辑");
+      futureHandler = _audioQuery.queryWithFilters(
+        llp.localMusicAppBarSearchInput!,
+        WithFiltersType.ARTISTS,
+      );
+    } else {
+      // 如果等于null，说明是初始化，或者关闭了查询按钮，歌单要重新查询所有
+      print("执行了【歌单初始化】或者【关闭】条件查询的逻辑");
+      futureHandler = _audioQuery.queryArtists();
+    }
+
+    return FutureBuilder<List<dynamic>>(
+      future: futureHandler,
       builder: (context, item) {
         // Display error, if any.
         if (item.hasError) {
@@ -39,7 +71,9 @@ class _LocalMusicArtistState extends State<LocalMusicArtist> {
         if (item.data!.isEmpty) return const Text("Nothing found!");
 
         // 得到查询的歌手列表
-        List<ArtistModel> artists = item.data!;
+        List<ArtistModel> artists = item.data! is List<ArtistModel>
+            ? item.data! as List<ArtistModel>
+            : item.data!.toArtistModel();
 
         return ListView.builder(
           itemCount: artists.length,

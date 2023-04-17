@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../../common/global/constants.dart';
 import '../../models/audio_long_press.dart';
+import '../../models/list_long_press.dart';
 import '../../services/my_audio_query.dart';
 import '../../services/service_locator.dart';
 import 'nested_pages/audio_list_detail.dart';
@@ -22,10 +23,41 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
   // 获取查询音乐组件实例
   final _audioQuery = getIt<MyAudioQuery>();
 
+  // 根据不同专辑类型(默认的查询所有专辑或者条件查询专辑)，构建不同的查询处理
+  late Future<List<dynamic>> futureHandler;
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<AlbumModel>>(
-      future: _audioQuery.queryAlbums(),
+    return Consumer<ListLongPress>(
+      builder: (context, llp, child) {
+        print(
+          "localmusic index 下album中 ${llp.isPlaylistLongPress} ${llp.selectedPlaylistList.length} ${llp.localMusicAppBarSearchInput}",
+        );
+
+        /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
+        ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
+        /// 如果是默认显示的，应该有：排序、搜索、三个点（展开其他功能）
+        return _buildList(context, llp);
+      },
+    );
+  }
+
+  _buildList(BuildContext context, ListLongPress llp) {
+    // 如果是主页上歌单的条件查询
+    if (llp.localMusicAppBarSearchInput != null) {
+      print("执行了条件查询的逻辑");
+      futureHandler = _audioQuery.queryWithFilters(
+        llp.localMusicAppBarSearchInput!,
+        WithFiltersType.ALBUMS,
+      );
+    } else {
+      // 如果等于null，说明是初始化，或者关闭了查询按钮，歌单要重新查询所有
+      print("执行了【歌单初始化】或者【关闭】条件查询的逻辑");
+      futureHandler = _audioQuery.queryAlbums();
+    }
+
+    return FutureBuilder<List<dynamic>>(
+      future: futureHandler,
       builder: (context, item) {
         // Display error, if any.
         if (item.hasError) {
@@ -39,7 +71,9 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
         if (item.data!.isEmpty) return const Text("Nothing found!");
 
         // 得到查询的专辑列表
-        List<AlbumModel> albums = item.data!;
+        List<AlbumModel> albums = item.data! is List<AlbumModel>
+            ? item.data! as List<AlbumModel>
+            : item.data!.toAlbumModel();
 
         return ListView.builder(
           itemCount: albums.length,

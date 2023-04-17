@@ -147,13 +147,15 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                 // 如果结果为空，显示无数据
                 if (item.data!.isEmpty) return const Text("Nothing found!");
 
+                print(
+                    "全部歌曲tab中查询的列表类型item.data! ${item.data!.runtimeType} ${item.data![0]}");
+
                 // 最后就是得到了歌曲列表，统一处理
                 //(知道这里的动态其实是song model，就这样转型供下面使用)
-                // List<dynamic> songs = item.data!;
                 // 注意：如果是tab页查询结果，才需要转型；否则，本身就是查询的song model类型，再转就失败了
-                List<SongModel> songs = (widget.queryInputted != null)
-                    ? item.data!.map((e) => SongModel(e)).toList()
-                    : item.data! as List<SongModel>;
+                List<SongModel> songs = item.data! is List<SongModel>
+                    ? item.data! as List<SongModel>
+                    : item.data!.toSongModel();
 
                 return ListView.builder(
                   itemCount: songs.length,
@@ -170,6 +172,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                         break;
                       default:
                         subtext = song.artist ?? '未知艺术家';
+                      // subtext = "歌手: ${song.artist}";
                     }
 
                     // 歌曲的时长，格式化为hh:mm:ss 格式
@@ -190,7 +193,11 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                         widget.callback('I am your sailing child');
                       },
                       child: ListTile(
-                        selected: selectedIndexs.contains(song),
+                        // selected: selectedIndexs.contains(song),
+                        // 上述写法，在歌曲查询结果中长按不会生效
+                        selected: selectedIndexs
+                            .where((e) => e.id == song.id)
+                            .isNotEmpty,
                         title: Text(song.title),
                         subtitle: Text(subtext),
                         trailing: Text(songDurationStr),
@@ -215,8 +222,14 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                           if (alp.isAudioLongPress) {
                             setState(() {
                               // 如果已经加入被选中列表，再次点击则移除
-                              if (selectedIndexs.contains(song)) {
-                                selectedIndexs.remove(song);
+                              // if (selectedIndexs.contains(song)) {
+                              // 上述写法无法实现点击取消，还是需要判断属性
+                              if (selectedIndexs
+                                  .where((e) => e.id == song.id)
+                                  .isNotEmpty) {
+                                // selectedIndexs.remove(song);
+                                selectedIndexs
+                                    .removeWhere((e) => e.id == song.id);
                               } else {
                                 selectedIndexs.add(song);
                               }
@@ -234,11 +247,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
 
                             // 到这里就已经查询到当前“tab”页面中所有的歌曲了，可以构建播放列表和当前音频
                             // 如果是条件查询，则是条件查询结果构成的歌单
-                            await _audioHandler.buildPlaylist(
-                              // songs.map((e) => SongModel(e)).toList(),
-                              songs,
-                              song,
-                            );
+                            await _audioHandler.buildPlaylist(songs, song);
                             await _audioHandler.refreshCurrentPlaylist();
 
                             // 将播放列表信息、被点击的音频编号\播放列表编号(全部歌曲tab除外)存入持久化

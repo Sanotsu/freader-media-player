@@ -168,7 +168,7 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
                 builder: (ctx, i) {
                   if (i.hasError) return Text(i.error.toString());
                   if (i.data == null) return const CircularProgressIndicator();
-                  if (i.data!.isEmpty) return const Text("歌曲 Nothing found!");
+                  // if (i.data!.isEmpty) return const Text("歌曲 Nothing found!");
                   // 查询到的指定歌单的音频数据，用于获取缺少的num_of_songs属性
                   var tempSongs = i.data!;
 
