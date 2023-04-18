@@ -10,6 +10,7 @@ import '../../../services/my_audio_query.dart';
 import '../../../services/service_locator.dart';
 import '../widgets/build_add_to_playlist_dialog.dart';
 import '../widgets/build_audio_info_dialog.dart';
+import '../widgets/build_search_text_field.dart';
 import '../widgets/music_list_future_builder.dart';
 import '../widgets/music_player_mini_bar.dart';
 
@@ -33,6 +34,9 @@ class LocalMusicAudioListDetail extends StatefulWidget {
 }
 
 class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
+// 是否点击了音频查询按钮(在歌单、歌手、专辑内都通用)
+  bool _iSClickAudioSearch = false;
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -45,35 +49,7 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
         return false;
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Consumer<AudioLongPress>(
-            builder: (context, alp, child) {
-              // 选中的音频数量
-              var tempNum = alp.selectedAudioList.length;
-
-              return tempNum > 0
-                  ? Text("选中$tempNum首", style: TextStyle(fontSize: 16.sp))
-                  : Text(widget.audioListTitle);
-            },
-          ),
-          actions: <Widget>[
-            // 因为使用了consumer，在其他组件中改变了其中类的属性，这里也会识别到
-            Consumer<AudioLongPress>(
-              builder: (context, alp, child) {
-                print(
-                  "1111xxxxxxxxxxxxxxxxxxxxxxxxxxx ${alp.isAudioLongPress}  ${alp.currentTabName} ${alp.selectedAudioList.length}",
-                );
-
-                /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
-                ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
-                /// 如果是默认显示的，应该有：排序、搜索、三个点（展开其他功能）
-                return alp.isAudioLongPress
-                    ? buildLongPressButtons(alp)
-                    : buildDefaultButtons();
-              },
-            ),
-          ],
-        ),
+        appBar: _buildAppBar(),
         body: Column(
           children: [
             Expanded(
@@ -104,35 +80,87 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
     );
   }
 
-  // 构建默认的音频列表功能按钮组件
-  Widget buildDefaultButtons() {
-    return Row(
-      children: [
-        IconButton(
-          icon: const Icon(Icons.search),
-          tooltip: '搜索', // 长按图标会显示的文字
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('This is a 搜索'),
-                duration: Duration(seconds: 1),
-              ),
+  /// 构建标题工具栏
+  _buildAppBar() {
+    return AppBar(
+      title: Consumer<AudioLongPress>(
+        builder: (context, alp, child) {
+          if (!_iSClickAudioSearch) {
+            /// 如果不是搜索状态显示标题；如果是，显示搜索框
+            var tempNum = alp.selectedAudioList.length;
+
+            return tempNum > 0
+                ? Text("选中$tempNum首", style: TextStyle(fontSize: 16.sp))
+                : Text(widget.audioListTitle);
+          } else {
+            return buildSearchTextField(alp);
+          }
+        },
+      ),
+      actions: <Widget>[
+        // 因为使用了consumer，在其他组件中改变了其中类的属性，这里也会识别到
+        Consumer<AudioLongPress>(
+          builder: (context, alp, child) {
+            print(
+              "1111xxxxxxxxxxxxxxxxxxxxxxxxxxx ${alp.isAudioLongPress} ${alp.selectedAudioList.length}",
             );
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.sort),
-          tooltip: '排序',
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('This is a 排序'),
-                duration: Duration(seconds: 1),
-              ),
-            );
+
+            /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
+            ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
+            /// 如果是默认显示的，应该有：排序、搜索、三个点（展开其他功能）
+            return alp.isAudioLongPress
+                ? buildLongPressButtons(alp)
+                : buildDefaultButtons();
           },
         ),
       ],
+    );
+  }
+
+  // 构建默认的音频列表功能按钮组件
+  Widget buildDefaultButtons() {
+    return Consumer<AudioLongPress>(
+      builder: (context, alp, child) {
+        return SizedBox(
+          height: 20.sp,
+          child: Row(
+            children: [
+              // 如果没有点击搜索图标则显示搜索图标，如果点击了则改为清除图标
+              !_iSClickAudioSearch
+                  ? IconButton(
+                      icon: const Icon(Icons.search),
+                      tooltip: '搜索音乐', // 长按图标会显示的文字
+                      onPressed: () {
+                        setState(() {
+                          _iSClickAudioSearch = true;
+                        });
+                      },
+                    )
+                  : IconButton(
+                      icon: const Icon(Icons.clear),
+                      tooltip: '清空输入',
+                      onPressed: () {
+                        setState(() {
+                          _iSClickAudioSearch = false;
+                          alp.changeAudioListAppBarSearchInput(null);
+                        });
+                      }),
+              IconButton(
+                icon: const Icon(Icons.sort),
+                tooltip: '排序',
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('This is a 排序'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -141,7 +169,7 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
     // 获取查询音乐组件实例
     final audioQuery = getIt<MyAudioQuery>();
     print(
-      "111111buildLongPressButtonsXXXXXXXXXXXXXXX  ${alp.isAudioLongPress} ${alp.currentTabName}  ${widget.audioListType} ${alp.selectedAudioList}",
+      "111111buildLongPressButtonsXXXXXXXXXXXXXXX  ${alp.isAudioLongPress} ${widget.audioListType} ${alp.selectedAudioList}",
     );
 
     return Row(

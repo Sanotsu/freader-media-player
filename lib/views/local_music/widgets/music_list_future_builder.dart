@@ -67,7 +67,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
 
     super.initState();
     _audioQuery.setLogConfig();
-    initFuture();
+    // initFuture();
     // 如果确定在 my audio handle中 _getInitPlaylistAndIndex 有效，这里就不再用了
     // checkPermission();
   }
@@ -118,13 +118,11 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
   Widget build(BuildContext context) {
     AudioLongPress alp = context.read<AudioLongPress>();
 
-    // 这个alp.currentTabName可能不太对
-    print(
-        "1111111111111111111zzzzzzzzzzz ${alp.currentTabName}  ${widget.audioListType}");
+    print("1111111111111111111zzzzzzzzzzz  ${widget.audioListType}");
 
     // 如果是上层使用provide取消了长按标志，这里得清空被选中的数组
     if (!alp.isAudioLongPress) {
-      print("执行取消选择的音频的逻辑");
+      print("执行【取消选择的音频】或者【初始化音频列表】的逻辑");
       selectedIndexs.length = 0;
       // 这里我以为是不能保证一定先完成了移除再获取新的歌单音频列表，但结果暂时是正确的
       initFuture();
@@ -157,13 +155,30 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                     ? item.data! as List<SongModel>
                     : item.data!.toSongModel();
 
+                print(
+                  "原始的音频列表=========================${songs.length} ${songs.isNotEmpty ? songs[0] : songs} ${songs.runtimeType}",
+                );
+
+                // 如果是各级歌单、歌手、专辑中的条件查询，则需要在当前音频列表中过滤符合条件的
+                if (alp.audioListAppBarSearchInput != null) {
+                  songs = songs
+                      .where((e) =>
+                          e.title.contains(alp.audioListAppBarSearchInput!))
+                      .toList();
+
+                  print(
+                    "条件查询后的音频列表=========================${songs.length} ${songs.isNotEmpty ? songs[0] : songs} ${songs.runtimeType}",
+                  );
+                }
+
                 return ListView.builder(
                   itemCount: songs.length,
                   itemBuilder: (context, index) {
                     // 歌手分类子标题就是专辑名，专辑分类子标题就是歌手
 
-                    print(
-                        "构建音频列表=========================$index ${songs[index]} ${songs[index].runtimeType}");
+                    // print(
+                    //   "构建音频列表=========================$index ${songs[index]} ${songs[index].runtimeType}",
+                    // );
                     SongModel song = songs[index];
                     var subtext = "";
                     switch (widget.audioListType) {

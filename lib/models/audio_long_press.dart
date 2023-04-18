@@ -1,7 +1,7 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-
-import '../common/global/constants.dart';
 
 /// 各种列表中音频列表长按的相关属性通知类
 /// 用于全局获取音频是否被长按的状态，用来判断是否显示对被选中音频的功能操作按钮
@@ -19,15 +19,6 @@ class AudioLongPress with ChangeNotifier {
     });
   }
 
-  // 当前的tab是哪一个（可能没用）
-  String currentTabName = AudioListTypes.playlist;
-  void changeCurrentTabName(String name) {
-    currentTabName = name;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
-  }
-
   // 被选中的歌单列表
   List<SongModel> selectedAudioList = [];
   // 修改则是全量替换
@@ -38,11 +29,19 @@ class AudioLongPress with ChangeNotifier {
     });
   }
 
-  // 重置音频长按的状态为初始值
+  // 重置音频长按的状态为初始值（好像也没用）
   void resetAudioLongPress() {
     isAudioLongPress = false;
-    currentTabName = AudioListTypes.playlist;
     selectedAudioList.length = 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+
+  // xxxxx 各个(歌单、歌手、专辑)的音频列表主页的appbar的搜索字符串(不搜索的时候，置为null，和空字串查询所有做区分)
+  String? audioListAppBarSearchInput;
+  void changeAudioListAppBarSearchInput(String? string) {
+    audioListAppBarSearchInput = string;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
     });
