@@ -5,6 +5,7 @@ import 'package:freader_music_player/models/list_long_press.dart';
 import 'package:provider/provider.dart';
 
 import '../../common/global/constants.dart';
+import '../../models/sort_option_selected.dart';
 import 'widgets/music_list_future_builder.dart';
 
 class LocalMusicAll extends StatefulWidget {
@@ -17,8 +18,8 @@ class LocalMusicAll extends StatefulWidget {
 class _LocalMusicAllState extends State<LocalMusicAll> {
   @override
   Widget build(BuildContext context) {
-    return Consumer<ListLongPress>(
-      builder: (context, llp, child) {
+    return Consumer2<ListLongPress, AudioOptionSelected>(
+      builder: (context, llp, aos, child) {
         print(
           "1111xxxxLocalMusicAllxxx  ${llp.localMusicAppBarSearchInput}",
         );

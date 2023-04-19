@@ -18,11 +18,19 @@ class MyAudioQuery {
   }
 
   // 查询本地歌曲（条件暂时就不支持自定了。这里单纯把方法抽出来，工具单例化）
-  Future<List<SongModel>> querySongs() => _query.querySongs(
-        sortType: null,
-        orderType: OrderType.ASC_OR_SMALLER,
-        uriType: UriType.EXTERNAL,
-        ignoreCase: true,
+  Future<List<SongModel>> querySongs({
+    SongSortType? sortType,
+    OrderType? orderType,
+    UriType? uriType,
+    bool? ignoreCase,
+    String? path,
+  }) =>
+      _query.querySongs(
+        sortType: sortType,
+        orderType: orderType,
+        uriType: uriType,
+        ignoreCase: ignoreCase,
+        path: path,
       );
 
   // 查询本地歌曲（可以自定义条件，尽量少用）
@@ -90,7 +98,19 @@ class MyAudioQuery {
       );
 
   // 查询歌单
-  Future<List<PlaylistModel>> queryPlaylists() => _query.queryPlaylists();
+  Future<List<PlaylistModel>> queryPlaylists({
+    PlaylistSortType? sortType,
+    OrderType? orderType,
+    UriType? uriType,
+    bool? ignoreCase,
+  }) =>
+      _query.queryPlaylists(
+        sortType: sortType,
+        orderType: orderType,
+        uriType: uriType,
+        ignoreCase: ignoreCase,
+      );
+
   Future<DeviceModel> queryDeviceInfo() => _query.queryDeviceInfo();
 
   // 创建歌单
@@ -113,10 +133,32 @@ class MyAudioQuery {
       _query.removeFromPlaylist(playlistId, audioId);
 
   // 查询艺术家分类列表
-  Future<List<ArtistModel>> queryArtists() => _query.queryArtists();
+  Future<List<ArtistModel>> queryArtists({
+    ArtistSortType? sortType,
+    OrderType? orderType,
+    UriType? uriType,
+    bool? ignoreCase,
+  }) =>
+      _query.queryArtists(
+        sortType: sortType,
+        orderType: orderType,
+        uriType: uriType,
+        ignoreCase: ignoreCase,
+      );
 
   // 查询专辑分类列表
-  Future<List<AlbumModel>> queryAlbums() => _query.queryAlbums();
+  Future<List<AlbumModel>> queryAlbums({
+    AlbumSortType? sortType,
+    OrderType? orderType,
+    UriType? uriType,
+    bool? ignoreCase,
+  }) =>
+      _query.queryAlbums(
+        sortType: sortType,
+        orderType: orderType,
+        uriType: uriType,
+        ignoreCase: ignoreCase,
+      );
 
   // 设置日志配置
   void setLogConfig() {

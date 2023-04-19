@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 
 import '../../common/global/constants.dart';
 import '../../models/audio_long_press.dart';
+import '../../models/sort_option_selected.dart';
 import '../../services/my_audio_query.dart';
 import '../../services/service_locator.dart';
 import 'nested_pages/audio_list_detail.dart';
@@ -35,61 +36,54 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
   @override
   void initState() {
     super.initState();
-    // initData();
+
+    testData();
   }
 
-  /*
-  【这个后续可以不要，因为llp中localMusicAppBarSearchInput==null时会执行查询所有歌单，
-  而初始化或者关闭查询框时，该值都为null】
-  */
+  testData() async {
+    var list = await _audioQuery.queryPlaylists(
+      orderType: OrderType.DESC_OR_GREATER,
+      sortType: PlaylistSortType.PLAYLIST,
+    );
+    var list2 = await _audioQuery.queryPlaylists(
+      orderType: OrderType.ASC_OR_SMALLER,
+      sortType: PlaylistSortType.PLAYLIST,
+    );
+
+    print("888888888888888888888888888888888");
+    print(list);
+    print(list2);
+    print("888888888888888888888888888888888");
+  }
+
+  // 进入指定歌单查看音频之后返回，需要重新查询歌单列表，以防有音频的删除信息而歌单列表显示未更新的问题
   initData() async {
     print("在歌单列表的init中，传入的widget.queryInputted:${widget.queryInputted}|");
 
     setState(() {
       futureHandler = _audioQuery.queryPlaylists();
     });
-
-    var plist2 = await _audioQuery.queryPlaylists();
-    var songs = await _audioQuery.queryAudiosFrom(
-      AudiosFromType.PLAYLIST,
-      201076,
-    );
-
-    // 返回是动态类型，使用的是转为指定类型
-    List<dynamic> songs2 = await _audioQuery.queryWithFilters(
-      "1",
-      WithFiltersType.PLAYLISTS,
-    );
-
-    // 插件原始函数有bug
-    // await _audioQuery.renamePlaylist(201060, "新名字");
-
-    print("000000000000000000000000000000");
-    print(plist2);
-    print(songs);
-    print(songs2);
-    print("000000000000000000000000000000 ${SongModel(songs2[0])}");
-    //
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ListLongPress>(
-      builder: (context, llp, child) {
+    return Consumer2<ListLongPress, AudioOptionSelected>(
+      builder: (context, llp, aos, child) {
         print(
-          "localmusic index 下playlist中 ${llp.isPlaylistLongPress} ${llp.selectedPlaylistList.length} ${llp.localMusicAppBarSearchInput}",
+          "localmusic index 下playlist中 ${llp.isPlaylistLongPress} ${llp.selectedPlaylistList.length} ${llp.localMusicAppBarSearchInput}"
+          "${aos.orderType} ${aos.playlistSortType}",
         );
 
         /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
         ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
         /// 如果是默认显示的，应该有：排序、搜索、三个点（展开其他功能）
-        return _buildList(context, llp);
+        return _buildList(context, llp, aos);
       },
     );
     // return _buildList(context);
   }
 
-  _buildList(BuildContext context, ListLongPress llp) {
+  _buildList(BuildContext context, ListLongPress llp, AudioOptionSelected aos) {
     // 如果是上层使用provide取消了长按标志，这里得清空被选中的数组
     // 但是默认就是false，是不是初始化的时候也会进来？
     if (llp.isPlaylistLongPress == LongPressStats.NO) {
@@ -110,9 +104,18 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
       );
     } else {
       // 如果等于null，说明是初始化，或者关闭了查询按钮，歌单要重新查询所有
-      print("执行了【歌单初始化】或者【关闭】条件查询的逻辑");
-      futureHandler = _audioQuery.queryPlaylists();
+      print(
+        "执行了【歌单初始化】、【关闭】、【排序】条件查询的逻辑"
+        "${aos.orderType} ${aos.playlistSortType}",
+      );
+      // 此外，在对歌单排序时，也是直接获取到对应的排序类别和用于排序的关键字；如果是条件查询，则不对结果排序了(也不知道怎么排)
+      futureHandler = _audioQuery.queryPlaylists(
+        sortType: aos.playlistSortType,
+        orderType: aos.orderType,
+      );
     }
+
+    // 如果切换了歌单的排序方式，则按照给出的排序方式重新查询
 
     return FutureBuilder<List<dynamic>>(
       future: futureHandler,
@@ -250,11 +253,16 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
                             .push(
                               MaterialPageRoute(
                                 // 在选中指定歌单点击后，进入音频列表，同时监控是否有对音频长按
-                                builder: (BuildContext ctx) =>
-                                    ListenableProvider(
-                                  create: (ctx) => AudioLongPress(),
-                                  builder: (context, child) =>
-                                      LocalMusicAudioListDetail(
+                                builder: (BuildContext ctx) => MultiProvider(
+                                  providers: [
+                                    ListenableProvider<AudioLongPress>(
+                                      create: (_) => AudioLongPress(),
+                                    ),
+                                    ListenableProvider<AudioOptionSelected>(
+                                      create: (_) => AudioOptionSelected(),
+                                    ),
+                                  ],
+                                  child: LocalMusicAudioListDetail(
                                     audioListType: AudioListTypes.playlist,
                                     audioListId: playlist.id,
                                     audioListTitle: playlist.playlist,

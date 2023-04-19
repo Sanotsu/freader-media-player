@@ -6,11 +6,13 @@ import 'package:freader_music_player/common/global/constants.dart';
 import 'package:provider/provider.dart';
 
 import '../../../models/audio_long_press.dart';
+import '../../../models/sort_option_selected.dart';
 import '../../../services/my_audio_query.dart';
 import '../../../services/service_locator.dart';
 import '../widgets/build_add_to_playlist_dialog.dart';
 import '../widgets/build_audio_info_dialog.dart';
 import '../widgets/build_search_text_field.dart';
+import '../widgets/build_sort_options_dialog.dart';
 import '../widgets/music_list_future_builder.dart';
 import '../widgets/music_player_mini_bar.dart';
 
@@ -53,8 +55,8 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
         body: Column(
           children: [
             Expanded(
-              child: Consumer<AudioLongPress>(
-                builder: (context, alp, child) {
+              child: Consumer2<AudioLongPress, AudioOptionSelected>(
+                builder: (context, alp, aos, child) {
                   print(
                       "1111LocalMusicAudioListDetail ${alp.isAudioLongPress} ");
 
@@ -119,8 +121,8 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
 
   // 构建默认的音频列表功能按钮组件
   Widget buildDefaultButtons() {
-    return Consumer<AudioLongPress>(
-      builder: (context, alp, child) {
+    return Consumer2<AudioLongPress, AudioOptionSelected>(
+      builder: (context, alp, aos, child) {
         return SizedBox(
           height: 20.sp,
           child: Row(
@@ -149,12 +151,9 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
                 icon: const Icon(Icons.sort),
                 tooltip: '排序',
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('This is a 排序'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
+                  // 假设当前tab是1，即全部歌曲tab，这样弹窗可供选择的排序选项是音频的。
+                  // 又因为无论指定的某个歌单、歌手、专辑内音频渲染内容和tab为全部歌曲是通用的，所以各自内部的音频排序也就正常的。
+                  buildSortOptionsDialog(context, aos, 1);
                 },
               ),
             ],

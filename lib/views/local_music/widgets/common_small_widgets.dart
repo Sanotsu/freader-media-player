@@ -56,3 +56,47 @@ Widget buildRowListTile(String label, String value) {
     ),
   );
 }
+
+// 自定的带标签的复选框（RadioListTile高度太高，还不能跳整）
+class LabeledRadio extends StatelessWidget {
+  const LabeledRadio({
+    super.key,
+    required this.label,
+    required this.padding,
+    required this.groupValue,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String label;
+  final EdgeInsets padding;
+  final dynamic groupValue;
+  final dynamic value;
+  final ValueChanged<dynamic> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        if (value != groupValue) {
+          onChanged(value);
+        }
+      },
+      child: Padding(
+        padding: padding,
+        child: Row(
+          children: <Widget>[
+            Radio<dynamic>(
+              groupValue: groupValue,
+              value: value,
+              onChanged: (dynamic newValue) {
+                onChanged(newValue!);
+              },
+            ),
+            Text(label),
+          ],
+        ),
+      ),
+    );
+  }
+}

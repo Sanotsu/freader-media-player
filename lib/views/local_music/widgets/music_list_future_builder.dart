@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../../common/global/constants.dart';
 import '../../../common/utils/tools.dart';
 import '../../../models/audio_long_press.dart';
+import '../../../models/sort_option_selected.dart';
 import '../../../services/my_audio_handler.dart';
 import '../../../services/my_audio_query.dart';
 import '../../../services/my_shared_preferences.dart';
@@ -77,10 +78,11 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
   //   _audioQuery.hasPermission ? setState(() {}) : null;
   // }
 
-  initFuture() async {
+  initFuture({AudioOptionSelected? aos}) async {
     print("传入music list future builder的播放列表类型和编号------------");
     print(
-        "${widget.audioListType},,,${widget.audioListId} ${widget.queryInputted}");
+      "${widget.audioListType},,,${widget.audioListId} ${widget.queryInputted}",
+    );
 
     // 只要有传入查询条件就用这个，传空字串则查询所有
     if (widget.queryInputted != null) {
@@ -95,28 +97,47 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
 
     switch (widget.audioListType) {
       case AudioListTypes.all:
-        futureHandler = _audioQuery.querySongs();
+        futureHandler = _audioQuery.querySongs(
+          sortType: aos?.songSortType ?? SongSortType.TITLE,
+          orderType: aos?.orderType ?? OrderType.ASC_OR_SMALLER,
+        );
         break;
       case AudioListTypes.playlist:
         futureHandler = _audioQuery.queryAudiosFrom(
-            AudiosFromType.PLAYLIST, widget.audioListId!);
+          AudiosFromType.PLAYLIST,
+          widget.audioListId!,
+          sortType: aos?.songSortType ?? SongSortType.TITLE,
+          orderType: aos?.orderType ?? OrderType.ASC_OR_SMALLER,
+        );
         break;
       case AudioListTypes.artist:
         futureHandler = _audioQuery.queryAudiosFrom(
-            AudiosFromType.ARTIST_ID, widget.audioListId!);
+          AudiosFromType.ARTIST_ID,
+          widget.audioListId!,
+          sortType: aos?.songSortType ?? SongSortType.TITLE,
+          orderType: aos?.orderType ?? OrderType.ASC_OR_SMALLER,
+        );
         break;
       case AudioListTypes.album:
         futureHandler = _audioQuery.queryAudiosFrom(
-            AudiosFromType.ALBUM_ID, widget.audioListId!);
+          AudiosFromType.ALBUM_ID,
+          widget.audioListId!,
+          sortType: aos?.songSortType ?? SongSortType.TITLE,
+          orderType: aos?.orderType ?? OrderType.ASC_OR_SMALLER,
+        );
         break;
       default:
-        futureHandler = _audioQuery.querySongs();
+        futureHandler = _audioQuery.querySongs(
+          sortType: aos?.songSortType ?? SongSortType.TITLE,
+          orderType: aos?.orderType ?? OrderType.ASC_OR_SMALLER,
+        );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     AudioLongPress alp = context.read<AudioLongPress>();
+    AudioOptionSelected aos = context.read<AudioOptionSelected>();
 
     print("1111111111111111111zzzzzzzzzzz  ${widget.audioListType}");
 
@@ -125,7 +146,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
       print("执行【取消选择的音频】或者【初始化音频列表】的逻辑");
       selectedIndexs.length = 0;
       // 这里我以为是不能保证一定先完成了移除再获取新的歌单音频列表，但结果暂时是正确的
-      initFuture();
+      initFuture(aos: aos);
     }
 
     return Center(

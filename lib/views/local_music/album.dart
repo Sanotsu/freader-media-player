@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../common/global/constants.dart';
 import '../../models/audio_long_press.dart';
 import '../../models/list_long_press.dart';
+import '../../models/sort_option_selected.dart';
 import '../../services/my_audio_query.dart';
 import '../../services/service_locator.dart';
 import 'nested_pages/audio_list_detail.dart';
@@ -28,8 +29,8 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ListLongPress>(
-      builder: (context, llp, child) {
+    return Consumer2<ListLongPress, AudioOptionSelected>(
+      builder: (context, llp, aos, child) {
         print(
           "localmusic index 下album中 ${llp.isPlaylistLongPress} ${llp.selectedPlaylistList.length} ${llp.localMusicAppBarSearchInput}",
         );
@@ -37,12 +38,12 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
         /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
         ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
         /// 如果是默认显示的，应该有：排序、搜索、三个点（展开其他功能）
-        return _buildList(context, llp);
+        return _buildList(context, llp, aos);
       },
     );
   }
 
-  _buildList(BuildContext context, ListLongPress llp) {
+  _buildList(BuildContext context, ListLongPress llp, AudioOptionSelected aos) {
     // 如果是主页上歌单的条件查询
     if (llp.localMusicAppBarSearchInput != null) {
       print("执行了条件查询的逻辑");
@@ -52,8 +53,11 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
       );
     } else {
       // 如果等于null，说明是初始化，或者关闭了查询按钮，歌单要重新查询所有
-      print("执行了【歌单初始化】或者【关闭】条件查询的逻辑");
-      futureHandler = _audioQuery.queryAlbums();
+      print("执行了专辑的【初始化】、【关闭条件查询】、【排序】的逻辑");
+      futureHandler = _audioQuery.queryAlbums(
+        sortType: aos.albumSortType,
+        orderType: aos.orderType,
+      );
     }
 
     return FutureBuilder<List<dynamic>>(
@@ -81,7 +85,9 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
           itemBuilder: (context, index) {
             return ListTile(
               title: Text(albums[index].album),
-              subtitle: Text("${albums[index].numOfSongs.toString()} 首歌曲"),
+              subtitle: Text(
+                "${albums[index].numOfSongs} 首歌曲 - ${albums[index].artist}",
+              ),
               minLeadingWidth: 100.sp, // 左侧缩略图标的最小宽度
               // 这个小部件将查询/加载图像。
               leading: QueryArtworkWidget(
@@ -99,9 +105,16 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     // 在选中指定歌单点击后，进入音频列表，同时监控是否有对音频长按
-                    builder: (BuildContext ctx) => ListenableProvider(
-                      create: (ctx) => AudioLongPress(),
-                      builder: (context, child) => LocalMusicAudioListDetail(
+                    builder: (BuildContext ctx) => MultiProvider(
+                      providers: [
+                        ListenableProvider<AudioLongPress>(
+                          create: (_) => AudioLongPress(),
+                        ),
+                        ListenableProvider<AudioOptionSelected>(
+                          create: (_) => AudioOptionSelected(),
+                        ),
+                      ],
+                      child: LocalMusicAudioListDetail(
                         audioListType: AudioListTypes.album,
                         audioListId: albums[index].id,
                         audioListTitle: albums[index].album,

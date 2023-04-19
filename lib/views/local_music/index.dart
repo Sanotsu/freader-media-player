@@ -11,6 +11,7 @@ import '../../common/utils/tools.dart';
 import '../../models/audio_long_press.dart';
 
 import '../../models/list_long_press.dart';
+import '../../models/sort_option_selected.dart';
 import '../../services/my_audio_query.dart';
 import '../../services/service_locator.dart';
 import 'album.dart';
@@ -20,6 +21,7 @@ import 'playlist.dart';
 import 'widgets/build_add_to_playlist_dialog.dart';
 import 'widgets/build_audio_info_dialog.dart';
 import 'widgets/build_search_text_field.dart';
+import 'widgets/build_sort_options_dialog.dart';
 import 'widgets/common_small_widgets.dart';
 import 'widgets/music_player_mini_bar.dart';
 
@@ -43,6 +45,9 @@ class _LocalMusicState extends State<LocalMusic>
 
   // 是否已经给tab Controller添加了监听器，避免重复监听
   late bool isAddListenerToTabController;
+
+  // 当前tab索引，默认为0
+  late int currentTabIndex = 0;
 
   @override
   void initState() {
@@ -73,6 +78,7 @@ class _LocalMusicState extends State<LocalMusic>
       providers: [
         ChangeNotifierProvider(create: (_) => AudioLongPress()),
         ChangeNotifierProvider(create: (_) => ListLongPress()),
+        ChangeNotifierProvider(create: (_) => AudioOptionSelected()),
       ],
       child: Scaffold(
         appBar: _buildAppBar(),
@@ -129,6 +135,10 @@ class _LocalMusicState extends State<LocalMusic>
           if (!isAddListenerToTabController) {
             tabController.addListener(() {
               if (!tabController.indexIsChanging) {
+                // 切换tab后更新当前tab索引
+                setState(() {
+                  currentTabIndex = tabController.index;
+                });
                 // 不是tab切换后的tab为歌单列表，重置音频长按状态；如果不是，则重置歌单长按状态
                 switch (tabController.index) {
                   case 0:
@@ -450,8 +460,8 @@ class _LocalMusicState extends State<LocalMusic>
 
   // 默认的工具按钮（查询和排序）
   _buildDefaultButtons() {
-    return Consumer2<AudioLongPress, ListLongPress>(
-      builder: (context, alp, llp, child) {
+    return Consumer3<AudioLongPress, ListLongPress, AudioOptionSelected>(
+      builder: (context, alp, llp, aos, child) {
         return !alp.isAudioLongPress &&
                 llp.isPlaylistLongPress != LongPressStats.YES
             ? SizedBox(
@@ -473,11 +483,10 @@ class _LocalMusicState extends State<LocalMusic>
                             icon: const Icon(Icons.sort),
                             tooltip: '排序',
                             onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('最外层的排序'),
-                                  duration: Duration(seconds: 1),
-                                ),
+                              buildSortOptionsDialog(
+                                context,
+                                aos,
+                                currentTabIndex,
                               );
                             },
                           ),
