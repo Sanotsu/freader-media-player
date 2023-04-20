@@ -108,6 +108,7 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
                               artworkHeight: 20.sp,
                               artworkBorder: BorderRadius.zero, // 图标边角无圆弧
                               size: 100,
+                              keepOldArtwork: true, // 在生命周期内使用旧的缩略图
                             ),
                           ),
                         ),

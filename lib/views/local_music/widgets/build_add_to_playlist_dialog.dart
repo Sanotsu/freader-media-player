@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freader_music_player/common/global/constants.dart';
+import 'package:freader_music_player/models/list_long_press.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 import '../../../models/audio_long_press.dart';
@@ -185,7 +186,7 @@ _displayTextInputDialog(
                 onPressed: () {
                   setState(() {
                     // 单击了取消功能按钮之后，立马切回长按状态为否，也取消弹窗
-                    alp.changeIsAudioLongPress(false);
+                    alp.changeIsAudioLongPress(LongPressStats.NO);
                     Navigator.pop(context);
                   });
                 },
@@ -221,7 +222,7 @@ _displayTextInputDialog(
                   addAudioToPlaylist(audioQuery, alp, p.id, listType);
 
                   setState(() {
-                    alp.changeIsAudioLongPress(false);
+                    alp.changeIsAudioLongPress(LongPressStats.NO);
                     Navigator.pop(context);
                   });
                 },

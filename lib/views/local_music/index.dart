@@ -127,93 +127,104 @@ class _LocalMusicState extends State<LocalMusic>
 
     return DefaultTabController(
       length: 4,
-      child: Consumer2<AudioLongPress, ListLongPress>(
-        builder: (context, alp, llp, child) {
-          final TabController tabController = DefaultTabController.of(context);
+      child: Builder(builder: (BuildContext context) {
+        final TabController tabController = DefaultTabController.of(context);
 
-          print("主页index当前tab的索引${tabController.index}");
+        print(
+          "主页index当前tab的索引 ${tabController.index} $isAddListenerToTabController",
+        );
 
-          if (!isAddListenerToTabController) {
-            tabController.addListener(() {
-              if (!tabController.indexIsChanging) {
-                // 切换tab后更新当前tab索引
-                setState(() {
-                  currentTabIndex = tabController.index;
-                });
-                // 不是tab切换后的tab为歌单列表，重置音频长按状态；如果不是，则重置歌单长按状态
-                switch (tabController.index) {
-                  case 0:
-                    alp.resetAudioLongPress();
-                    break;
-                  case 1:
-                    llp.resetListLongPress();
-                    break;
-                  case 2:
-                    llp.resetListLongPress();
-                    break;
-                  case 3:
-                    llp.resetListLongPress();
-                    break;
-                }
+        if (!isAddListenerToTabController) {
+          tabController.addListener(() {
+            if (!tabController.indexIsChanging) {
+              // 切换tab后更新当前tab索引
+              // (不在这里重置状态，tab切换后，如果之前有被多选中的歌单或音频，状态栏功能按钮还是之前的而不是默认的)
+              setState(() {
+                currentTabIndex = tabController.index;
+              });
+              // 不是tab切换后的tab为歌单列表，重置音频长按状态；如果不是，则重置歌单长按状态
+
+              AudioLongPress alp = context.read<AudioLongPress>();
+              ListLongPress llp = context.read<ListLongPress>();
+
+              switch (tabController.index) {
+                case 0:
+                  alp.resetAudioLongPress();
+                  print("主页index中tab为0 时执行了重置list长按的操作");
+                  break;
+                case 1:
+                  llp.resetListLongPress();
+                  // llp.switchTabReset();
+                  print("主页index中tab为1 时执行了重置list长按的操作");
+                  break;
+                case 2:
+                  llp.resetListLongPress();
+                  print("主页index中tab为2 时执行了重置list长按的操作");
+
+                  break;
+                case 3:
+                  llp.resetListLongPress();
+                  print("主页index中tab为3 时执行了重置list长按的操作");
+                  break;
               }
-            });
-            // 添加了侦听器，设为 true
-            isAddListenerToTabController = true;
-          }
+            }
+          });
+          // 添加了侦听器，设为 true
+          isAddListenerToTabController = true;
+        }
 
-          return Center(
-            child: Column(
-              children: <Widget>[
-                Container(
-                  height: 30.sp,
-                  color: Colors.brown, // 用來看位置，不需要的话这个Container可以改为SizedBox
-                  child: TabBar(
-                    // controller: _tabController,
-                    indicator: UnderlineTabIndicator(
-                      borderSide: BorderSide(
-                          width: 3.0.sp, color: Colors.lightBlue), // 下划线的粗度和颜色
-                      // 下划线的四边的间距horizontal橫向
-                      insets: EdgeInsets.symmetric(horizontal: 2.0.sp),
-                    ),
-                    indicatorWeight: 0,
-                    indicatorSize: TabBarIndicatorSize.label,
-                    tabs: [
-                      Tab(
-                          child: Text("歌单",
-                              style: TextStyle(fontSize: sizeHeadline3))),
-                      Tab(
-                          child: Text("全部",
-                              style: TextStyle(fontSize: sizeHeadline3))),
-                      Tab(
-                          child: Text("歌手",
-                              style: TextStyle(fontSize: sizeHeadline3))),
-                      Tab(
-                          child: Text("专辑",
-                              style: TextStyle(fontSize: sizeHeadline3))),
-                    ],
+        return Center(
+          child: Column(
+            children: <Widget>[
+              Container(
+                height: 30.sp,
+                color: Colors.brown, // 用來看位置，不需要的话这个Container可以改为SizedBox
+                child: TabBar(
+                  // controller: _tabController,
+                  indicator: UnderlineTabIndicator(
+                    borderSide: BorderSide(
+                        width: 3.0.sp, color: Colors.lightBlue), // 下划线的粗度和颜色
+                    // 下划线的四边的间距horizontal橫向
+                    insets: EdgeInsets.symmetric(horizontal: 2.0.sp),
                   ),
+                  indicatorWeight: 0,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  tabs: [
+                    Tab(
+                        child: Text("歌单",
+                            style: TextStyle(fontSize: sizeHeadline3))),
+                    Tab(
+                        child: Text("全部",
+                            style: TextStyle(fontSize: sizeHeadline3))),
+                    Tab(
+                        child: Text("歌手",
+                            style: TextStyle(fontSize: sizeHeadline3))),
+                    Tab(
+                        child: Text("专辑",
+                            style: TextStyle(fontSize: sizeHeadline3))),
+                  ],
                 ),
-                const Expanded(
-                  child: TabBarView(
-                    // controller: _tabController,
-                    children: <Widget>[
-                      LocalMusicPlaylist(),
-                      LocalMusicAll(),
-                      LocalMusicArtist(),
-                      LocalMusicAlbum(),
-                    ],
-                  ),
+              ),
+              const Expanded(
+                child: TabBarView(
+                  // controller: _tabController,
+                  children: <Widget>[
+                    LocalMusicPlaylist(),
+                    LocalMusicAll(),
+                    LocalMusicArtist(),
+                    LocalMusicAlbum(),
+                  ],
                 ),
-                SizedBox(
-                  height: 60.sp,
-                  width: 1.sw,
-                  child: const MusicPlayerMiniBar(),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+              SizedBox(
+                height: 60.sp,
+                width: 1.sw,
+                child: const MusicPlayerMiniBar(),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 
@@ -359,7 +370,7 @@ class _LocalMusicState extends State<LocalMusic>
             print(
               "xxxxxxxxxxxxxxxxxxxxxxxxxxx加入歌单 ${alp.isAudioLongPress} ",
             );
-            return alp.isAudioLongPress
+            return alp.isAudioLongPress == LongPressStats.YES
                 ? Row(
                     children: [
                       IconButton(
@@ -452,7 +463,7 @@ class _LocalMusicState extends State<LocalMusic>
   _buildDefaultButtons() {
     return Consumer3<AudioLongPress, ListLongPress, AudioOptionSelected>(
       builder: (context, alp, llp, aos, child) {
-        return !alp.isAudioLongPress &&
+        return alp.isAudioLongPress != LongPressStats.YES &&
                 llp.isPlaylistLongPress != LongPressStats.YES
             ? SizedBox(
                 height: 20.sp,

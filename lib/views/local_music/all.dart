@@ -22,7 +22,7 @@ class _LocalMusicAllState extends State<LocalMusicAll> {
     return Consumer3<ListLongPress, AudioLongPress, AudioOptionSelected>(
       builder: (context, llp, alp, aos, child) {
         print(
-          "1111xxxxLocalMusicAllxxx  ${llp.localMusicAppBarSearchInput}",
+          "1111xxxxLocalMusicAllxxx  ${llp.localMusicAppBarSearchInput} ${llp.localMusicAppBarSearchInput != null}",
         );
 
         // 如果“全部”中tab有输入搜索的条件，则在构建音频列表时带上该输入条件；否则不传

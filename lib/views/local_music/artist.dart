@@ -99,6 +99,7 @@ class _LocalMusicArtistState extends State<LocalMusicArtist> {
                 artworkBorder: const BorderRadius.all(Radius.zero), // 缩略图不显示圆角
                 // artworkWidth: 100.sp, // 默认是50*50的大小
                 // artworkHeight: 100.sp, // 这个高度显示不太对
+                keepOldArtwork: true, // 在生命周期内使用旧的缩略图
               ),
               onTap: () {
                 print(

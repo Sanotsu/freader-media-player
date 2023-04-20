@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freader_music_player/models/list_long_press.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:provider/provider.dart';
 
@@ -84,17 +85,6 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
       "${widget.audioListType},,,${widget.audioListId} ${widget.queryInputted}",
     );
 
-    // 只要有传入查询条件就用这个，传空字串则查询所有
-    if (widget.queryInputted != null) {
-      print("all tab 查询的内容 ${widget.queryInputted}------------");
-
-      futureHandler = _audioQuery.queryWithFilters(
-        widget.queryInputted!,
-        WithFiltersType.AUDIOS,
-      );
-      return;
-    }
-
     switch (widget.audioListType) {
       case AudioListTypes.all:
         futureHandler = _audioQuery.querySongs(
@@ -139,13 +129,31 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
     AudioLongPress alp = context.read<AudioLongPress>();
     AudioOptionSelected aos = context.read<AudioOptionSelected>();
 
-    print("1111111111111111111zzzzzzzzzzz  ${widget.audioListType}");
+    print(
+      "1111111111111111111zzzzzzzzzzz  ${widget.audioListType} ${alp.isAudioLongPress}",
+    );
 
-    // 如果是上层使用provide取消了长按标志，这里得清空被选中的数组
-    if (!alp.isAudioLongPress) {
+    // 如果是上层使用provide取消了长按标志，这里得清空被选中的数组(初始化时为INIT，不执行此)
+    if (alp.isAudioLongPress == LongPressStats.NO) {
       print("执行【取消选择的音频】或者【初始化音频列表】的逻辑");
       selectedIndexs.length = 0;
       // 这里我以为是不能保证一定先完成了移除再获取新的歌单音频列表，但结果暂时是正确的
+      initFuture(aos: aos);
+    }
+
+    // 如果上层是tab的全部歌曲页面，有输入条件查询歌曲的值，这里要重新查找结果
+    // 只要有传入查询条件就用这个，传空字串则查询所有
+    if (widget.queryInputted != null) {
+      print("all tab 查询的内容 ${widget.queryInputted}------------");
+
+      futureHandler = _audioQuery.queryWithFilters(
+        widget.queryInputted!,
+        WithFiltersType.AUDIOS,
+      );
+    } else {
+      // 如果等于null，说明是初始化，或者关闭了查询按钮，全部歌曲要重新查询所有
+      print("执行了【全部歌曲初始化】、【关闭】、【排序】条件查询的逻辑");
+
       initFuture(aos: aos);
     }
 
@@ -220,7 +228,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                       onLongPress: () {
                         setState(() {
                           // 音频item被长按了，设置标志为被长按，会显示一些操作按钮，且再单击音频是多选，而不是播放
-                          alp.changeIsAudioLongPress(true);
+                          alp.changeIsAudioLongPress(LongPressStats.YES);
                           // 长按的时候把该item索引加入被选中的索引变量中
                           selectedIndexs.add(song);
                           // 保存被选中的音频
@@ -249,13 +257,14 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                                 // 其他查询播放列表、艺术家的获取的音频id和querysongs的不一样，也拿不到图片
                                 id: song.id,
                                 type: ArtworkType.AUDIO,
+                                keepOldArtwork: true, // 在生命周期内使用旧的缩略图
                               )
                             : SizedBox(
                                 height: 2.sp,
                                 width: 2.sp,
                               ),
                         onTap: () async {
-                          if (alp.isAudioLongPress) {
+                          if (alp.isAudioLongPress == LongPressStats.YES) {
                             setState(() {
                               // 如果已经加入被选中列表，再次点击则移除
                               // if (selectedIndexs.contains(song)) {
@@ -271,7 +280,7 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                               }
                               // 如果被选中的列表清空，那就假装没有点击长按用于选择音频
                               if (selectedIndexs.isEmpty) {
-                                alp.changeIsAudioLongPress(false);
+                                alp.changeIsAudioLongPress(LongPressStats.NO);
                               }
 
                               // 不管如何，点击了，就要更新被选中的歌单列表

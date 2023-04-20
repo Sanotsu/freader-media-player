@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
+import 'list_long_press.dart';
+
 /// 各种列表中音频列表长按的相关属性通知类
 /// 用于全局获取音频是否被长按的状态，用来判断是否显示对被选中音频的功能操作按钮
 /// 需要在被用到组件上层进行注入 ChangeNotifierProvider，
@@ -10,9 +12,9 @@ import 'package:on_audio_query/on_audio_query.dart';
 ///     var alp = context.read<AudioLongPress>();
 ///     alp.changeIsLongPress(true)
 class AudioLongPress with ChangeNotifier {
-  // 音频是否被长按
-  bool isAudioLongPress = false;
-  void changeIsAudioLongPress(bool flag) {
+  // 音频是否被长按,默认为初始化，以区分改变长按为否时和初始化时的不同状态
+  LongPressStats isAudioLongPress = LongPressStats.INIT;
+  void changeIsAudioLongPress(LongPressStats flag) {
     isAudioLongPress = flag;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
@@ -31,8 +33,19 @@ class AudioLongPress with ChangeNotifier {
 
   // 重置音频长按的状态为初始值
   void resetAudioLongPress() {
-    isAudioLongPress = false;
+    isAudioLongPress = LongPressStats.INIT;
     selectedAudioList.length = 0;
+    print("resetAudioLongPress-----------------");
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+
+  // 重置音频长按的状态为初始值
+  void switchTabReset() {
+    isAudioLongPress = LongPressStats.RESET;
+    selectedAudioList.length = 0;
+    print("resetAudioLongPress-----------------");
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
     });

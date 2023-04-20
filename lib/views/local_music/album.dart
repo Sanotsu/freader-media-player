@@ -96,6 +96,7 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
                 id: albums[index].id,
                 type: ArtworkType.ALBUM,
                 artworkBorder: const BorderRadius.all(Radius.zero), // 缩略图不显示圆角
+                keepOldArtwork: true, // 在生命周期内使用旧的缩略图
               ),
               onTap: () {
                 print(

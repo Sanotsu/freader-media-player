@@ -1,4 +1,4 @@
-// ignore_for_file: constant_identifier_names
+// ignore_for_file: constant_identifier_names, avoid_print
 
 // 歌单、专辑、歌手等tab层面的列表被长按的时候做通知
 import 'package:flutter/widgets.dart';
@@ -8,6 +8,7 @@ enum LongPressStats {
   INIT,
   YES,
   NO,
+  RESET, // 预留来做tab切换时改变的状态值，然后在构建子组件时判断，避免重复多次请求数据。实际还没用到，也不知道怎么用。
 }
 
 class ListLongPress with ChangeNotifier {
@@ -34,8 +35,19 @@ class ListLongPress with ChangeNotifier {
 
   // 重置列表长按的状态为初始值
   void resetListLongPress() {
+    print("resetListLongPress--------------");
     isPlaylistLongPress = LongPressStats.INIT;
     selectedPlaylistList.length = 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+
+  // 重置音频长按的状态为初始值
+  void switchTabReset() {
+    isPlaylistLongPress = LongPressStats.RESET;
+    selectedPlaylistList.length = 0;
+    print("resetAudioLongPress-----------------");
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
     });

@@ -204,6 +204,7 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
                     //   id: playlistId,
                     //   type: ArtworkType.PLAYLIST,
                     //   artworkBorder: const BorderRadius.all(Radius.zero), // 缩略图不显示圆角
+                    // keepOldArtwork: true, // 在生命周期内使用旧的缩略图
                     // ),
                     leading: SizedBox(height: 50.sp, width: 50.sp),
                     onLongPress: () {
