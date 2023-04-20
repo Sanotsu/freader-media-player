@@ -90,10 +90,8 @@ buildAudioInfoDialog(BuildContext context, AudioLongPress alp) {
                 child: const Text('确认'),
                 onPressed: () {
                   setState(() {
-                    // 单击了取消功能按钮之后，立马切回长按状态为否，也取消弹窗
-                    alp.changeIsAudioLongPress(false);
-                    // 清空被选中的歌单列表
-                    alp.changeSelectedAudioList([]);
+                    // 单击了取消功能按钮之后，立马切回长按状态为否,清空被选中的歌单列表，也取消弹窗
+                    alp.resetAudioLongPress();
                     Navigator.pop(context);
                   });
                 },

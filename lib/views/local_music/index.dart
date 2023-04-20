@@ -20,6 +20,7 @@ import 'artist.dart';
 import 'playlist.dart';
 import 'widgets/build_add_to_playlist_dialog.dart';
 import 'widgets/build_audio_info_dialog.dart';
+import 'widgets/build_remove_playlist_or_audio_dialog.dart';
 import 'widgets/build_search_text_field.dart';
 import 'widgets/build_sort_options_dialog.dart';
 import 'widgets/common_small_widgets.dart';
@@ -291,54 +292,6 @@ class _LocalMusicState extends State<LocalMusic>
         });
   }
 
-  // 显示删除歌单的确认弹窗
-  _buildRemovePlaylistDialog(BuildContext context, ListLongPress llp) {
-    // 获取查询音乐组件实例
-    final audioQuery = getIt<MyAudioQuery>();
-
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('移除歌单'),
-          content: const Text('这仅会移除被选中的歌单，而不是删除音频文件'),
-          actions: <Widget>[
-            TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('取消'),
-              onPressed: () {
-                setState(() {
-                  // 单击了取消功能按钮之后，立马切回长按状态为否，清空被选中的歌单列表,也取消弹窗
-                  llp.resetListLongPress();
-                  Navigator.pop(context);
-                });
-              },
-            ),
-            TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('确认'),
-              onPressed: () {
-                for (var playlist in llp.selectedPlaylistList) {
-                  audioQuery.removePlaylist(playlist.id);
-                }
-
-                setState(() {
-                  // 单击了取消功能按钮之后，立马切回长按状态为否，清空被选中的歌单列表,也取消弹窗
-                  llp.resetListLongPress();
-                  Navigator.pop(context);
-                });
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   // 显示歌单信息的弹窗
   _buildPlaylistInfoDialog(BuildContext context, ListLongPress llp) {
     PlaylistModel list = llp.selectedPlaylistList[0];
@@ -416,9 +369,14 @@ class _LocalMusicState extends State<LocalMusic>
                             context, alp, AudioListTypes.all),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.cancel),
+                        icon: const Icon(Icons.info),
                         tooltip: '详细信息',
                         onPressed: () => buildAudioInfoDialog(context, alp),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.cancel),
+                        tooltip: '取消选中',
+                        onPressed: () => alp.resetAudioLongPress(),
                       )
                     ],
                   )
@@ -427,32 +385,64 @@ class _LocalMusicState extends State<LocalMusic>
         ),
 
         Consumer<ListLongPress>(
-          builder: (context, llp, child) => llp.isPlaylistLongPress ==
-                      LongPressStats.YES &&
-                  llp.selectedPlaylistList.length == 1
-              // 如果是“歌单”tab中指定单个歌单被长按选中，可显示修改、查看详情
-              ? Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      tooltip: '修改歌单名称',
-                      onPressed: () => _buildRenamePlaylistDialog(context, llp),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.info),
-                      tooltip: '查看歌单详情',
-                      onPressed: () => _buildPlaylistInfoDialog(context, llp),
-                    )
-                  ],
-                )
-              // 如果是“歌单”tab中指定多个歌单被长按选中，可显示删除
-              : llp.isPlaylistLongPress == LongPressStats.YES
-                  ? IconButton(
-                      icon: const Icon(Icons.delete),
-                      tooltip: '删除选中歌单',
-                      onPressed: () => _buildRemovePlaylistDialog(context, llp),
-                    )
-                  : Container(),
+          builder: (context, llp, child) {
+            if (llp.isPlaylistLongPress == LongPressStats.YES &&
+                llp.selectedPlaylistList.length == 1) {
+              // 如果是“歌单”tab中指定单个歌单被长按选中，可显示修改、查看详情、删除和取消选中
+              return Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    tooltip: '修改歌单名称',
+                    onPressed: () => _buildRenamePlaylistDialog(context, llp),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.info),
+                    tooltip: '查看歌单详情',
+                    onPressed: () => _buildPlaylistInfoDialog(context, llp),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    tooltip: '删除选中歌单',
+                    onPressed: () =>
+                        buildRemovePlaylistOrAudioDialog(context, llp),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.cancel),
+                    tooltip: '取消选中歌单',
+                    onPressed: () {
+                      // 单击了取消按钮图标，取消所有选中歌单
+                      llp.resetListLongPress();
+                    },
+                  )
+                ],
+              );
+            } else if (llp.isPlaylistLongPress == LongPressStats.YES &&
+                llp.selectedPlaylistList.length > 1) {
+              // 如果是“歌单”tab中指定多个歌单被长按选中，可显示删除和取消选中
+              return Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    tooltip: '删除选中歌单',
+                    onPressed: () =>
+                        buildRemovePlaylistOrAudioDialog(context, llp),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.cancel),
+                    tooltip: '取消选中歌单',
+                    onPressed: () {
+                      // 单击了取消按钮图标，取消所有选中歌单
+                      llp.resetListLongPress();
+                    },
+                  )
+                ],
+              );
+            } else {
+              // 没有长按，则占位
+              return Container();
+            }
+          },
         ),
       ],
     );

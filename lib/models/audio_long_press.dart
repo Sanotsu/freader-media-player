@@ -29,7 +29,7 @@ class AudioLongPress with ChangeNotifier {
     });
   }
 
-  // 重置音频长按的状态为初始值（好像也没用）
+  // 重置音频长按的状态为初始值
   void resetAudioLongPress() {
     isAudioLongPress = false;
     selectedAudioList.length = 0;

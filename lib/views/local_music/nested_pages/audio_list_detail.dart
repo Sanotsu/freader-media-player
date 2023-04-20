@@ -7,10 +7,9 @@ import 'package:provider/provider.dart';
 
 import '../../../models/audio_long_press.dart';
 import '../../../models/sort_option_selected.dart';
-import '../../../services/my_audio_query.dart';
-import '../../../services/service_locator.dart';
 import '../widgets/build_add_to_playlist_dialog.dart';
 import '../widgets/build_audio_info_dialog.dart';
+import '../widgets/build_remove_playlist_or_audio_dialog.dart';
 import '../widgets/build_search_text_field.dart';
 import '../widgets/build_sort_options_dialog.dart';
 import '../widgets/music_list_future_builder.dart';
@@ -164,9 +163,6 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
   }
 
   Widget buildLongPressButtons(AudioLongPress alp) {
-    // var alp = context.read<AudioInList>();
-    // 获取查询音乐组件实例
-    final audioQuery = getIt<MyAudioQuery>();
     print(
       "111111buildLongPressButtonsXXXXXXXXXXXXXXX  ${alp.isAudioLongPress} ${widget.audioListType} ${alp.selectedAudioList}",
     );
@@ -178,17 +174,11 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
             ? IconButton(
                 icon: const Icon(Icons.remove),
                 tooltip: '从列表中移除',
-                onPressed: () {
-                  // 长按是保存被选中的音频，直接在这里取得后进行移除
-                  for (var e in alp.selectedAudioList) {
-                    audioQuery.removeFromPlaylist(widget.audioListId, e.id);
-                  }
-                  setState(() {
-                    // 单击了功能按钮之后，立马切回长按状态为否
-                    alp.changeIsAudioLongPress(false);
-                    alp.changeSelectedAudioList([]);
-                  });
-                },
+                onPressed: () => buildRemovePlaylistOrAudioDialog(
+                  context,
+                  alp,
+                  playlistId: widget.audioListId,
+                ),
               )
             : Container(),
         IconButton(
@@ -206,17 +196,22 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
           onPressed: () => buildAudioInfoDialog(context, alp),
         ),
         IconButton(
-          icon: const Icon(Icons.more_vert),
-          tooltip: '更多功能',
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('This is a 更多功能'),
-                duration: Duration(seconds: 1),
-              ),
-            );
-          },
+          icon: const Icon(Icons.cancel),
+          tooltip: '取消选中',
+          onPressed: () => alp.resetAudioLongPress(),
         ),
+        // IconButton(
+        //   icon: const Icon(Icons.more_vert),
+        //   tooltip: '更多功能',
+        //   onPressed: () {
+        //     ScaffoldMessenger.of(context).showSnackBar(
+        //       const SnackBar(
+        //         content: Text('This is a 更多功能'),
+        //         duration: Duration(seconds: 1),
+        //       ),
+        //     );
+        //   },
+        // ),
       ],
     );
   }

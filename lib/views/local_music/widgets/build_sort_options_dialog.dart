@@ -61,30 +61,23 @@ buildSortOptionsDialog(
   // 当前是哪一个tab(歌单、音频、歌手、专辑)需要排序，构建不同的弹窗内容
   List tempList;
 
-  // 判断哪种tab需要排序（暂时没用到，但可能有用。先存着，之后再说）
-  MySortType tempSortType;
-
   // 被选择的排序属性(model中有预设，选择之后也有更新，属于保留上一次的。但没有持久化)
   dynamic selectedSortType;
 
   switch (currentTabIndex) {
     case 1:
-      tempSortType = MySortType.SONG;
       tempList = songSortTypeList;
       selectedSortType = aos.songSortType;
       break;
     case 2:
-      tempSortType = MySortType.ARTIST;
       tempList = artistSortTypeList;
       selectedSortType = aos.artistSortType;
       break;
     case 3:
-      tempSortType = MySortType.ALBUM;
       tempList = albumSortTypeList;
       selectedSortType = aos.albumSortType;
       break;
     default:
-      tempSortType = MySortType.PLAYLIST;
       tempList = playlistSortTypeList;
       selectedSortType = aos.playlistSortType;
   }

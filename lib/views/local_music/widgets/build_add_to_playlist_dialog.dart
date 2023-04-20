@@ -114,7 +114,7 @@ Future<void> buildAddToPlaylistDialog(
                 onPressed: () {
                   setState(() {
                     // 单击了取消功能按钮之后，立马切回长按状态为否
-                    alp.changeIsAudioLongPress(false);
+                    alp.resetAudioLongPress();
                   });
                   Navigator.of(ctext).pop();
                 },
@@ -135,7 +135,7 @@ Future<void> buildAddToPlaylistDialog(
 
                 setState(() {
                   // 单击了添加功能按钮之后，立马切回长按状态为否，等到添加到列表完成
-                  alp.changeIsAudioLongPress(false);
+                  alp.resetAudioLongPress();
                   // 关闭弹窗
                   Navigator.of(ctext).pop();
                 });
