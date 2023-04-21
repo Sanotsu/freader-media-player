@@ -7,6 +7,8 @@ class GlobalConstants {
   static String currentAudioListType = "currentAudioListType";
   static String currentAudioListId = "currentAudioListId";
   static String currentAudioIndex = "currentAudioIndex";
+  static String currentCycleMode = "currentCycleMode"; // 循环模式(单曲循环、列表循环、不循环等)
+  static String currentIsShuffleMode = "currentIsShuffleMode"; // 随机播放或顺序播放
 }
 
 /*

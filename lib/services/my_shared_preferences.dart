@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../common/global/constants.dart';
@@ -52,5 +53,54 @@ class MySharedPreferences {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(GlobalConstants.currentAudioListId, listIndex);
     print("playlistId----------------$listIndex");
+  }
+
+  /// 保存当前播放循环模式
+  Future<void> setCurrentCycleMode(cycleMode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(GlobalConstants.currentCycleMode, cycleMode);
+    print("cycleMode----------------$cycleMode");
+  }
+
+  // 获取当前播放循环模式
+  Future<LoopMode> getCurrentCycleMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? ccm = prefs.getString(GlobalConstants.currentCycleMode);
+
+    LoopMode cycleMode;
+    // 因为存入的是字符串，所以比较也是字符串，返回的是对应枚举类型
+    if (ccm == LoopMode.one.toString()) {
+      cycleMode = LoopMode.one;
+    } else if (ccm == LoopMode.all.toString()) {
+      cycleMode = LoopMode.all;
+    } else {
+      cycleMode = LoopMode.off;
+    }
+    return cycleMode;
+  }
+
+  /// 保存当前播放是否随机
+  Future<void> setCurrentIsShuffleMode(isShuffleMode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(GlobalConstants.currentIsShuffleMode, isShuffleMode);
+    print("isShuffleMode----------------$isShuffleMode");
+  }
+
+  // 获取当前是否随机播放
+  Future<bool> getCurrentIsShuffleMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? csm = prefs.getString(GlobalConstants.currentIsShuffleMode);
+
+    print("getCurrentIsShuffleMode----------------$csm");
+
+
+    bool isShuffle;
+    // 因为存入的是字符串，所以比较也是字符串，返回的是对应枚举类型
+    if (csm?.toLowerCase() == "true") {
+      isShuffle = true;
+    } else {
+      isShuffle = false;
+    }
+    return isShuffle;
   }
 }

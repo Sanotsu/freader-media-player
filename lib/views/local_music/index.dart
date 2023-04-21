@@ -150,21 +150,24 @@ class _LocalMusicState extends State<LocalMusic>
               switch (tabController.index) {
                 case 0:
                   alp.resetAudioLongPress();
-                  print("主页index中tab为0 时执行了重置list长按的操作");
+                  print("主页index中tab为0 时执行了重置");
                   break;
                 case 1:
                   llp.resetListLongPress();
                   // llp.switchTabReset();
-                  print("主页index中tab为1 时执行了重置list长按的操作");
+                  print("主页index中tab为1 时执行了重置");
                   break;
                 case 2:
+                  // 目前歌手和专辑tab都不能长按，所以歌单或全部歌曲中有选中，切换到歌手或专辑，都重置
                   llp.resetListLongPress();
-                  print("主页index中tab为2 时执行了重置list长按的操作");
+                  alp.resetAudioLongPress();
+                  print("主页index中tab为2 时执行了重置");
 
                   break;
                 case 3:
                   llp.resetListLongPress();
-                  print("主页index中tab为3 时执行了重置list长按的操作");
+                  alp.resetAudioLongPress();
+                  print("主页index中tab为3 时执行了重置");
                   break;
               }
             }

@@ -152,6 +152,10 @@ class MyAudioHandler {
     }
   }
 
+  // 通过索引获取当前播放列表中的指定音源
+  AudioSource getAudioSourceByIndex(int audioIndex) =>
+      _currentPlaylist.children[audioIndex];
+
   // 继续播放
   Future<void> play() => _player.play();
 
@@ -208,13 +212,23 @@ class MyAudioHandler {
   }
 
   // 获取播放器的各种流
-  Stream<LoopMode> getLoopModeStream() => _player.loopModeStream;
+  // Stream<LoopMode> getLoopModeStream() => _player.loopModeStream;
+  Future<Stream<LoopMode>> getLoopModeStream() async {
+    var temp = await _simpleShared.getCurrentCycleMode();
+    return BehaviorSubject.seeded(temp).stream;
+  }
 
   Stream<SequenceState?> getSequenceStateStream() =>
       _player.sequenceStateStream;
 
-  Stream<bool> getShuffleModeEnabledStream() =>
-      _player.shuffleModeEnabledStream;
+  // Stream<bool> getShuffleModeEnabledStream() =>
+  //     _player.shuffleModeEnabledStream;
+
+  // 持久化数据中获取
+  Future<Stream<bool>> getShuffleModeEnabledStream() async {
+    var temp = await _simpleShared.getCurrentIsShuffleMode();
+    return BehaviorSubject.seeded(temp).stream;
+  }
 
   Stream<PlayerState> getPlayerStateStream() => _player.playerStateStream;
 
@@ -238,6 +252,10 @@ class MyAudioHandler {
           _player.durationStream,
           (position, bufferedPosition, duration) => PositionData(
               position, bufferedPosition, duration ?? Duration.zero));
+
+  // 音频播放速度相关流和属性、方法
+  int? get nextIndex => _player.nextIndex;
+  int? get currentIndex => _player.currentIndex;
 
   // ？？？获取当前播放列表和其音频索引，存入数据库中
 }

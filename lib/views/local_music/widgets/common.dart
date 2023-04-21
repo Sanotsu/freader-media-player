@@ -1,11 +1,15 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../../services/my_audio_handler.dart';
+import '../../../services/service_locator.dart';
 
 // 音频进度条
 class SeekBar extends StatefulWidget {
-  final Duration duration; // 时长
-  final Duration position; // 位置
+  final Duration duration; // 音频总时长
+  final Duration position; // 音频已播放的时长
   final Duration bufferedPosition; // 已缓冲的位置
   final ValueChanged<Duration>? onChanged; // 当拖动进度开始时
   final ValueChanged<Duration>? onChangeEnd; // 当拖动进度结束时
@@ -24,8 +28,14 @@ class SeekBar extends StatefulWidget {
 }
 
 class SeekBarState extends State<SeekBar> {
+  // 滑块条拖动后的值
   double? _dragValue;
+
+  // 保存 Material Design 滑块主题(slider theme)的颜色、形状和排版值。
   late SliderThemeData _sliderThemeData;
+
+  // 音乐播放实例
+  final _audioHandler = getIt<MyAudioHandler>();
 
   @override
   void didChangeDependencies() {
@@ -40,13 +50,16 @@ class SeekBarState extends State<SeekBar> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // slider theme 描述了滑块组件（Slider组件）的颜色和形状选择。
+        /// 滑块组件，搭配设定其主题样式
+        // 已缓存的音频时长滑块
         SliderTheme(
           data: _sliderThemeData.copyWith(
             thumbShape: HiddenThumbComponentShape(), // thumb 形状（应该是）
             activeTrackColor: Colors.blue.shade100, // 已激活轨迹的颜色
             inactiveTrackColor: Colors.grey.shade300, // 未激活轨迹的颜色
           ),
+          // 一个小部件，用于删除其子代的所有语义。
+          // 当excluding 属性为true时，此小部件（及其子树）将从语义树中排除。
           child: ExcludeSemantics(
             child: Slider(
               min: 0.0,
@@ -70,6 +83,7 @@ class SeekBarState extends State<SeekBar> {
             ),
           ),
         ),
+        // 音频总时长的滑块
         SliderTheme(
           data: _sliderThemeData.copyWith(
             inactiveTrackColor: Colors.transparent,
@@ -95,14 +109,124 @@ class SeekBarState extends State<SeekBar> {
             },
           ),
         ),
+
+        /**
+         *  注意这一堆显示图标文字的位置
+         *    已运行的时长和总时长文字宽*高为30*14；文本按钮高度为78*48，其中中文字和按钮所在的Row高度占24；
+         *    为了让该4个组件在一行且居中，所以要设置对应的Positioned的左右侧距离和下方距离:
+         *      设备总宽度为360，有【xx】包裹为组件宽度，没有包裹的为间距，为了对称平均分布，结果如下:
+         *      15 +【30】+ 38 +【78】+ 38 +【78】+ 38 +【30】+ 15 = 360 
+         *      
+         *      而高度，则以图标显示的底部与Positioned的bottom为0.0时平齐为基准，不同高度组件居中:
+         *      文字图标总高度48，但其中Row 24，所以上下空白各12，所以距离底部:-12;
+         *      Row高度中心距离bottom为24/2=12，所以时间文字高度距离bottom为12-(14/2)=5
+         * 
+         */
+
+        /// Positioned 必须是 Stack 的后代，用于控制Stack的子项的放置位置。
+        // 显示已播放的时长
         Positioned(
-          right: 16.0,
-          bottom: 0.0,
+          left: 15.sp, // 距离左边界16个单位
+          bottom: 5.0,
           child: Text(
               RegExp(r'((^0*[1-9]\d*:)?\d{2}:\d{2})\.\d+$')
-                      .firstMatch("$_remaining")
+                      .firstMatch("${widget.position}")
                       ?.group(1) ??
-                  '$_remaining',
+                  '${widget.position}',
+              style: Theme.of(context).textTheme.bodySmall),
+        ),
+        // // 此处剩余时间的数字显示区域
+        // Positioned(
+        //   right: 160.sp, // 距离右边界16个单位
+        //   bottom: 0.0,
+        //   child: Text(
+        //       RegExp(r'((^0*[1-9]\d*:)?\d{2}:\d{2})\.\d+$')
+        //               .firstMatch("$_remaining")
+        //               ?.group(1) ??
+        //           '$_remaining',
+        //       style: Theme.of(context).textTheme.bodySmall),
+        // ),
+
+        /// 音量调节按钮
+        Positioned(
+          left: 83.sp,
+          bottom: -12.0,
+          child: TextButton(
+            style: TextButton.styleFrom(
+              textStyle: TextStyle(fontSize: 20.sp), // 字体大小
+              foregroundColor: Colors.black, // 前景颜色
+            ),
+            onPressed: () {
+              showSliderDialog(
+                context: context,
+                title: "音量调节",
+                divisions: 20,
+                min: 0.0,
+                max: 2.0, // 两倍音量不一定有效，可能1以上都同一个音量
+                value: _audioHandler.volume,
+                stream: _audioHandler.volumeStream,
+                onChanged: _audioHandler.setVolume,
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.volume_up),
+                Text(
+                  "${_audioHandler.volume}x",
+                  style: TextStyle(fontSize: 20.sp),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        /// 播放速度条件按钮
+        Positioned(
+          right: 83.sp,
+          bottom: -12.0,
+          child: StreamBuilder<double>(
+            stream: _audioHandler.getSpeedStream(),
+            builder: (context, snapshot) => TextButton(
+              style: TextButton.styleFrom(
+                textStyle: TextStyle(fontSize: 20.sp), // 字体大小
+                foregroundColor: Colors.black, // 前景颜色
+              ),
+              onPressed: () {
+                showSliderDialog(
+                  context: context,
+                  title: "调整速度",
+                  divisions: 18,
+                  min: 0.2,
+                  max: 2.00,
+                  value: _audioHandler.speed,
+                  stream: _audioHandler.getSpeedStream(),
+                  onChanged: _audioHandler.setSpeed(),
+                );
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.directions_run),
+                  Text(
+                    "${snapshot.data?.toStringAsFixed(1)}x",
+                    style: TextStyle(fontSize: 20.sp),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        // 总时长
+        Positioned(
+          right: 15.sp, // 距离右边界16个单位
+          bottom: 5.0,
+          child: Text(
+              RegExp(r'((^0*[1-9]\d*:)?\d{2}:\d{2})\.\d+$')
+                      .firstMatch("${widget.duration}")
+                      ?.group(1) ??
+                  '${widget.duration}',
               style: Theme.of(context).textTheme.bodySmall),
         ),
       ],
@@ -110,9 +234,11 @@ class SeekBarState extends State<SeekBar> {
   }
 
   // 剩余时长=总时长-已播放的时长
-  Duration get _remaining => widget.duration - widget.position;
+  // Duration get _remaining => widget.duration - widget.position;
 }
 
+/// SliderComponentShape 为拇指(thumb)滑块、拇指覆盖物和数值指示器形状的基类。如果想要一个自定义的形状，需要创建它的子类。
+/// 所有的形状都画在同一个画布上，排序很重要。先画覆盖层，然后是值指示器，最后是拇指。
 class HiddenThumbComponentShape extends SliderComponentShape {
   @override
   Size getPreferredSize(bool isEnabled, bool isDiscrete) => Size.zero;
@@ -134,7 +260,6 @@ class HiddenThumbComponentShape extends SliderComponentShape {
   }) {}
 }
 
-
 void showSliderDialog({
   required BuildContext context,
   required String title,
@@ -155,7 +280,7 @@ void showSliderDialog({
       content: StreamBuilder<double>(
         stream: stream,
         builder: (context, snapshot) => SizedBox(
-          height: 100.0,
+          height: 80.0,
           child: Column(
             children: [
               Text('${snapshot.data?.toStringAsFixed(1)}$valueSuffix',
@@ -177,4 +302,3 @@ void showSliderDialog({
     ),
   );
 }
-

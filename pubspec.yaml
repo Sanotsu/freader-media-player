@@ -61,6 +61,8 @@ dependencies:
   provider: ^6.0.5
   # 国际化，时间格式化等工具类（0.17.0版本与flutter_localizations版本关联，更新的不行）
   intl: 0.17.0
+  # 文本跑马灯滚动
+  marquee: ^2.2.3
 
 dev_dependencies:
   flutter_test:
