@@ -49,22 +49,61 @@ class SeekBarState extends State<SeekBar> {
   @override
   Widget build(BuildContext context) {
     return Stack(
+      alignment: Alignment.center,
+      fit: StackFit.expand,
       children: [
         /// 滑块组件，搭配设定其主题样式
         // 已缓存的音频时长滑块
-        SliderTheme(
-          data: _sliderThemeData.copyWith(
-            thumbShape: HiddenThumbComponentShape(), // thumb 形状（应该是）
-            activeTrackColor: Colors.blue.shade100, // 已激活轨迹的颜色
-            inactiveTrackColor: Colors.grey.shade300, // 未激活轨迹的颜色
+        Positioned(
+          left: 0.sp,
+          right: 0.sp,
+          top: 0.0,
+          child: SliderTheme(
+            data: _sliderThemeData.copyWith(
+              thumbShape: HiddenThumbComponentShape(), // thumb 形状（应该是）
+              activeTrackColor: Colors.blue.shade100, // 已激活轨迹的颜色
+              inactiveTrackColor: Colors.grey.shade300, // 未激活轨迹的颜色
+            ),
+            // 一个小部件，用于删除其子代的所有语义。
+            // 当excluding 属性为true时，此小部件（及其子树）将从语义树中排除。
+            child: ExcludeSemantics(
+              child: Slider(
+                min: 0.0,
+                max: widget.duration.inMilliseconds.toDouble(),
+                value: min(widget.bufferedPosition.inMilliseconds.toDouble(),
+                    widget.duration.inMilliseconds.toDouble()),
+                onChanged: (value) {
+                  setState(() {
+                    _dragValue = value;
+                  });
+                  if (widget.onChanged != null) {
+                    widget.onChanged!(Duration(milliseconds: value.round()));
+                  }
+                },
+                onChangeEnd: (value) {
+                  if (widget.onChangeEnd != null) {
+                    widget.onChangeEnd!(Duration(milliseconds: value.round()));
+                  }
+                  _dragValue = null;
+                },
+              ),
+            ),
           ),
-          // 一个小部件，用于删除其子代的所有语义。
-          // 当excluding 属性为true时，此小部件（及其子树）将从语义树中排除。
-          child: ExcludeSemantics(
+        ),
+        // 音频总时长的滑块
+        Positioned(
+          left: 0.sp,
+          right: 0.sp,
+          top: 0.0,
+          child: SliderTheme(
+            data: _sliderThemeData.copyWith(
+              inactiveTrackColor: Colors.transparent,
+            ),
             child: Slider(
               min: 0.0,
               max: widget.duration.inMilliseconds.toDouble(),
-              value: min(widget.bufferedPosition.inMilliseconds.toDouble(),
+              value: min(
+                  _dragValue ?? widget.position.inMilliseconds.toDouble(),
                   widget.duration.inMilliseconds.toDouble()),
               onChanged: (value) {
                 setState(() {
@@ -83,32 +122,6 @@ class SeekBarState extends State<SeekBar> {
             ),
           ),
         ),
-        // 音频总时长的滑块
-        SliderTheme(
-          data: _sliderThemeData.copyWith(
-            inactiveTrackColor: Colors.transparent,
-          ),
-          child: Slider(
-            min: 0.0,
-            max: widget.duration.inMilliseconds.toDouble(),
-            value: min(_dragValue ?? widget.position.inMilliseconds.toDouble(),
-                widget.duration.inMilliseconds.toDouble()),
-            onChanged: (value) {
-              setState(() {
-                _dragValue = value;
-              });
-              if (widget.onChanged != null) {
-                widget.onChanged!(Duration(milliseconds: value.round()));
-              }
-            },
-            onChangeEnd: (value) {
-              if (widget.onChangeEnd != null) {
-                widget.onChangeEnd!(Duration(milliseconds: value.round()));
-              }
-              _dragValue = null;
-            },
-          ),
-        ),
 
         /**
          *  注意这一堆显示图标文字的位置
@@ -120,14 +133,17 @@ class SeekBarState extends State<SeekBar> {
          *      而高度，则以图标显示的底部与Positioned的bottom为0.0时平齐为基准，不同高度组件居中:
          *      文字图标总高度48，但其中Row 24，所以上下空白各12，所以距离底部:-12;
          *      Row高度中心距离bottom为24/2=12，所以时间文字高度距离bottom为12-(14/2)=5
+         *  
+         *  2023-04-22 为了感官上seekbar居中，文本按钮不再只显示icon部分，所以以下bottom距离整体往上+12.(-12变0,5变17)
+         *  此外，为了固定滑块位置，上面滑块组件，也放在了positioned中
          * 
          */
 
         /// Positioned 必须是 Stack 的后代，用于控制Stack的子项的放置位置。
         // 显示已播放的时长
         Positioned(
-          left: 15.sp, // 距离左边界16个单位
-          bottom: 5.0,
+          left: 15.sp, // 距离左边界15个单位
+          bottom: 17.0,
           child: Text(
               RegExp(r'((^0*[1-9]\d*:)?\d{2}:\d{2})\.\d+$')
                       .firstMatch("${widget.position}")
@@ -150,7 +166,7 @@ class SeekBarState extends State<SeekBar> {
         /// 音量调节按钮
         Positioned(
           left: 83.sp,
-          bottom: -12.0,
+          bottom: 0.0,
           child: TextButton(
             style: TextButton.styleFrom(
               textStyle: TextStyle(fontSize: 20.sp), // 字体大小
@@ -184,7 +200,7 @@ class SeekBarState extends State<SeekBar> {
         /// 播放速度条件按钮
         Positioned(
           right: 83.sp,
-          bottom: -12.0,
+          bottom: 0.0,
           child: StreamBuilder<double>(
             stream: _audioHandler.getSpeedStream(),
             builder: (context, snapshot) => TextButton(
@@ -220,8 +236,8 @@ class SeekBarState extends State<SeekBar> {
 
         // 总时长
         Positioned(
-          right: 15.sp, // 距离右边界16个单位
-          bottom: 5.0,
+          right: 15.sp, // 距离右边界15个单位
+          bottom: 17.0,
           child: Text(
               RegExp(r'((^0*[1-9]\d*:)?\d{2}:\d{2})\.\d+$')
                       .firstMatch("${widget.duration}")

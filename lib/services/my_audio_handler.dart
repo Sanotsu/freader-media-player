@@ -212,14 +212,21 @@ class MyAudioHandler {
   }
 
   // 获取播放器的各种流
+
+  /// 原本是直接从当前播放获取模式的stream，后来是从缓存获取stream，再后来是直接取value
+  /// ???可能出现取值问题，但这里暂时都认为不会出错。真有bug再说吧。
+  /// 下面获取持久化的随机模式值也一样
+
   // Stream<LoopMode> getLoopModeStream() => _player.loopModeStream;
   Future<Stream<LoopMode>> getLoopModeStream() async {
     var temp = await _simpleShared.getCurrentCycleMode();
     return BehaviorSubject.seeded(temp).stream;
   }
 
-  Stream<SequenceState?> getSequenceStateStream() =>
-      _player.sequenceStateStream;
+  Future<LoopMode> getLoopModeValue() async {
+    var temp = await _simpleShared.getCurrentCycleMode();
+    return BehaviorSubject.seeded(temp).stream.value;
+  }
 
   // Stream<bool> getShuffleModeEnabledStream() =>
   //     _player.shuffleModeEnabledStream;
@@ -229,6 +236,16 @@ class MyAudioHandler {
     var temp = await _simpleShared.getCurrentIsShuffleMode();
     return BehaviorSubject.seeded(temp).stream;
   }
+
+  Future<bool> getShuffleModeEnabledValue() async {
+    var temp = await _simpleShared.getCurrentIsShuffleMode();
+    return BehaviorSubject.seeded(temp).stream.value;
+  }
+
+  // --------------------
+
+  Stream<SequenceState?> getSequenceStateStream() =>
+      _player.sequenceStateStream;
 
   Stream<PlayerState> getPlayerStateStream() => _player.playerStateStream;
 

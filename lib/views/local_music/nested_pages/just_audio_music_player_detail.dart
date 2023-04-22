@@ -33,7 +33,8 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
 
   final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
-  late int nextAudionIndex = 0;
+  // 更新当前音乐的下一首
+  late int nextAudionIndex = _audioHandler.nextIndex ?? 0;
 
   @override
   void initState() {
@@ -126,7 +127,7 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
                           child: Column(children: [
                             // 歌名
                             SimpleMarqueeOrText(
-                              data: '${metadata.title}=${state.currentIndex}',
+                              data: '${metadata.title}-${state.currentIndex}',
                               style: TextStyle(fontSize: sizeHeadline0),
                             ),
                             // 分割占位
@@ -148,20 +149,6 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
               // divider看位置的，最后不用
               // Divider(height: 2, thickness: 1.sp, color: Colors.grey),
 
-              /// 音频控制按钮区域
-              Expanded(
-                  flex: 1,
-                  child: ControlButtons(
-                    callback: (value) {
-                      print("xxxxxxxxxxxxxxxxxxxxx$value");
-                      setState(() {
-                        nextAudionIndex = value;
-                      });
-                    },
-                  )),
-
-              // Divider(height: 2, thickness: 1.sp, color: Colors.grey),
-
               /// 音频拖动进度条
               Expanded(
                 flex: 1,
@@ -171,16 +158,36 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
                   builder: (context, snapshot) {
                     final positionData = snapshot.data;
                     // 进度条右边是剩余时间
-                    return SeekBar(
-                      duration: positionData?.duration ?? Duration.zero,
-                      position: positionData?.position ?? Duration.zero,
-                      bufferedPosition:
-                          positionData?.bufferedPosition ?? Duration.zero,
-                      onChangeEnd: (newPosition) {
-                        _audioHandler.seek(newPosition);
-                      },
+                    return Center(
+                      child: SeekBar(
+                        duration: positionData?.duration ?? Duration.zero,
+                        position: positionData?.position ?? Duration.zero,
+                        bufferedPosition:
+                            positionData?.bufferedPosition ?? Duration.zero,
+                        onChangeEnd: (newPosition) {
+                          _audioHandler.seek(newPosition);
+                        },
+                      ),
                     );
                   },
+                ),
+              ),
+
+              // divider看位置的，最后不用
+              // Divider(height: 2, thickness: 1.sp, color: Colors.grey),
+
+              /// 音频控制按钮区域
+              Expanded(
+                flex: 1,
+                child: Center(
+                  child: ControlButtons(
+                    callback: (value) {
+                      print("xxxxxxxxxxxxxxxxxxxxx$value");
+                      setState(() {
+                        nextAudionIndex = value;
+                      });
+                    },
+                  ),
                 ),
               ),
 
@@ -236,15 +243,26 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
               //   ),
               // ),
 
-              // Divider(height: 2, thickness: 1.sp, color: Colors.grey),
+              Divider(height: 2, thickness: 1.sp, color: Colors.grey),
 
               /// 下一曲概述
               Expanded(
                 flex: 1,
                 child: SizedBox(
                   height: 8.sp,
-                  child: Builder(
-                    builder: (context) {
+                  child: FutureBuilder(
+                    future: _audioHandler.getLoopModeValue(),
+                    builder: (context, AsyncSnapshot<LoopMode> snapshot) {
+                      if (snapshot.hasError) {
+                        return Text(snapshot.error.toString());
+                      }
+
+                      final loopMode = snapshot.data ?? LoopMode.off;
+
+                      // 因为下一曲的索引在初始化的时候就直接取得next，所以如果模式是单曲循环，则重置为当前的
+                      if (loopMode == LoopMode.one) {
+                        nextAudionIndex = _audioHandler.currentIndex!;
+                      }
                       // 获取下一首音乐的基本信息并构建显示内容
                       AudioSource temp = _audioHandler.getAudioSourceByIndex(
                         nextAudionIndex,
@@ -252,11 +270,12 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
 
                       final metadata = temp.sequence.first.tag as MediaItem;
 
-                      var nextInfo = "下一首：${metadata.title}-${metadata.artist}";
+                      var nextInfo =
+                          "下一首：$nextAudionIndex-${metadata.title}-${metadata.artist}";
                       return Center(
                         child: SimpleMarqueeOrText(
                           data: nextInfo,
-                          style: TextStyle(fontSize: sizeHeadline2),
+                          style: TextStyle(fontSize: sizeContent0),
                         ),
                       );
                     },
@@ -296,52 +315,105 @@ class _ControlButtonsState extends State<ControlButtons> {
       children: [
         ///> 播放方式切换按钮（单曲循环、列表循环、不循环）
 
-        FutureBuilder<Stream<LoopMode>>(
-          // a previously-obtained Future<String> or null
-          future: _audioHandler.getLoopModeStream(),
-          builder: (BuildContext context, AsyncSnapshot<Stream<LoopMode>> ss) {
-            if (ss.hasError) {
-              return Text(ss.error.toString());
+        FutureBuilder<LoopMode>(
+          future: _audioHandler.getLoopModeValue(),
+          builder: (BuildContext context, AsyncSnapshot<LoopMode> snapshot) {
+            if (snapshot.hasError) {
+              return Text(snapshot.error.toString());
             }
 
-            return StreamBuilder<LoopMode>(
-              stream: ss.data,
-              builder: (context, snapshot) {
-                final loopMode = snapshot.data ?? LoopMode.off;
+            final loopMode = snapshot.data ?? LoopMode.off;
 
-                const icons = [
-                  Icon(Icons.repeat, color: Colors.orange),
-                  Icon(Icons.repeat_one, color: Colors.orange),
-                  Icon(Icons.repeat, color: Colors.grey),
-                ];
-                const cycleModes = [
-                  LoopMode.all,
-                  LoopMode.one,
-                  LoopMode.off,
-                ];
-                final index = cycleModes.indexOf(loopMode);
+            // 得到持久化的循环模式数据，要执行它才会生效
+            _audioHandler.setRepeatMode(loopMode);
 
-                print("player detail中的loopMode-$loopMode index $index");
+            // 显示对应循环模式的图标
+            const icons = [
+              Icon(Icons.repeat, color: Colors.orange),
+              Icon(Icons.repeat_one, color: Colors.orange),
+              Icon(Icons.repeat, color: Colors.grey),
+            ];
+            const cycleModes = [
+              LoopMode.all,
+              LoopMode.one,
+              LoopMode.off,
+            ];
+            final index = cycleModes.indexOf(loopMode);
 
-                return IconButton(
-                  icon: icons[index],
-                  iconSize: 32.sp,
-                  onPressed: () async {
-                    print(
-                      "当前 $loopMode 点击loopmode的索引  ${(cycleModes.indexOf(loopMode) + 1) % cycleModes.length}",
-                    );
-                    var temp = cycleModes[
-                        (cycleModes.indexOf(loopMode) + 1) % cycleModes.length];
-                    setState(() {
-                      _audioHandler.setRepeatMode(temp);
-                    });
-                    await _simpleShared.setCurrentCycleMode(temp.toString());
-                  },
+            print("player detail中的loopMode-$loopMode index $index");
+
+            return IconButton(
+              icon: icons[index],
+              iconSize: 32.sp,
+              onPressed: () async {
+                print(
+                  "当前 $loopMode 点击loopmode的索引  ${(cycleModes.indexOf(loopMode) + 1) % cycleModes.length}",
                 );
+                var temp = cycleModes[
+                    (cycleModes.indexOf(loopMode) + 1) % cycleModes.length];
+                setState(() {
+                  _audioHandler.setRepeatMode(temp);
+                });
+                await _simpleShared.setCurrentCycleMode(temp.toString());
               },
             );
           },
         ),
+
+        // FutureBuilder<Stream<LoopMode>>(
+        //   // a previously-obtained Future<String> or null
+        //   future: _audioHandler.getLoopModeStream(),
+        //   builder: (BuildContext context, AsyncSnapshot<Stream<LoopMode>> ss) {
+        //     if (ss.hasError) {
+        //       return Text(ss.error.toString());
+        //     }
+
+        //     return StreamBuilder<LoopMode>(
+        //       stream: ss.data,
+        //       builder: (context, snapshot) {
+        //         final loopMode = snapshot.data ?? LoopMode.off;
+
+        //         // 得到持久化的循环模式数据，要执行它才会生效
+        //         _audioHandler.setRepeatMode(loopMode);
+        //         // 因为下一曲的索引在初始化的时候就直接取得next，所以如果模式是单曲循环，则重置为当前的
+        //         if (loopMode == LoopMode.one) {
+        //           widget.callback(_audioHandler.currentIndex);
+        //         }
+
+        //         // 显示对应循环模式的图标
+        //         const icons = [
+        //           Icon(Icons.repeat, color: Colors.orange),
+        //           Icon(Icons.repeat_one, color: Colors.orange),
+        //           Icon(Icons.repeat, color: Colors.grey),
+        //         ];
+        //         const cycleModes = [
+        //           LoopMode.all,
+        //           LoopMode.one,
+        //           LoopMode.off,
+        //         ];
+        //         final index = cycleModes.indexOf(loopMode);
+
+        //         print("player detail中的loopMode-$loopMode index $index");
+
+        //         return IconButton(
+        //           icon: icons[index],
+        //           iconSize: 32.sp,
+        //           onPressed: () async {
+        //             print(
+        //               "当前 $loopMode 点击loopmode的索引  ${(cycleModes.indexOf(loopMode) + 1) % cycleModes.length}",
+        //             );
+        //             var temp = cycleModes[
+        //                 (cycleModes.indexOf(loopMode) + 1) % cycleModes.length];
+        //             setState(() {
+        //               _audioHandler.setRepeatMode(temp);
+        //             });
+        //             await _simpleShared.setCurrentCycleMode(temp.toString());
+        //           },
+        //         );
+        //       },
+        //     );
+        //   },
+        // ),
 
         /// 上一曲按钮
 
@@ -419,61 +491,109 @@ class _ControlButtonsState extends State<ControlButtons> {
 
         ///> 随机播放的图标按钮
 
-        FutureBuilder<Stream<bool>>(
-          future: _audioHandler.getShuffleModeEnabledStream(),
-          builder: (BuildContext context, AsyncSnapshot<Stream<bool>> ss) {
+        FutureBuilder<bool>(
+          future: _audioHandler.getShuffleModeEnabledValue(),
+          builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
             print(
-              "当前 点ssssssssssssssssssssssssss ${ss.hasData} ${ss.data}",
+              "当前 点ssssssssssssssssssssssssss ${snapshot.hasData} ${snapshot.data}",
             );
 
-            if (ss.hasError) {
-              return Text(ss.error.toString());
+            if (snapshot.hasError) {
+              return Text(snapshot.error.toString());
+            }
+            if (!snapshot.hasData) {
+              return Text(snapshot.error.toString());
             }
 
-            if (!ss.hasData) {
-              return Text(ss.error.toString());
-            }
+            print(
+              "当前 点击 随机播放 的索引 snapshot.data ${snapshot.data}",
+            );
 
-            return StreamBuilder<bool>(
-              stream: ss.data,
-              builder: (context, snapshot) {
+            final shuffleModeEnabled = snapshot.data ?? false;
+            // 得到持久化的随机状态数据，要执行它才会生效
+            _audioHandler.setShuffleModeEnabled(shuffleModeEnabled);
+
+            return IconButton(
+              icon: shuffleModeEnabled
+                  ? const Icon(Icons.shuffle, color: Colors.orange)
+                  : const Icon(Icons.shuffle, color: Colors.grey),
+              iconSize: 32.sp,
+              onPressed: () async {
+                final enable = !shuffleModeEnabled;
                 print(
-                  "当前 点击 随机播放 的索引 snapshot.data ${snapshot.data}",
+                  "当前 点击 随机播放 后  $enable",
                 );
 
-                final shuffleModeEnabled = snapshot.data ?? false;
-                return IconButton(
-                  icon: shuffleModeEnabled
-                      ? const Icon(Icons.shuffle, color: Colors.orange)
-                      : const Icon(Icons.shuffle, color: Colors.grey),
-                  iconSize: 32.sp,
-                  onPressed: () async {
-                    final enable = !shuffleModeEnabled;
-                    print(
-                      "当前 点击 随机播放 后  $enable",
-                    );
-
-                    // if (enable) {
-                    //   await _audioHandler.shuffle();
-                    // }
-                    // await _audioHandler.setShuffleModeEnabled(enable);
-
-                    // await _simpleShared.setCurrentCycleMode(enable.toString());
-
-                    setState(() {
-                      if (enable) {
-                        _audioHandler.shuffle();
-                      }
-                      _audioHandler.setShuffleModeEnabled(enable);
-
-                      _simpleShared.setCurrentIsShuffleMode(enable.toString());
-                    });
-                  },
-                );
+                setState(() {
+                  if (enable) {
+                    _audioHandler.shuffle();
+                  }
+                  _audioHandler.setShuffleModeEnabled(enable);
+                  _simpleShared.setCurrentIsShuffleMode(enable.toString());
+                });
               },
             );
           },
         ),
+
+        // FutureBuilder<Stream<bool>>(
+        //   future: _audioHandler.getShuffleModeEnabledStream(),
+        //   builder: (BuildContext context, AsyncSnapshot<Stream<bool>> ss) {
+        //     print(
+        //       "当前 点ssssssssssssssssssssssssss ${ss.hasData} ${ss.data}",
+        //     );
+
+        //     if (ss.hasError) {
+        //       return Text(ss.error.toString());
+        //     }
+
+        //     if (!ss.hasData) {
+        //       return Text(ss.error.toString());
+        //     }
+
+        //     return StreamBuilder<bool>(
+        //       stream: ss.data,
+        //       builder: (context, snapshot) {
+        //         print(
+        //           "当前 点击 随机播放 的索引 snapshot.data ${snapshot.data}",
+        //         );
+
+        //         final shuffleModeEnabled = snapshot.data ?? false;
+        //         // 得到持久化的随机状态数据，要执行它才会生效
+        //         _audioHandler.setShuffleModeEnabled(shuffleModeEnabled);
+
+        //         return IconButton(
+        //           icon: shuffleModeEnabled
+        //               ? const Icon(Icons.shuffle, color: Colors.orange)
+        //               : const Icon(Icons.shuffle, color: Colors.grey),
+        //           iconSize: 32.sp,
+        //           onPressed: () async {
+        //             final enable = !shuffleModeEnabled;
+        //             print(
+        //               "当前 点击 随机播放 后  $enable",
+        //             );
+
+        //             // if (enable) {
+        //             //   await _audioHandler.shuffle();
+        //             // }
+        //             // await _audioHandler.setShuffleModeEnabled(enable);
+
+        //             // await _simpleShared.setCurrentCycleMode(enable.toString());
+
+        //             setState(() {
+        //               if (enable) {
+        //                 _audioHandler.shuffle();
+        //               }
+        //               _audioHandler.setShuffleModeEnabled(enable);
+
+        //               _simpleShared.setCurrentIsShuffleMode(enable.toString());
+        //             });
+        //           },
+        //         );
+        //       },
+        //     );
+        //   },
+        // ),
       ],
     );
   }
