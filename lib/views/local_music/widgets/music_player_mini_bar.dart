@@ -25,8 +25,9 @@ class _MusicPlayerMiniBarState extends State<MusicPlayerMiniBar> {
     print("----------------------------------");
     print(_audioHandler);
 
-    return Container(
-      color: Colors.red,
+    return Card(
+      elevation: 5,
+      color: Theme.of(context).primaryColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
@@ -84,7 +85,7 @@ class _MusicPlayerMiniBarState extends State<MusicPlayerMiniBar> {
                   print(
                       "mini bar 中 按钮状态的来源 playing $playing,processingState $processingState");
 
-                  final buttonSize = 48.sp;
+                  final buttonSize =36.sp;
 
                   if (processingState == ProcessingState.loading ||
                       processingState == ProcessingState.buffering) {

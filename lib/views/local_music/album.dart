@@ -72,7 +72,9 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
           return const CircularProgressIndicator();
         }
         // 'Library' is empty.
-        if (item.data!.isEmpty) return const Text("Nothing found!");
+        if (item.data!.isEmpty) {
+          return const Center(child: Text("暂无专辑!"));
+        }
 
         // 得到查询的专辑列表
         List<AlbumModel> albums = item.data! is List<AlbumModel>
@@ -96,7 +98,11 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
                 id: albums[index].id,
                 type: ArtworkType.ALBUM,
                 artworkBorder: const BorderRadius.all(Radius.zero), // 缩略图不显示圆角
+                artworkHeight: 100, // 高度设置无效，实测56，原因不明
+                artworkWidth: 100,
                 keepOldArtwork: true, // 在生命周期内使用旧的缩略图
+                nullArtworkWidget:
+                    Icon(Icons.image_not_supported, size: 100.sp),
               ),
               onTap: () {
                 print(

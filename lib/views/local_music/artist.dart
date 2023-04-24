@@ -73,7 +73,9 @@ class _LocalMusicArtistState extends State<LocalMusicArtist> {
           return const CircularProgressIndicator();
         }
         // 'Library' is empty.
-        if (item.data!.isEmpty) return const Text("Nothing found!");
+        if (item.data!.isEmpty) {
+          return const Center(child: Text("暂无歌手!"));
+        }
 
         // 得到查询的歌手列表
         List<ArtistModel> artists = item.data! is List<ArtistModel>
@@ -82,7 +84,7 @@ class _LocalMusicArtistState extends State<LocalMusicArtist> {
 
         return ListView.builder(
           itemCount: artists.length,
-          itemExtent: 80.sp, // 每个item内部组件的高度
+          itemExtent: 80.sp, // 每个item内部组件的高度(因为下面leading的高度有问题，这里暂时上下有点间距)
           itemBuilder: (context, index) {
             return ListTile(
               minLeadingWidth: 100.sp, // 左侧缩略图标的最小宽度
@@ -97,9 +99,12 @@ class _LocalMusicArtistState extends State<LocalMusicArtist> {
                 id: artists[index].id,
                 type: ArtworkType.ARTIST,
                 artworkBorder: const BorderRadius.all(Radius.zero), // 缩略图不显示圆角
-                // artworkWidth: 100.sp, // 默认是50*50的大小
-                // artworkHeight: 100.sp, // 这个高度显示不太对
+                artworkWidth: 100.sp, // 默认是50*50的大小
+                artworkHeight: 100.sp, // 这个高度显示不太对，实测始终是56，原因不明
+                artworkFit: BoxFit.cover,
                 keepOldArtwork: true, // 在生命周期内使用旧的缩略图
+                nullArtworkWidget:
+                    Icon(Icons.image_not_supported, size: 100.sp),
               ),
               onTap: () {
                 print(

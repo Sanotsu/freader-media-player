@@ -18,21 +18,17 @@ Widget buildSearchTextField(dynamic pressState) {
     },
     autofocus: true,
     cursorColor: Colors.white,
-    style: const TextStyle(
-      color: Colors.white,
-      fontSize: 20,
-    ),
+    style: const TextStyle(color: Colors.white, fontSize: 20),
     textInputAction: TextInputAction.search,
     decoration: const InputDecoration(
-      enabledBorder:
-          UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-      focusedBorder:
-          UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-      hintText: 'Search',
-      hintStyle: TextStyle(
-        color: Colors.white60,
-        fontSize: 20,
-      ),
+      // 搜索框不显示下划线
+      border: InputBorder.none,
+      // enabledBorder:
+      //     UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+      // focusedBorder:
+      //     UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+      hintText: '搜索',
+      hintStyle: TextStyle(color: Colors.white60, fontSize: 20),
     ),
   );
 }

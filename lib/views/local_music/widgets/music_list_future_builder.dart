@@ -172,7 +172,9 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                   return const CircularProgressIndicator();
                 }
                 // 如果结果为空，显示无数据
-                if (item.data!.isEmpty) return const Text("Nothing found!");
+                if (item.data!.isEmpty) {
+                  return const Center(child: Text("暂无歌曲!"));
+                }
 
                 print(
                     "全部歌曲tab中查询的列表类型item.data! ${item.data!.runtimeType} ${item.data![0]}");

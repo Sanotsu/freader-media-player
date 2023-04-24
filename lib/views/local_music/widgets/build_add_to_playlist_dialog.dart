@@ -44,8 +44,6 @@ Future<void> buildAddToPlaylistDialog(
                 if (item.data == null) {
                   return const CircularProgressIndicator();
                 }
-                // 'Library' is empty.
-                if (item.data!.isEmpty) return const Text("Nothing found!");
 
                 // 得到查询的歌单列表
                 List<PlaylistModel> playlists = item.data!;
@@ -54,36 +52,42 @@ Future<void> buildAddToPlaylistDialog(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      SizedBox(
-                        height: 180.sp,
-                        child: ListView.builder(
-                          itemCount: playlists.length,
-                          itemBuilder: (ctx, index) {
-                            return RadioListTile(
-                              title: Text(playlists[index].playlist),
-                              value: playlists[index].id,
-                              groupValue: selectedPlaylistId,
-                              onChanged: (int? value) {
-                                print(
-                                  "ddddddddddddd $selectedPlaylistId  ${playlists[index].id}",
-                                );
+                      // 如果点击加入歌单但没有已经存在的歌单，则只显示创建新歌单按钮部分
+                      playlists.isNotEmpty
+                          ? SizedBox(
+                              height: 180.sp,
+                              child: ListView.builder(
+                                itemCount: playlists.length,
+                                itemBuilder: (ctx, index) {
+                                  return RadioListTile(
+                                    title: Text(playlists[index].playlist),
+                                    value: playlists[index].id,
+                                    groupValue: selectedPlaylistId,
+                                    onChanged: (int? value) {
+                                      print(
+                                        "ddddddddddddd $selectedPlaylistId  ${playlists[index].id}",
+                                      );
 
-                                setState(() {
-                                  print("sssssssssssssssssssssssssssss $value");
-                                  selectedPlaylistId = value;
-                                });
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                      Divider(
-                        height: 10,
-                        thickness: 2.sp,
-                        indent: 2,
-                        endIndent: 0,
-                        color: Colors.grey,
-                      ),
+                                      setState(() {
+                                        print(
+                                            "sssssssssssssssssssssssssssss $value");
+                                        selectedPlaylistId = value;
+                                      });
+                                    },
+                                  );
+                                },
+                              ),
+                            )
+                          : Container(),
+                      playlists.isNotEmpty
+                          ? Divider(
+                              height: 10,
+                              thickness: 2.sp,
+                              indent: 2,
+                              endIndent: 0,
+                              color: Colors.grey,
+                            )
+                          : Container(),
                       SizedBox(
                         height: 40.sp,
                         child: TextButton(

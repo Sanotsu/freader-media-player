@@ -81,6 +81,7 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
       //    该类提供了API，用于在屏幕的底部和顶部分别显示点心条和材料横幅。
       scaffoldMessengerKey: _scaffoldMessengerKey,
       home: Scaffold(
+        backgroundColor: dartThemeMaterialColor3,
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -127,7 +128,7 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
                           child: Column(children: [
                             // 歌名
                             SimpleMarqueeOrText(
-                              data: '${metadata.title}-${state.currentIndex}',
+                              data: '${state.currentIndex}-${metadata.title}',
                               style: TextStyle(fontSize: sizeHeadline0),
                             ),
                             // 分割占位
@@ -191,7 +192,7 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
                 ),
               ),
 
-              Divider(height: 2, thickness: 1.sp, color: Colors.grey),
+              // Divider(height: 2, thickness: 1.sp, color: Colors.grey),
 
               /// 下一曲概述
               Expanded(
@@ -217,13 +218,18 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
                       );
 
                       final metadata = temp.sequence.first.tag as MediaItem;
-
                       var nextInfo =
                           "下一首：$nextAudionIndex-${metadata.title}-${metadata.artist}";
-                      return Center(
-                        child: SimpleMarqueeOrText(
-                          data: nextInfo,
-                          style: TextStyle(fontSize: sizeContent0),
+
+                      return SizedBox(
+                        width: double.infinity,
+                        child: Card(
+                          elevation: 0.sp,
+                          color: dartThemeMaterialColor2,
+                          child: SimpleMarqueeOrText(
+                            data: nextInfo,
+                            style: TextStyle(fontSize: sizeContent0),
+                          ),
                         ),
                       );
                     },

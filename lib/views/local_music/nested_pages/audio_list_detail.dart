@@ -51,6 +51,8 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
         return false;
       },
       child: Scaffold(
+        // 避免搜索时弹出键盘，让底部的minibar位置移动到tab顶部导致溢出的问题
+        resizeToAvoidBottomInset: false,
         appBar: _buildAppBar(),
         body: Column(
           children: [

@@ -29,6 +29,10 @@ import 'widgets/music_player_mini_bar.dart';
 /// 正常来讲，应该把AudioPlayer处理成全局单例的，例如使用get_it，palyer的所有操作封装为一个service class，然后全局使用。
 /// 这里简单测试，就在最外层初始化，然后传递给子组件（虽然麻烦，但暂时不需要其他依赖）
 
+/// 我看别人的示例都是 MaterialApp -> DefaultTabController -> Scaffold>(appBar[TabBar],body[TabBarView]) 嵌套
+/// 而我之前是 Scaffold-> DefaultTabController-> Builder -> Center -> Column (children[TabBar,TabBarView])
+///     导致tab和appbar有明显的区分，没有融合
+
 class LocalMusic extends StatefulWidget {
   const LocalMusic({super.key});
 
@@ -81,9 +85,31 @@ class _LocalMusicState extends State<LocalMusic>
         ChangeNotifierProvider(create: (_) => ListLongPress()),
         ChangeNotifierProvider(create: (_) => AudioOptionSelected()),
       ],
-      child: Scaffold(
-        appBar: _buildAppBar(),
-        body: _buildBody(),
+      child: MaterialApp(
+        theme: ThemeData(
+          // 主色，子组件取context的主色就会是这个颜色(例如mini bar中)
+          primaryColor: dartThemeMaterialColor2,
+          // 状态栏的颜色
+          primarySwatch: dartThemeMaterialColor3,
+          // 深色或者浅色主题
+          brightness: Brightness.light,
+          // scaffold的背景色
+          scaffoldBackgroundColor: dartThemeMaterialColor3,
+          // 文字主题（一些文字的颜色）
+          textTheme: Theme.of(context).textTheme.apply(
+                bodyColor: Colors.white,
+                displayColor: Colors.white,
+              ),
+        ),
+        home: DefaultTabController(
+          length: 4,
+          child: Scaffold(
+            // 避免搜索时弹出键盘，让底部的minibar位置移动到tab顶部导致溢出的问题
+            resizeToAvoidBottomInset: false,
+            appBar: _buildAppBar(),
+            body: _buildBody(),
+          ),
+        ),
       ),
     );
   }
@@ -118,117 +144,105 @@ class _LocalMusicState extends State<LocalMusic>
         _buildDefaultButtons(),
         _buildLongPressButtons(),
       ],
+      bottom: TabBar(
+        // controller: _tabController,
+        // 指示器的样式(标签下的下划线)
+        indicator: UnderlineTabIndicator(
+          // 下划线的粗度和颜色
+          borderSide: BorderSide(
+            width: 3.0.sp,
+            color: Colors.white,
+          ),
+          // 下划线的四边的间距horizontal橫向
+          // insets: EdgeInsets.symmetric(horizontal: 2.0.sp),
+        ),
+        indicatorWeight: 0,
+        // 下划线的尺寸(这个label表示下划线执行器的宽度与标签文本宽度一致。默认是整个tab的宽度)
+        indicatorSize: TabBarIndicatorSize.label,
+        tabs: [
+          Tab(child: Text("歌单", style: TextStyle(fontSize: sizeHeadline2))),
+          Tab(child: Text("全部", style: TextStyle(fontSize: sizeHeadline2))),
+          Tab(child: Text("歌手", style: TextStyle(fontSize: sizeHeadline2))),
+          Tab(child: Text("专辑", style: TextStyle(fontSize: sizeHeadline2))),
+        ],
+      ),
     );
   }
 
   /// 构建主体内容（是个 TabBarView）
   _buildBody() {
-    print("本地音乐的index当前tab");
+    return Builder(builder: (BuildContext context) {
+      final TabController tabController = DefaultTabController.of(context);
 
-    return DefaultTabController(
-      length: 4,
-      child: Builder(builder: (BuildContext context) {
-        final TabController tabController = DefaultTabController.of(context);
+      print(
+        "主页index当前tab的索引 ${tabController.index} $isAddListenerToTabController",
+      );
 
-        print(
-          "主页index当前tab的索引 ${tabController.index} $isAddListenerToTabController",
-        );
+      if (!isAddListenerToTabController) {
+        tabController.addListener(() {
+          if (!tabController.indexIsChanging) {
+            // 切换tab后更新当前tab索引
+            // (不在这里重置状态，tab切换后，如果之前有被多选中的歌单或音频，状态栏功能按钮还是之前的而不是默认的)
+            setState(() {
+              currentTabIndex = tabController.index;
+            });
+            // 不是tab切换后的tab为歌单列表，重置音频长按状态；如果不是，则重置歌单长按状态
 
-        if (!isAddListenerToTabController) {
-          tabController.addListener(() {
-            if (!tabController.indexIsChanging) {
-              // 切换tab后更新当前tab索引
-              // (不在这里重置状态，tab切换后，如果之前有被多选中的歌单或音频，状态栏功能按钮还是之前的而不是默认的)
-              setState(() {
-                currentTabIndex = tabController.index;
-              });
-              // 不是tab切换后的tab为歌单列表，重置音频长按状态；如果不是，则重置歌单长按状态
+            AudioLongPress alp = context.read<AudioLongPress>();
+            ListLongPress llp = context.read<ListLongPress>();
 
-              AudioLongPress alp = context.read<AudioLongPress>();
-              ListLongPress llp = context.read<ListLongPress>();
+            switch (tabController.index) {
+              case 0:
+                alp.resetAudioLongPress();
+                print("主页index中tab为0 时执行了重置");
+                break;
+              case 1:
+                llp.resetListLongPress();
+                // llp.switchTabReset();
+                print("主页index中tab为1 时执行了重置");
+                break;
+              case 2:
+                // 目前歌手和专辑tab都不能长按，所以歌单或全部歌曲中有选中，切换到歌手或专辑，都重置
+                llp.resetListLongPress();
+                alp.resetAudioLongPress();
+                print("主页index中tab为2 时执行了重置");
 
-              switch (tabController.index) {
-                case 0:
-                  alp.resetAudioLongPress();
-                  print("主页index中tab为0 时执行了重置");
-                  break;
-                case 1:
-                  llp.resetListLongPress();
-                  // llp.switchTabReset();
-                  print("主页index中tab为1 时执行了重置");
-                  break;
-                case 2:
-                  // 目前歌手和专辑tab都不能长按，所以歌单或全部歌曲中有选中，切换到歌手或专辑，都重置
-                  llp.resetListLongPress();
-                  alp.resetAudioLongPress();
-                  print("主页index中tab为2 时执行了重置");
-
-                  break;
-                case 3:
-                  llp.resetListLongPress();
-                  alp.resetAudioLongPress();
-                  print("主页index中tab为3 时执行了重置");
-                  break;
-              }
+                break;
+              case 3:
+                llp.resetListLongPress();
+                alp.resetAudioLongPress();
+                print("主页index中tab为3 时执行了重置");
+                break;
             }
-          });
-          // 添加了侦听器，设为 true
-          isAddListenerToTabController = true;
-        }
+          }
+        });
+        // 添加了侦听器，设为 true
+        isAddListenerToTabController = true;
+      }
 
-        return Center(
-          child: Column(
-            children: <Widget>[
-              Container(
-                height: 30.sp,
-                color: Colors.brown, // 用來看位置，不需要的话这个Container可以改为SizedBox
-                child: TabBar(
-                  // controller: _tabController,
-                  indicator: UnderlineTabIndicator(
-                    borderSide: BorderSide(
-                        width: 3.0.sp, color: Colors.lightBlue), // 下划线的粗度和颜色
-                    // 下划线的四边的间距horizontal橫向
-                    insets: EdgeInsets.symmetric(horizontal: 2.0.sp),
-                  ),
-                  indicatorWeight: 0,
-                  indicatorSize: TabBarIndicatorSize.label,
-                  tabs: [
-                    Tab(
-                        child: Text("歌单",
-                            style: TextStyle(fontSize: sizeHeadline3))),
-                    Tab(
-                        child: Text("全部",
-                            style: TextStyle(fontSize: sizeHeadline3))),
-                    Tab(
-                        child: Text("歌手",
-                            style: TextStyle(fontSize: sizeHeadline3))),
-                    Tab(
-                        child: Text("专辑",
-                            style: TextStyle(fontSize: sizeHeadline3))),
-                  ],
-                ),
+      return Center(
+        child: Column(
+          children: <Widget>[
+            const Expanded(
+              child: TabBarView(
+                // controller: _tabController,
+                children: <Widget>[
+                  LocalMusicPlaylist(),
+                  LocalMusicAll(),
+                  LocalMusicArtist(),
+                  LocalMusicAlbum(),
+                ],
               ),
-              const Expanded(
-                child: TabBarView(
-                  // controller: _tabController,
-                  children: <Widget>[
-                    LocalMusicPlaylist(),
-                    LocalMusicAll(),
-                    LocalMusicArtist(),
-                    LocalMusicAlbum(),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 60.sp,
-                width: 1.sw,
-                child: const MusicPlayerMiniBar(),
-              ),
-            ],
-          ),
-        );
-      }),
-    );
+            ),
+            SizedBox(
+              height: 60.sp,
+              width: 1.sw,
+              child: const MusicPlayerMiniBar(),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   // 显示修改歌单名称弹窗

@@ -61,8 +61,8 @@ class SeekBarState extends State<SeekBar> {
           child: SliderTheme(
             data: _sliderThemeData.copyWith(
               thumbShape: HiddenThumbComponentShape(), // thumb 形状（应该是）
-              activeTrackColor: Colors.blue.shade100, // 已激活轨迹的颜色
-              inactiveTrackColor: Colors.grey.shade300, // 未激活轨迹的颜色
+              activeTrackColor: Colors.orange.shade900, // 已缓存轨迹的颜色
+              inactiveTrackColor: Colors.grey.shade300, // 未缓存轨迹的颜色
             ),
             // 一个小部件，用于删除其子代的所有语义。
             // 当excluding 属性为true时，此小部件（及其子树）将从语义树中排除。
@@ -98,6 +98,8 @@ class SeekBarState extends State<SeekBar> {
           child: SliderTheme(
             data: _sliderThemeData.copyWith(
               inactiveTrackColor: Colors.transparent,
+              activeTrackColor: Colors.orange, // 已经播放的进度条颜色
+              thumbColor: Colors.orange, // 滑块圆点的颜色
             ),
             child: Slider(
               min: 0.0,

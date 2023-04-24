@@ -120,16 +120,18 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
     return FutureBuilder<List<dynamic>>(
       future: futureHandler,
       builder: (context, item) {
-        // Display error, if any.
+        // 有错显示错误
         if (item.hasError) {
-          return Text(item.error.toString());
+          return Center(child: Text(item.error.toString()));
         }
-        // Waiting content.
+        // 无数据转圈等到加载完成
         if (item.data == null) {
           return const CircularProgressIndicator();
         }
-        // 'Library' is empty.
-        if (item.data!.isEmpty) return const Text("Nothing found!");
+        // 数据为空显示无结果
+        if (item.data!.isEmpty) {
+          return const Center(child: Text("暂无歌单"));
+        }
 
         // 得到查询的歌单列表
         List<dynamic> playlists = item.data!;
