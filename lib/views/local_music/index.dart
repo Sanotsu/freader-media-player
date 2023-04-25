@@ -86,6 +86,8 @@ class _LocalMusicState extends State<LocalMusic>
         ChangeNotifierProvider(create: (_) => AudioOptionSelected()),
       ],
       child: MaterialApp(
+        // theme: ThemeData.light(),
+        // theme: ThemeData.dark(),
         theme: ThemeData(
           // 主色，子组件取context的主色就会是这个颜色(例如mini bar中)
           primaryColor: dartThemeMaterialColor2,
@@ -100,6 +102,22 @@ class _LocalMusicState extends State<LocalMusic>
                 bodyColor: Colors.white,
                 displayColor: Colors.white,
               ),
+          // 全局修改单选框的颜色
+          radioTheme: RadioThemeData(
+            // 单选框选中的颜色
+            fillColor: MaterialStateColor.resolveWith((states) => Colors.amber),
+          ),
+          // 全局文本按钮的样式（好像没生效）
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(
+              textStyle: const TextStyle(
+                color: Colors.deepOrange,
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+              ),
+              foregroundColor: Colors.red,
+            ),
+          ),
         ),
         home: DefaultTabController(
           length: 4,
@@ -256,7 +274,8 @@ class _LocalMusicState extends State<LocalMusic>
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text('创建新歌单'),
+            backgroundColor: dartThemeMaterialColor3,
+            title: const Text('修改歌单名(暂无效)'),
             content: StatefulBuilder(
                 builder: (BuildContext context, StateSetter setState) {
               return TextFormField(
@@ -329,6 +348,7 @@ class _LocalMusicState extends State<LocalMusic>
       builder: (BuildContext context) {
         print(list.dateModified);
         return AlertDialog(
+          backgroundColor: dartThemeMaterialColor3,
           title: const Text('歌单属性'),
           content: SizedBox(
             width: double.maxFinite,
@@ -357,7 +377,7 @@ class _LocalMusicState extends State<LocalMusic>
               style: TextButton.styleFrom(
                 textStyle: Theme.of(context).textTheme.labelLarge,
               ),
-              child: const Text('确认'),
+              child: Text('确认', style: TextStyle(color: confirmButtonBg)),
               onPressed: () {
                 setState(() {
                   // 单击了取消功能按钮之后，立马切回长按状态为否，清空被选中的歌单列表,也取消弹窗

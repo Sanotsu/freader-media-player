@@ -56,3 +56,14 @@ var dartThemeMaterialColor2 =
 
 var dartThemeMaterialColor3 =
     buildMaterialColor(const Color.fromARGB(255, 59, 56, 56));
+
+/// 测试用按钮颜色，主要是用在dialog的确认/取消按钮，配合dialog的背景色使用上述颜色的时候。
+var confirmButtonBg = Colors.amber;
+var cancelButtonBg = Colors.red;
+// 对应的文字颜色为白色（可能可以在themeData中配置，暂不清楚）
+var textBg = Colors.white;
+var textButtonBg = Colors.lightBlue;
+// 暗色模式光标颜色改为白色才看得清
+var cursorBg = Colors.white;
+// radio单选框选中的颜色
+var activeRadioBg = Colors.amber;

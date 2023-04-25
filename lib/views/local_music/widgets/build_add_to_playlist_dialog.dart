@@ -6,6 +6,7 @@ import 'package:freader_music_player/common/global/constants.dart';
 import 'package:freader_music_player/models/list_long_press.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
+import '../../../common/utils/global_styles.dart';
 import '../../../models/audio_long_press.dart';
 import '../../../services/my_audio_query.dart';
 import '../../../services/service_locator.dart';
@@ -29,6 +30,7 @@ Future<void> buildAddToPlaylistDialog(
     context: ctx,
     builder: (BuildContext ctext) {
       return AlertDialog(
+        backgroundColor: dartThemeMaterialColor3,
         // 需要在AlertDialog中使用StatefulBuilder，否则内部的ListView改变了状态，是不会及时更新的
         // https://stackoverflow.com/questions/54734512/radio-button-widget-not-working-inside-alertdialog-widget-in-flutter
         content: StatefulBuilder(
@@ -94,7 +96,7 @@ Future<void> buildAddToPlaylistDialog(
                           style: TextButton.styleFrom(
                             textStyle: Theme.of(ctext).textTheme.labelLarge,
                           ),
-                          child: const Text('创建新歌单'),
+                          child: Text('创建新歌单', style: TextStyle(color: textBg)),
                           onPressed: () async {
                             print("点击了新建歌单按钮11111");
 
@@ -115,7 +117,7 @@ Future<void> buildAddToPlaylistDialog(
                 style: TextButton.styleFrom(
                   textStyle: Theme.of(ctext).textTheme.labelLarge,
                 ),
-                child: const Text('取消'),
+                child: Text('取消', style: TextStyle(color: cancelButtonBg)),
                 onPressed: () {
                   setState(() {
                     // 单击了取消功能按钮之后，立马切回长按状态为否
@@ -132,7 +134,7 @@ Future<void> buildAddToPlaylistDialog(
               style: TextButton.styleFrom(
                 textStyle: Theme.of(ctext).textTheme.labelLarge,
               ),
-              child: const Text('添加'),
+              child: Text('添加', style: TextStyle(color: confirmButtonBg)),
               onPressed: () {
                 // 添加被选中的音频到指定歌单
                 addAudioToPlaylist(
@@ -167,6 +169,7 @@ _displayTextInputDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
+          backgroundColor: dartThemeMaterialColor3,
           title: const Text('创建新歌单'),
           content: StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
@@ -177,7 +180,30 @@ _displayTextInputDialog(
                 });
               },
               // controller: _textFieldController,
-              decoration: const InputDecoration(hintText: "输入歌单名"),
+              // decoration: const InputDecoration(hintText: "输入歌单名"),
+              decoration: const InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                  /*边角*/
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(10), //边角为30
+                  ),
+                  borderSide: BorderSide(
+                    color: Colors.amber, //边线颜色为黄色
+                    width: 1, //边线宽度为2
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                  color: Colors.green, //边框颜色为绿色
+                  width: 1, //宽度为5
+                )),
+                labelText: "输入歌单名",
+                labelStyle: TextStyle(color: Colors.amber),
+                hintText: "输入歌单名",
+                // 输入框前置标签
+                // prefixIcon: Icon(Icons.audio_file),
+              ),
+              cursorColor: cursorBg, // 光标颜色
             );
           }),
           actions: <Widget>[

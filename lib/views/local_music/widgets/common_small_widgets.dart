@@ -27,7 +27,7 @@ Widget buildRowText(String label, String value) {
           style: TextStyle(
             fontWeight: FontWeight.normal,
             fontSize: 14.sp,
-            color: const Color.fromARGB(255, 75, 72, 72),
+            // color: const Color.fromARGB(255, 75, 72, 72),
           ), // 文字样式
         ),
       )
@@ -52,7 +52,7 @@ Widget buildRowListTile(String label, String value) {
       style: TextStyle(
         fontWeight: FontWeight.normal,
         fontSize: 14.sp,
-        color: const Color.fromARGB(255, 75, 72, 72),
+        // color: const Color.fromARGB(255, 75, 72, 72),
       ), // 文字样式
     ),
   );
