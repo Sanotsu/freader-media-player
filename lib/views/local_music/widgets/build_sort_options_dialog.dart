@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
-import '../../../common/utils/global_styles.dart';
 import '../../../models/sort_option_selected.dart';
 import 'common_small_widgets.dart';
 
@@ -90,7 +89,6 @@ buildSortOptionsDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        backgroundColor: dartThemeMaterialColor3,
         title: const Text('排序'),
         content: StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
@@ -165,7 +163,7 @@ buildSortOptionsDialog(
                 style: TextButton.styleFrom(
                   textStyle: Theme.of(context).textTheme.labelLarge,
                 ),
-                child: Text('确认', style: TextStyle(color: confirmButtonBg)),
+                child: const Text('确认'),
                 onPressed: () {
                   setState(() {
                     // ??? 目前实测，歌单排序原插件接口无效

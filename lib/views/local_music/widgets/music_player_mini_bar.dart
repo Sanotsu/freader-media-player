@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 
+import '../../../common/utils/global_styles.dart';
 import '../../../services/my_audio_handler.dart';
 import '../../../services/service_locator.dart';
 import '../nested_pages/just_audio_music_player_detail.dart';
@@ -27,7 +28,8 @@ class _MusicPlayerMiniBarState extends State<MusicPlayerMiniBar> {
 
     return Card(
       elevation: 5,
-      color: Theme.of(context).primaryColor,
+      // color: Theme.of(context).primaryColor,
+      color: dartThemeMaterialColor2,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
@@ -85,7 +87,7 @@ class _MusicPlayerMiniBarState extends State<MusicPlayerMiniBar> {
                   print(
                       "mini bar 中 按钮状态的来源 playing $playing,processingState $processingState");
 
-                  final buttonSize =36.sp;
+                  final buttonSize = 36.sp;
 
                   if (processingState == ProcessingState.loading ||
                       processingState == ProcessingState.buffering) {

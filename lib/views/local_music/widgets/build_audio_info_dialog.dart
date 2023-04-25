@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:freader_music_player/models/audio_long_press.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
-import '../../../common/utils/global_styles.dart';
 import '../../../common/utils/tools.dart';
 import 'common_small_widgets.dart';
 
@@ -28,7 +27,6 @@ buildAudioInfoDialog(BuildContext context, AudioLongPress alp) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        backgroundColor: dartThemeMaterialColor3,
         title: const Text('属性'),
         content: StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
@@ -89,7 +87,7 @@ buildAudioInfoDialog(BuildContext context, AudioLongPress alp) {
                 style: TextButton.styleFrom(
                   textStyle: Theme.of(context).textTheme.labelLarge,
                 ),
-                child: Text('确认', style: TextStyle(color: confirmButtonBg)),
+                child: const Text('确认'),
                 onPressed: () {
                   setState(() {
                     // 单击了取消功能按钮之后，立马切回长按状态为否,清空被选中的歌单列表，也取消弹窗
