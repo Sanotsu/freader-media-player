@@ -9,6 +9,7 @@ import '../../../common/utils/global_styles.dart';
 import '../../../services/my_audio_handler.dart';
 import '../../../services/service_locator.dart';
 import '../nested_pages/just_audio_music_player_detail.dart';
+import 'common_small_widgets.dart';
 
 ///  当前音乐播放条，只显示名称和暂停/开始按钮
 class MusicPlayerMiniBar extends StatefulWidget {
@@ -64,7 +65,11 @@ class _MusicPlayerMiniBarState extends State<MusicPlayerMiniBar> {
                     print(state.currentIndex);
                     print(metadata.id);
 
-                    return Text(metadata.title);
+                    return SimpleMarqueeOrText(
+                      data: '${metadata.artist ?? "未知歌手"} -- ${metadata.title}',
+                      style: TextStyle(fontSize: sizeHeadline2),
+                      velocity: 50,
+                    );
                   },
                 ),
               ),

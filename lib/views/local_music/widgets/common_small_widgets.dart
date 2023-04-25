@@ -108,10 +108,12 @@ class SimpleMarqueeOrText extends StatefulWidget {
     super.key,
     required this.data,
     required this.style,
+    this.velocity,
   });
 
   final String data;
   final TextStyle style;
+  final double? velocity;
 
   @override
   State<SimpleMarqueeOrText> createState() => _SimpleMarqueeOrTextState();
@@ -137,7 +139,7 @@ class _SimpleMarqueeOrTextState extends State<SimpleMarqueeOrText> {
             ? Marquee(
                 text: "${widget.data}   ", // 超过一行时滚动的字串加点空白以便识别文字起止
                 style: widget.style,
-                velocity: 10.0,
+                velocity: widget.velocity ?? 10.0, // 滚动速度
               )
             : Center(child: Text(widget.data, style: widget.style)),
       );

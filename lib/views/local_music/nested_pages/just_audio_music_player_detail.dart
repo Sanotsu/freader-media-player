@@ -239,6 +239,12 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
             ],
           ),
         ),
+        // 左上角一个悬空的返回箭头按钮
+        floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
+        floatingActionButton: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white, size: 30.sp),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
     );
   }
