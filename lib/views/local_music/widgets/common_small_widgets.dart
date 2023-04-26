@@ -109,11 +109,18 @@ class SimpleMarqueeOrText extends StatefulWidget {
     required this.data,
     required this.style,
     this.velocity,
+    this.showLines,
+    this.height,
   });
 
   final String data;
   final TextStyle style;
+  // 传入速度
   final double? velocity;
+  // 传入显示的行数(大于此才滚动)
+  final int? showLines;
+  // 滚动条的高度
+  final double? height;
 
   @override
   State<SimpleMarqueeOrText> createState() => _SimpleMarqueeOrTextState();
@@ -126,16 +133,20 @@ class _SimpleMarqueeOrTextState extends State<SimpleMarqueeOrText> {
       // 这里是获取文本的行数
       final span = TextSpan(text: widget.data, style: widget.style);
       final tp = TextPainter(text: span, textDirection: TextDirection.ltr);
+
       // tp.layout(maxWidth: constraints.maxWidth);
-      // 注意，如果是builder的约束，默认为设备的总宽度(测试机为360.sp)，不是全款跑马灯的话宽度要自定，才能得到准确的行数
-      tp.layout(maxWidth: 300.sp); // 和下面的sizedbox宽度一致
+      // 注意，如果是builder的约束，默认为设备的总宽度(测试机为360.sp)，不是全宽跑马灯的话宽度要自定，才能得到准确的行数
+      // tp.layout(maxWidth: widget.width ?? 300.sp); // 和下面的sizedbox宽度一致
+
+      // 看起来上面的不太准确，这个最小宽度可能是本widget的父widget的宽度
+      tp.layout(maxWidth: constraints.minWidth);
       final numLines = tp.computeLineMetrics().length;
 
       return SizedBox(
-        height: 30.sp,
+        height: widget.height ?? 30.sp,
         // width: double.maxFinite, // 如果是这个宽度，那上面maxWidth就可以取最大值了
-        width: 300.sp, // app.dart中有宽高说明
-        child: numLines > 1
+        width: constraints.minWidth, // app.dart中有宽高说明
+        child: numLines > (widget.showLines ?? 1)
             ? Marquee(
                 text: "${widget.data}   ", // 超过一行时滚动的字串加点空白以便识别文字起止
                 style: widget.style,

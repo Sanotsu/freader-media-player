@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 //  hexadecimal color code 转为 material color
 MaterialColor buildMaterialColor(Color color) {
@@ -20,3 +21,7 @@ MaterialColor buildMaterialColor(Color color) {
   }
   return MaterialColor(color.value, swatch);
 }
+
+// 生成随机颜色
+Color genRandomColor() =>
+    Color((math.Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);

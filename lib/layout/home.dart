@@ -7,7 +7,7 @@ import '../common/utils/global_styles.dart';
 import '../models/change_display_mode.dart';
 import '../views/local_music/index.dart';
 import '../views/online_music/online_music_index.dart';
-import '../views/other_modules/other_index.dart';
+import '../views/user_center/index.dart';
 
 /// 主页面
 
@@ -21,12 +21,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 2;
 
   static const List<Widget> _widgetOptions = <Widget>[
     LocalMusic(),
     OnlineMusic(),
-    OtherIndex(),
+    UserCenter(),
   ];
 
   void _onItemTapped(int index) {
