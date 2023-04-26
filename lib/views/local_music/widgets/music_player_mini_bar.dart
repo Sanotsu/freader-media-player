@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 
 import '../../../common/utils/global_styles.dart';
 import '../../../services/my_audio_handler.dart';
+import '../../../services/my_audio_query.dart';
 import '../../../services/service_locator.dart';
 import '../nested_pages/just_audio_music_player_detail.dart';
 import 'common_small_widgets.dart';
@@ -21,6 +23,8 @@ class MusicPlayerMiniBar extends StatefulWidget {
 
 class _MusicPlayerMiniBarState extends State<MusicPlayerMiniBar> {
   final _audioHandler = getIt<MyAudioHandler>();
+  // 获取查询音乐组件实例
+  final _audioQuery = getIt<MyAudioQuery>();
 
   @override
   Widget build(BuildContext context) {
@@ -59,16 +63,47 @@ class _MusicPlayerMiniBarState extends State<MusicPlayerMiniBar> {
 
                       return const SizedBox();
                     }
+
                     final metadata = state!.currentSource!.tag as MediaItem;
+
                     print("mini bar 当前正在播放的音乐》");
                     print(state.toString());
                     print(state.currentIndex);
                     print(metadata.id);
 
-                    return SimpleMarqueeOrText(
-                      data: '${metadata.artist ?? "未知歌手"} -- ${metadata.title}',
-                      style: TextStyle(fontSize: sizeHeadline2),
-                      velocity: 50,
+                    return Row(
+                      children: [
+                        SizedBox(
+                          height: 50.sp,
+                          width: 80.sp,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(15, 2, 15, 2.sp),
+                            child: QueryArtworkWidget(
+                              controller: _audioQuery.onAudioQueryController,
+                              // 显示根据歌手id查询的歌手图片
+                              id: int.parse(metadata.id),
+                              type: ArtworkType.AUDIO,
+                              // 缩略图不显示圆角
+                              artworkBorder:
+                                  const BorderRadius.all(Radius.zero),
+                              artworkHeight: 40.sp,
+                              artworkWidth: 40.sp,
+                              artworkFit: BoxFit.cover,
+                              keepOldArtwork: true, // 在生命周期内使用旧的缩略图
+                              nullArtworkWidget:
+                                  Icon(Icons.image_not_supported, size: 50.sp),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: SimpleMarqueeOrText(
+                            data:
+                                '${metadata.artist ?? "未知歌手"} -- ${metadata.title}',
+                            style: TextStyle(fontSize: sizeHeadline2),
+                            velocity: 50,
+                          ),
+                        ),
+                      ],
                     );
                   },
                 ),

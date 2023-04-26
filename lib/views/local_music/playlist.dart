@@ -28,7 +28,7 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
   final _audioQuery = getIt<MyAudioQuery>();
 
   // 根据不同播放列表类型，构建不同的查询处理
-  late Future<List<dynamic>> futureHandler;
+  Future<List<dynamic>>? futureHandler;
 
   // 被选中的item的索引列表
   List<PlaylistModel> selectedPlaylists = [];
@@ -50,9 +50,17 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
       sortType: PlaylistSortType.PLAYLIST,
     );
 
+    var list3 = await _audioQuery.queryAudiosFrom(
+      AudiosFromType.PLAYLIST,
+      213023,
+      sortType: SongSortType.TITLE,
+      orderType: OrderType.ASC_OR_SMALLER,
+    );
+
     print("888888888888888888888888888888888");
     print(list);
     print(list2);
+    print(list3);
     print("888888888888888888888888888888888");
   }
 
@@ -142,6 +150,7 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
 
         return ListView.builder(
           itemCount: playlists.length,
+          itemExtent: 80.sp, // 每个item内部组件的高度(因为下面leading的高度有问题，这里暂时上下有点间距)
           itemBuilder: (ctx, index) {
             // PlaylistModel playlist = playlists[index];
 
@@ -199,16 +208,23 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
                         .isNotEmpty,
                     title: Text(playlist.playlist),
                     subtitle: Text("${playlist.numOfSongs} 首歌曲"),
-                    // 歌单可以不要缩略图，反2.7.0的相关组件依赖也查不到原始音频id
-                    // leading: QueryArtworkWidget(
-                    //   controller: _audioQuery.onAudioQueryController,
-                    //   // 显示根据歌手id查询的歌手图片
-                    //   id: playlistId,
-                    //   type: ArtworkType.PLAYLIST,
-                    //   artworkBorder: const BorderRadius.all(Radius.zero), // 缩略图不显示圆角
-                    // keepOldArtwork: true, // 在生命周期内使用旧的缩略图
-                    // ),
-                    leading: SizedBox(height: 50.sp, width: 50.sp),
+                    minLeadingWidth: 120.sp, // 左侧缩略图标的最小宽度
+                    // 歌单可以不要缩略图，截止2.8.0的相关组件依赖queryAudiosFrom 的playlist类型也查不到原始音频id
+                    leading: QueryArtworkWidget(
+                      controller: _audioQuery.onAudioQueryController,
+                      // 显示根据歌手id查询的歌手图片
+                      id: playlistId,
+                      type: ArtworkType.PLAYLIST,
+                      // 缩略图不显示圆角
+                      artworkBorder: const BorderRadius.all(Radius.zero),
+                      artworkWidth: 100.sp, // 默认是50*50的大小
+                      artworkHeight: 100.sp, // 这个高度显示不太对，实测始终是56，原因不明
+                      artworkFit: BoxFit.cover,
+                      keepOldArtwork: true, // 在生命周期内使用旧的缩略图
+                      nullArtworkWidget:
+                          Icon(Icons.image_not_supported, size: 50.sp),
+                    ),
+
                     onLongPress: () {
                       setState(() {
                         // 修改歌单长按标志为true
@@ -249,9 +265,6 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
                           '指定歌单 ${playlist.playlist}  was tapped! id Is ${playlist.id}',
                         );
 
-                        // final AudioInList yourModel =
-                        //     Provider.of<AudioInList>(context, listen: false);
-
                         Navigator.of(ctx)
                             .push(
                               MaterialPageRoute(
@@ -274,16 +287,6 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
                               ),
                             )
                             .then((value) => initData());
-                        //     .then(
-                        //   (value) {
-                        //     print("这是跳转路由后返回的数据： $value");
-                        //     // 在pdf viewer页面返回后，重新获取pdf list，更新阅读进度
-                        //     if (value != null && value["isReload"]) {
-                        //       print("这里执行了歌单列表重新加载的逻辑");
-                        //       initData();
-                        //     }
-                        //   },
-                        // );
                       }
                     },
                   );

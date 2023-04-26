@@ -321,26 +321,42 @@ packages:
     dependency: "direct main"
     description:
       name: on_audio_query
-      sha256: d5c93f7683b3c7c032558afc8189e9278e87d4020a594757f026b2b37a223f1a
+      sha256: "403a0bc23881c3c4aa5f228a9592adb3baa7f007133ea48a5ab50fc8751f34f4"
       url: "https://pub.dev"
     source: hosted
-    version: "2.7.0"
+    version: "2.8.0"
+  on_audio_query_android:
+    dependency: transitive
+    description:
+      name: on_audio_query_android
+      sha256: "9a7080925deb87f682a178aaf422ebb6f083a25e7ea5db85e8e690fb0195de64"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  on_audio_query_ios:
+    dependency: transitive
+    description:
+      name: on_audio_query_ios
+      sha256: "5660c623037e9a0a6dd41a2aed8e5eaf7030d630763d6de196af71097b0e1874"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   on_audio_query_platform_interface:
     dependency: transitive
     description:
       name: on_audio_query_platform_interface
-      sha256: "61641573017826b558a42d27446774a6a6ee1a9213c62e5f064ed5f378d035f5"
+      sha256: cec9485cb1b6abad913ad88b01628e550fc8385d7cbcbc66252e53b71aeaddc4
       url: "https://pub.dev"
     source: hosted
-    version: "1.5.0"
+    version: "1.6.0"
   on_audio_query_web:
     dependency: transitive
     description:
       name: on_audio_query_web
-      sha256: efa08ff0d45a02fb369fb0a4f361d4f3b1db32add6b8908606f9afff9393dc4b
+      sha256: "324669c640570c91653b8ff6a59e1df93b2b942373e385c7d05144cd6d4c73e4"
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.0"
+    version: "1.5.0"
   path:
     dependency: transitive
     description:

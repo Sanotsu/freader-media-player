@@ -13,7 +13,8 @@ import '../widgets/build_audio_info_dialog.dart';
 import '../widgets/build_remove_playlist_or_audio_dialog.dart';
 import '../widgets/build_search_text_field.dart';
 import '../widgets/build_sort_options_dialog.dart';
-import '../widgets/music_list_future_builder.dart';
+import '../widgets/music_list_builder.dart';
+// import '../widgets/music_list_future_builder.dart';
 import '../widgets/music_player_mini_bar.dart';
 
 /// 显示播放列表内部的歌曲，则需要传入播放列表类型、播放列表编号，额外播放列表名称用来做页面的标题
@@ -65,10 +66,14 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
                   /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
                   ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
                   /// 如果是默认显示的，应该有：排序、搜索、三个点（展开其他功能）
-                  return MusicListFutureBuilder(
+                  // return MusicListFutureBuilder(
+                  //   audioListType: widget.audioListType,
+                  //   audioListId: widget.audioListId,
+                  //   callback: (value) => print(value),
+                  // );
+                  return MusicListBuilder(
                     audioListType: widget.audioListType,
                     audioListId: widget.audioListId,
-                    callback: (value) => print(value),
                   );
                 },
               ),

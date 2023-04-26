@@ -42,7 +42,7 @@ dependencies:
   # 为简单数据包装特定于平台的持久存储（持久化简单key-value数据）
   shared_preferences: ^2.1.0
   # 用于从设备存储中查询音频/歌曲信息[标题、艺术家、专辑等]。
-  on_audio_query: ^2.7.0
+  on_audio_query: ^2.8.0
   # 音乐播放组件
   just_audio: ^0.9.32
   # 配合上一个实现后台播放(其他高级音频背景播放，使用audio_service)
