@@ -8,8 +8,10 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:provider/provider.dart';
 
 import '../../../common/utils/global_styles.dart';
+import '../../../models/change_display_mode.dart';
 import '../../../services/my_audio_handler.dart';
 import '../../../services/my_shared_preferences.dart';
 import '../../../services/service_locator.dart';
@@ -75,13 +77,17 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
 
   @override
   Widget build(BuildContext context) {
+    ChangeDisplayMode cdm = context.watch<ChangeDisplayMode>();
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       // 如果指定了scaffoldMessengerKey ，则可以直接操作ScaffoldMessenger
       //    该类提供了API，用于在屏幕的底部和顶部分别显示点心条和材料横幅。
       scaffoldMessengerKey: _scaffoldMessengerKey,
       home: Scaffold(
-        backgroundColor: dartThemeMaterialColor3,
+        backgroundColor: cdm.currentDisplayMode == DisplayMode.DARK
+            ? dartThemeMaterialColor3
+            : Theme.of(context).primaryColor,
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -223,12 +229,17 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
 
                       return SizedBox(
                         width: double.infinity,
-                        child: Card(
-                          elevation: 0.sp,
-                          color: dartThemeMaterialColor2,
-                          child: SimpleMarqueeOrText(
-                            data: nextInfo,
-                            style: TextStyle(fontSize: sizeContent0),
+                        child: Padding(
+                          padding: EdgeInsets.all(2.sp),
+                          child: Card(
+                            elevation: 10.sp,
+                            color: cdm.currentDisplayMode == DisplayMode.DARK
+                                ? dartThemeMaterialColor2
+                                : Theme.of(context).primaryColor,
+                            child: SimpleMarqueeOrText(
+                              data: nextInfo,
+                              style: TextStyle(fontSize: sizeContent0),
+                            ),
                           ),
                         ),
                       );

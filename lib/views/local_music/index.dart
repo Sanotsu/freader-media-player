@@ -10,6 +10,7 @@ import '../../common/utils/global_styles.dart';
 import '../../common/utils/tools.dart';
 import '../../models/audio_long_press.dart';
 
+import '../../models/change_display_mode.dart';
 import '../../models/list_long_press.dart';
 import '../../models/sort_option_selected.dart';
 import '../../services/my_audio_query.dart';
@@ -79,6 +80,8 @@ class _LocalMusicState extends State<LocalMusic>
 
   @override
   Widget build(BuildContext context) {
+    ChangeDisplayMode cdm = context.read<ChangeDisplayMode>();
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AudioLongPress()),
@@ -86,7 +89,9 @@ class _LocalMusicState extends State<LocalMusic>
         ChangeNotifierProvider(create: (_) => AudioOptionSelected()),
       ],
       child: MaterialApp(
-        theme: ThemeData.dark(),
+        theme: cdm.currentDisplayMode == DisplayMode.DARK
+            ? ThemeData.dark()
+            : ThemeData.light(),
         home: DefaultTabController(
           length: 4,
           child: Scaffold(
@@ -221,9 +226,12 @@ class _LocalMusicState extends State<LocalMusic>
               ),
             ),
             SizedBox(
-              height: 60.sp,
+              height: 70.sp,
               width: 1.sw,
-              child: const MusicPlayerMiniBar(),
+              child: Padding(
+                padding: EdgeInsets.all(2.sp),
+                child: const MusicPlayerMiniBar(),
+              ),
             ),
           ],
         ),

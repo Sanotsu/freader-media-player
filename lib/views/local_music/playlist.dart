@@ -134,7 +134,7 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
         }
         // 无数据转圈等到加载完成
         if (item.data == null) {
-          return const CircularProgressIndicator();
+          return const Center(child: CircularProgressIndicator());
         }
         // 数据为空显示无结果
         if (item.data!.isEmpty) {
@@ -181,7 +181,8 @@ class _LocalMusicPlaylistState extends State<LocalMusicPlaylist> {
                     AudiosFromType.PLAYLIST, playlistId),
                 builder: (ctx, i) {
                   if (i.hasError) return Text(i.error.toString());
-                  if (i.data == null) return const CircularProgressIndicator();
+                  // if (i.data == null) return const CircularProgressIndicator();
+                  if (i.data == null) return Container();
                   // if (i.data!.isEmpty) return const Text("歌曲 Nothing found!");
                   // 查询到的指定歌单的音频数据，用于获取缺少的num_of_songs属性
                   var tempSongs = i.data!;

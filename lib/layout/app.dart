@@ -3,9 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../common/global/constants.dart';
+import '../models/change_display_mode.dart';
 import 'home.dart';
 
 class FreaderApp extends StatelessWidget {
@@ -77,8 +79,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return isLogin
-        ? const HomePage(title: 'Flutter Demo Home Page')
-        : const HomePage(title: 'Flutter Demo Home Page');
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ChangeDisplayMode()),
+      ],
+      child: isLogin
+          ? const HomePage(title: 'Flutter Demo Home Page')
+          : const HomePage(title: 'Flutter Demo Home Page'),
+    );
   }
 }

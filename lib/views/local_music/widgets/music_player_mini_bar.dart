@@ -33,8 +33,6 @@ class _MusicPlayerMiniBarState extends State<MusicPlayerMiniBar> {
 
     return Card(
       elevation: 5,
-      // color: Theme.of(context).primaryColor,
-      color: dartThemeMaterialColor2,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
@@ -73,9 +71,9 @@ class _MusicPlayerMiniBarState extends State<MusicPlayerMiniBar> {
 
                     return Row(
                       children: [
-                        SizedBox(
-                          height: 50.sp,
-                          width: 80.sp,
+                        // 图标占整个宽度的1/5 / (3/(3+1)) = 4/15,即 4/(4+9)
+                        Expanded(
+                          flex: 4,
                           child: Padding(
                             padding: EdgeInsets.fromLTRB(15, 2, 15, 2.sp),
                             child: QueryArtworkWidget(
@@ -96,6 +94,7 @@ class _MusicPlayerMiniBarState extends State<MusicPlayerMiniBar> {
                           ),
                         ),
                         Expanded(
+                          flex: 11,
                           child: SimpleMarqueeOrText(
                             data:
                                 '${metadata.artist ?? "未知歌手"} -- ${metadata.title}',

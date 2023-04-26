@@ -1,8 +1,10 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../common/utils/global_styles.dart';
+import '../models/change_display_mode.dart';
 import '../views/local_music/index.dart';
 import '../views/online_music/online_music_index.dart';
 import '../views/other_modules/other_index.dart';
@@ -39,6 +41,9 @@ class _HomePageState extends State<HomePage> {
     /// （因为歌单、全部歌曲、艺术家、专辑是tab一层，除`全部`外，需要长按列表改变app中显示的功能）
     /// 而在音频列表中长按音频，也有改变内部app bar显示的功能内容。这样`全部`这个没有中间层的也比较特殊
     ///
+    ///
+    ChangeDisplayMode cdm = context.watch<ChangeDisplayMode>();
+
     return Scaffold(
       // home页的背景色(如果下层还有设定其他主题颜色，会被覆盖)
       // backgroundColor: Colors.red,
@@ -51,7 +56,10 @@ class _HomePageState extends State<HomePage> {
         ],
         currentIndex: _selectedIndex,
         // 底部导航栏的颜色
-        backgroundColor: dartThemeMaterialColor3,
+        // backgroundColor: dartThemeMaterialColor3,
+        backgroundColor: cdm.currentDisplayMode == DisplayMode.DARK
+            ? dartThemeMaterialColor3
+            : Theme.of(context).primaryColor,
         // 被选中的item的图标颜色和文本颜色
         selectedIconTheme: const IconThemeData(color: Colors.white),
         selectedItemColor: Colors.white,
