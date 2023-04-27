@@ -49,6 +49,11 @@ class _MusicListBuilderState extends State<MusicListBuilder> {
   // 根据不同播放列表类型，构建不同的查询处理
   // late List<dynamic> futureHandler;
 
+  // 专门用来存放如果是指定歌单的音频列表
+  // （如果这个list不为空，说明是构建显示指定歌单的音频，该插件的接口返回值audioList中没有原始音频的id，无法获取音频缩略图。
+  // 需要用此list代替audioList去显示）
+  List<SongModel> playlistAudioList = [];
+
   /// 音频多选的操作逻辑：
   /// 长按指定音频，启动播放列表功能模式
   ///     长按标志设为true，选中的音频加入指定列表，显示一些对选中音频的操作功能按钮
@@ -103,7 +108,9 @@ class _MusicListBuilderState extends State<MusicListBuilder> {
         tempList.add(tempAl[0]);
       }
 
-      audioList = tempList;
+      playlistAudioList = tempList.toSongModel();
+
+      audioList = temp;
 
       print("zzzzzzzzzzzzzzzzzzzzzz playlist中查询原始数据 $tempList");
     } else if (widget.audioListType == AudioListTypes.artist) {
@@ -234,6 +241,14 @@ class _MusicListBuilderState extends State<MusicListBuilder> {
                     Duration(milliseconds: song.duration!),
                   );
 
+                  // ??? 2023-04-27 如果这个条件成立，那么是指定歌单的音频，id不是原始id，需要获得原始id以便展示缩略图
+                  var songId = song.id;
+                  if (playlistAudioList.isNotEmpty) {
+                    songId = playlistAudioList
+                        .firstWhere((e) => e.title == song.title)
+                        .id;
+                  }
+
                   return GestureDetector(
                     onLongPress: () {
                       setState(() {
@@ -261,7 +276,8 @@ class _MusicListBuilderState extends State<MusicListBuilder> {
                           controller: _audioQuery.onAudioQueryController,
                           // ??好像只有querysongs获取到的 SongModel 的id才能找到图片
                           // 其他查询播放列表、艺术家的获取的音频id和querysongs的不一样，也拿不到图片
-                          id: song.id,
+                          // id: song.id,
+                          id: songId,
                           type: ArtworkType.AUDIO,
                           keepOldArtwork: true, // 在生命周期内使用旧的缩略图
                         ),
@@ -294,7 +310,20 @@ class _MusicListBuilderState extends State<MusicListBuilder> {
 
                             // 到这里就已经查询到当前“tab”页面中所有的歌曲了，可以构建播放列表和当前音频
                             // 如果是条件查询，则是条件查询结果构成的歌单
-                            await _audioHandler.buildPlaylist(songs, song);
+
+                            // ??? 2023-04-27 如果这个条件成立，那么是指定歌单的音频，id不是原始id，需要获得原始id以便展示缩略图
+                            // 存入播放列表的是包含原始音频id的列表，但和歌单中存在的音频是一样的，虽然是两个list
+                            // 【缺陷】: 使用的firstWhere
+                            if (playlistAudioList.isNotEmpty) {
+                              await _audioHandler.buildPlaylist(
+                                playlistAudioList,
+                                playlistAudioList
+                                    .firstWhere((e) => e.title == song.title),
+                              );
+                            } else {
+                              await _audioHandler.buildPlaylist(songs, song);
+                            }
+
                             await _audioHandler.refreshCurrentPlaylist();
 
                             // 将播放列表信息、被点击的音频编号\播放列表编号(全部歌曲tab除外)存入持久化

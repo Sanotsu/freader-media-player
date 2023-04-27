@@ -46,8 +46,30 @@ class MyAudioHandler {
         break;
       case AudioListTypes.playlist:
         // 当前歌单编号
-        songs = await _audioQuery.queryAudiosFrom(
-            AudiosFromType.PLAYLIST, tempList[2]);
+        // songs = await _audioQuery.queryAudiosFrom(
+        //     AudiosFromType.PLAYLIST, tempList[2]);
+
+        var temp = await _audioQuery.queryAudiosFrom(
+          AudiosFromType.PLAYLIST,
+          tempList[2],
+          sortType: SongSortType.TITLE,
+          orderType: OrderType.ASC_OR_SMALLER,
+        );
+
+        // 如果是歌单tab进入来查询歌单中拥有的音频，因为组件接口从歌单中查询的音频结果没有原始音频id，而是编码后的编号，
+        // 所以想用该音频id查询音频的例如封面图等，就取不到。
+        // 所以在这里对得到的结果，用名称再查询一次，构建新的音频列表，带上原始id
+
+        var tempList1 = [];
+
+        for (SongModel e in temp) {
+          var tempAl = await _audioQuery.queryWithFilters(
+              e.title, WithFiltersType.AUDIOS);
+          tempList1.add(tempAl[0]);
+        }
+
+        songs = tempList1.toSongModel();
+
         break;
       case AudioListTypes.artist:
         // 当前歌手编号
