@@ -133,6 +133,7 @@ class SimpleMarqueeOrText extends StatefulWidget {
     this.velocity,
     this.showLines,
     this.height,
+    this.width,
   });
 
   final String data;
@@ -143,6 +144,8 @@ class SimpleMarqueeOrText extends StatefulWidget {
   final int? showLines;
   // 滚动条的高度
   final double? height;
+  // 滚动条的宽度
+  final double? width;
 
   @override
   State<SimpleMarqueeOrText> createState() => _SimpleMarqueeOrTextState();
@@ -160,14 +163,17 @@ class _SimpleMarqueeOrTextState extends State<SimpleMarqueeOrText> {
       // 注意，如果是builder的约束，默认为设备的总宽度(测试机为360.sp)，不是全宽跑马灯的话宽度要自定，才能得到准确的行数
       // tp.layout(maxWidth: widget.width ?? 300.sp); // 和下面的sizedbox宽度一致
 
-      // 看起来上面的不太准确，这个最小宽度可能是本widget的父widget的宽度
-      tp.layout(maxWidth: constraints.minWidth);
+      // 看起来上面的不太准确，这个最小宽度可能是本widget的父widget的宽度。但是在播放详情页面标题和专辑信息时，传过来就是0.0。
+      // 所以，要么在使用的时候指定父组件，要么就在这里设定一个最小值。
+      // 综上优先级:手动传入宽度 > 大于50的父组件 > 预设的300
+      var showWidth = widget.width ??
+          (constraints.minWidth > 50.sp ? constraints.minWidth : 300.sp);
+      tp.layout(maxWidth: showWidth);
       final numLines = tp.computeLineMetrics().length;
 
       return SizedBox(
         height: widget.height ?? 30.sp,
-        // width: double.maxFinite, // 如果是这个宽度，那上面maxWidth就可以取最大值了
-        width: constraints.minWidth, // app.dart中有宽高说明
+        width: showWidth,
         child: numLines > (widget.showLines ?? 1)
             ? Marquee(
                 text: "${widget.data}   ", // 超过一行时滚动的字串加点空白以便识别文字起止

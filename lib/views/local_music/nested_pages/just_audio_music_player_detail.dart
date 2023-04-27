@@ -131,21 +131,23 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
                         ),
                         Expanded(
                           flex: 1,
-                          child: Column(children: [
-                            // 歌名
-                            SimpleMarqueeOrText(
-                              data: '${state.currentIndex}-${metadata.title}',
-                              style: TextStyle(fontSize: sizeHeadline0),
-                            ),
-                            // 分割占位
-                            SizedBox(height: 10.sp),
-                            // 歌手+专辑名
-                            SimpleMarqueeOrText(
-                              data:
-                                  '${metadata.artist ?? "未知歌手"} -- ${metadata.album ?? "未知专辑"}',
-                              style: TextStyle(fontSize: sizeHeadline2),
-                            ),
-                          ]),
+                          child: SingleChildScrollView(
+                            child: Column(children: [
+                              // 歌名
+                              SimpleMarqueeOrText(
+                                data: '${state.currentIndex}-${metadata.title}',
+                                style: TextStyle(fontSize: sizeHeadline0),
+                              ),
+                              // 分割占位
+                              SizedBox(height: 10.sp),
+                              // 歌手+专辑名
+                              SimpleMarqueeOrText(
+                                data:
+                                    '${metadata.artist ?? "未知歌手"} -- ${metadata.album ?? "未知专辑"}',
+                                style: TextStyle(fontSize: sizeHeadline2),
+                              ),
+                            ]),
+                          ),
                         )
                       ],
                     );
@@ -228,6 +230,7 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
                           "下一首：$nextAudionIndex-${metadata.title}-${metadata.artist}";
 
                       return SizedBox(
+                        // 这个会让下面的 simpleMarqueeOrText 设置的宽度无效
                         width: double.infinity,
                         child: Padding(
                           padding: EdgeInsets.all(2.sp),
