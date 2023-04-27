@@ -26,22 +26,14 @@ class MyAudioHandler {
   // 统一简单存储操作的工具类实例
   final _simpleShared = getIt<MySharedPreferences>();
 
-  // 构造函数
-  MyAudioHandler() {
-    _loadInitCurrentPlaylist();
-    _notifyAudioHandlerAboutPlaybackEvents();
-  }
+  // 构造函数（原本在构造函数中执行初始化，现在在获得授权后在app处初始化）
+  MyAudioHandler();
 
   // 获取当前播放列表和当前音乐索引（正常来讲，这个会存入db）
   // 其他情况改变了当前列表，则额外处理
   Future<void> _getInitPlaylistAndIndex() async {
-    // todo
-    // // 获取权限
-    // await _audioQuery.checkAndRequestPermissions(retry: true);
-
     print("这是在_getInitPlaylistAndIndex");
-    // // 获取当前的播放列表数据
-
+    // 获取当前的播放列表数据
     // 这个list有依次3个值：当前列表类型、当前音频在列表中的索引、当前播放列表编号
     var tempList = await _simpleShared.getCurrentAudioInfo();
 
@@ -87,14 +79,27 @@ class MyAudioHandler {
     }
   }
 
-  /// ------------ 上面是内部私有方法
-
   // 在播放过程中侦听错误。
   void _notifyAudioHandlerAboutPlaybackEvents() {
     _player.playbackEventStream.listen((event) {},
         onError: (Object e, StackTrace stackTrace) {
       print('A stream error occurred: $e');
     });
+  }
+
+  /// ------------ 上面是内部私有方法
+
+  myAudioHandlerInit() async {
+    try {
+      await _loadInitCurrentPlaylist();
+      _notifyAudioHandlerAboutPlaybackEvents();
+
+      print("myAudioHandlerInit 中 正常执行，即将返回 true");
+      return true;
+    } catch (e) {
+      print("myAudioHandlerInit 中 出错:$e");
+      return false;
+    }
   }
 
   // 构建当前播放列表和音频（一般是在 播放列表、专辑、艺术家、全部 等主页点击指定音乐时，需要替换到现有的播放列表和音频）

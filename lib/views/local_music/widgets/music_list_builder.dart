@@ -67,16 +67,7 @@ class _MusicListBuilderState extends State<MusicListBuilder> {
     print("zzzzzzzzzzzzz------ ${widget.queryInputted}");
 
     super.initState();
-    _audioQuery.setLogConfig();
-    // initFuture();
-    // 如果确定在 my audio handle中 _getInitPlaylistAndIndex 有效，这里就不再用了
-    // checkPermission();
   }
-
-  // checkPermission() async {
-  //   await _audioQuery.checkAndRequestPermissions(retry: false);
-  //   _audioQuery.hasPermission ? setState(() {}) : null;
-  // }
 
   Future<List<SongModel>> initFuture(AudioLongPress alp,
       {AudioOptionSelected? aos}) async {
@@ -170,8 +161,8 @@ class _MusicListBuilderState extends State<MusicListBuilder> {
 
   @override
   Widget build(BuildContext context) {
-    AudioLongPress alp = context.read<AudioLongPress>();
-    AudioOptionSelected aos = context.read<AudioOptionSelected>();
+    AudioLongPress alp = context.watch<AudioLongPress>();
+    AudioOptionSelected aos = context.watch<AudioOptionSelected>();
 
     print(
       "1111111111111111111zzzzzzzzzzz  ${widget.audioListType} ${alp.isAudioLongPress}",
@@ -202,61 +193,59 @@ class _MusicListBuilderState extends State<MusicListBuilder> {
     }
 
     return Center(
-      child: !_audioQuery.hasPermission
-          ? noAccessToLibraryWidget()
-          : FutureBuilder<List<SongModel>>(
-              future: futureSongs,
-              builder: (context, item) {
-                // 如果查询出错，显示错误信息
-                if (item.hasError) {
-                  return Text(item.error.toString());
-                }
-                // 如果还在加载中，显示转圈圈.
-                if (item.data == null) {
-                  return const CircularProgressIndicator();
-                }
-                // 如果结果为空，显示无数据
-                if (item.data!.isEmpty) {
-                  return const Center(child: Text("暂无歌曲!"));
-                }
+      child: FutureBuilder<List<SongModel>>(
+          future: futureSongs,
+          builder: (context, item) {
+            // 如果查询出错，显示错误信息
+            if (item.hasError) {
+              return Text(item.error.toString());
+            }
+            // 如果还在加载中，显示转圈圈.
+            if (item.data == null) {
+              return const CircularProgressIndicator();
+            }
+            // 如果结果为空，显示无数据
+            if (item.data!.isEmpty) {
+              return const Center(child: Text("暂无歌曲!"));
+            }
 
-                List<SongModel> songs = item.data!;
-                return ListView.builder(
-                  itemCount: songs.length,
-                  itemBuilder: (context, index) {
-                    // 歌手分类子标题就是专辑名，专辑分类子标题就是歌手
+            List<SongModel> songs = item.data!;
+            return ListView.builder(
+                itemCount: songs.length,
+                itemBuilder: (context, index) {
+                  // 歌手分类子标题就是专辑名，专辑分类子标题就是歌手
 
-                    // print(
-                    //   "构建音频列表=========================$index ${songs[index]} ${songs[index].runtimeType}",
-                    // );
-                    SongModel song = songs[index];
-                    var subtext = "";
-                    switch (widget.audioListType) {
-                      case AudioListTypes.artist:
-                        subtext = "专辑: ${song.album}";
-                        break;
-                      default:
-                        subtext = song.artist ?? '未知艺术家';
-                      // subtext = "歌手: ${song.artist}";
-                    }
+                  // print(
+                  //   "构建音频列表=========================$index ${songs[index]} ${songs[index].runtimeType}",
+                  // );
+                  SongModel song = songs[index];
+                  var subtext = "";
+                  switch (widget.audioListType) {
+                    case AudioListTypes.artist:
+                      subtext = "专辑: ${song.album}";
+                      break;
+                    default:
+                      subtext = song.artist ?? '未知艺术家';
+                    // subtext = "歌手: ${song.artist}";
+                  }
 
-                    // 歌曲的时长，格式化为hh:mm:ss 格式
-                    var songDurationStr = formatDurationToString(
-                      Duration(milliseconds: song.duration!),
-                    );
+                  // 歌曲的时长，格式化为hh:mm:ss 格式
+                  var songDurationStr = formatDurationToString(
+                    Duration(milliseconds: song.duration!),
+                  );
 
-                    return GestureDetector(
-                      onLongPress: () {
-                        setState(() {
-                          // 音频item被长按了，设置标志为被长按，会显示一些操作按钮，且再单击音频是多选，而不是播放
-                          alp.changeIsAudioLongPress(LongPressStats.YES);
-                          // 长按的时候把该item索引加入被选中的索引变量中
-                          selectedIndexs.add(song);
-                          // 保存被选中的音频
-                          alp.changeSelectedAudioList(selectedIndexs);
-                        });
-                      },
-                      child: ListTile(
+                  return GestureDetector(
+                    onLongPress: () {
+                      setState(() {
+                        // 音频item被长按了，设置标志为被长按，会显示一些操作按钮，且再单击音频是多选，而不是播放
+                        alp.changeIsAudioLongPress(LongPressStats.YES);
+                        // 长按的时候把该item索引加入被选中的索引变量中
+                        selectedIndexs.add(song);
+                        // 保存被选中的音频
+                        alp.changeSelectedAudioList(selectedIndexs);
+                      });
+                    },
+                    child: ListTile(
                         // selected: selectedIndexs.contains(song),
                         // 上述写法，在歌曲查询结果中长按不会生效
                         selected: selectedIndexs
@@ -327,36 +316,10 @@ class _MusicListBuilderState extends State<MusicListBuilder> {
                               ),
                             );
                           }
-                        },
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-    );
-  }
-
-  // 无访问权限时的占位部件
-  Widget noAccessToLibraryWidget() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: Colors.redAccent.withOpacity(0.5),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text("Application doesn't have access to the library"),
-          const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () =>
-                _audioQuery.checkAndRequestPermissions(retry: true),
-            child: const Text("Allow"),
-          ),
-        ],
-      ),
+                        }),
+                  );
+                });
+          }),
     );
   }
 }

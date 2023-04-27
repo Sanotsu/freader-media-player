@@ -58,6 +58,28 @@ Widget buildRowListTile(String label, String value) {
   );
 }
 
+// 无访问权限时的占位部件(参数为点击按钮的操作函数)
+Widget noAccessToLibraryWidget(Function() cb) {
+  return Container(
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(10),
+      color: Colors.redAccent.withOpacity(0.5),
+    ),
+    padding: const EdgeInsets.all(20),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text("应用程序暂未获得存储权限"),
+        const SizedBox(height: 10),
+        ElevatedButton(
+          onPressed: cb,
+          child: const Text("授权"),
+        ),
+      ],
+    ),
+  );
+}
+
 // 自定的带标签的复选框（RadioListTile高度太高，还不能跳整）
 class LabeledRadio extends StatelessWidget {
   const LabeledRadio({

@@ -268,6 +268,7 @@ app
   - 所以实现是根据 title 重新查询音频数据，得到原始 id 之后，再构建音频列表组件。
 - （2023-04-26 基本完成） **新增按钮可以手动切换 flutter 预设的 dark 或 light 主题**。
 - （2023-04-26 基本完成） **构建用户中心的页面布局 demo**。
+- （2023-04-27 基本完成） **app 首次启动时询问是否授权运行存储操作**。
 
 ---
 
@@ -292,6 +293,9 @@ app
       - 简单将主页的背景色设置为比较浅的深色，文本为白色，统一观感。
       - mini bar 适配 context 的主色，且改为 card widget。
       - 播放详情页的背景色与全局保持一致
+  - 2023-04-27 app 首次启动时请求存储权限授权，但不知道是哪里出现的数据越界问题:
+    - `I/on_audio_error(11216): android.database.CursorIndexOutOfBoundsException: Index 0 requested, with a size of 0`
+    - 其实应该一直都有，即 playlist 歌单内容为空时，则会报出此信息，但似乎并不影响使用。
 
 - 歌单的功能
 

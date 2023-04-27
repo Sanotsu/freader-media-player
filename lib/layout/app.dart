@@ -3,11 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../common/global/constants.dart';
 import '../models/change_display_mode.dart';
+import '../services/my_audio_handler.dart';
+import '../services/service_locator.dart';
 import 'home.dart';
 
 class FreaderApp extends StatelessWidget {
@@ -60,10 +63,17 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   bool isLogin = false;
 
+  bool isPermissionGranted = false;
+
+  // 音乐播放实例
+  final _audioHandler = getIt<MyAudioHandler>();
+
   @override
   void initState() {
     super.initState();
     getLoginState();
+    // app初次启动时要获取相关授权，取得之后就不需要重复请求了
+    _requestPermission();
   }
 
   // 获取登陆状态
@@ -77,6 +87,23 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  // 获取存储权限
+  _requestPermission() async {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.storage,
+    ].request();
+
+    setState(() {
+      isPermissionGranted = true;
+    });
+
+    final info = statuses[Permission.storage].toString();
+    print("_requestPermission------------------$info");
+
+    // 获得授权后，音频控制初始化（主要从持久化数据中获取数据构建当前正在播放的音频和播放列表，没有持久化数据则是默认初始值）
+    _audioHandler.myAudioHandlerInit();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -85,7 +112,11 @@ class _MyHomePageState extends State<MyHomePage> {
       ],
       child: isLogin
           ? const HomePage(title: 'Flutter Demo Home Page')
-          : const HomePage(title: 'Flutter Demo Home Page'),
+          : isPermissionGranted
+              ? const HomePage(title: 'Flutter Demo Home Page')
+              : Container(
+                  color: Theme.of(context).primaryColor,
+                ),
     );
   }
 }

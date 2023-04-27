@@ -63,6 +63,8 @@ dependencies:
   intl: 0.17.0
   # 文本跑马灯滚动
   marquee: ^2.2.3
+  # 权限请求管理
+  permission_handler: ^10.2.0
 
 dev_dependencies:
   flutter_test:
