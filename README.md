@@ -275,7 +275,8 @@ app
   - app 启动画面在`android/app/src/main/res/drawable/launch_background.xml`，目前是显示图标，可以自定义更多。
     - 这里好像是 drawable-v21 文件夹下生效。还可以修改填充方式，例如从 center 到 fill。
 - （2023-04-28 基本完成） **更换 android 启动画面和图标**。
-  - 但注意，对应 AudioSource -> MediaItem -> artUri 属性。但不支持 Uinit8List，导致先存入临时文件，再获取其 uri，最后构建 AudioSource，会导致构建播放列表耗时非常久，对于目前的设计(点击 tab 之后构建播放列表成功之后再跳转到播放页)来说非常不方便。
+  - 但注意，对应 AudioSource -> MediaItem -> artUri 属性。但不支持 Uinit8List，导致先存入临时文件，再获取其 uri，最后构建 AudioSource，会导致构建播放列表耗时非常久，对于目前的设计(点击 tab 之后构建播放列表成功之后再跳转到播放页)来说非常不方便。[参看](https://stackoverflow.com/questions/75456939/how-to-show-artmusic-on-media-control-notification-from-assets-file-in-flutter)
+  - 原作者不支持 artUri 直接使用 UInt8List，[参看](https://github.com/ryanheise/audio_service/issues/245)，,所以要更改可能比较麻烦。
 
 ---
 
@@ -339,3 +340,93 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
 ```
 
 [参看](https://stackoverflow.com/questions/60852896/widget-cannot-be-marked-as-needing-to-build-because-the-framework-is-already-in)第二个答案
+
+### 打包操作
+
+打包安卓参看[官方文档](https://flutter.cn/docs/deployment/android)，这里只做了以下几个步骤:
+
+- 创建一个用于上传的密钥库
+- 从 app 中引用密钥库
+- 在 gradle 中配置签名
+- 构建一个 APK
+  - `flutter build apk --split-per-abi`
+
+注意，读取密钥时，不能放在包含中文的路径下，否则 build 会报错。
+
+---
+
+使用以下打包命令可以简单分析一下内容：
+flutter build [appbundle|apk|ios] --analyze-size --target-platform=[android-arm64|android-arm|android-x64]
+
+`flutter build apk --analyze-size --target-platform=android-arm64`
+
+该工具在终端上展示了大小拆分的摘要信息，并在 DevTools 中生成了一个 -code-size-analysis\_.json 文件，用于进行更详细的分析。
+
+```sh
+Running Gradle task 'assembleRelease'...                          145.6s
+✓  Built build/app/outputs/flutter-apk/app-release.apk (19.1MB).
+▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+app-release.apk (total compressed)                                         19 MB
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  META-INF/
+    CERT.SF                                                                17 KB
+    CERT.RSA                                                                1 KB
+    MANIFEST.MF                                                            10 KB
+  classes.dex                                                               1 MB
+  lib/
+    arm64-v8a                                                              17 MB
+    Dart AOT symbols accounted decompressed size                            7 MB
+      package:flutter                                                       3 MB
+      dart:core                                                           316 KB
+      dart:ui                                                             264 KB
+      dart:typed_data                                                     222 KB
+      dart:io                                                             212 KB
+      package:vector_graphics_compiler                                    179 KB
+      package:freader_music_player                                        175 KB
+      dart:collection                                                     154 KB
+      dart:async                                                          153 KB
+      package:flutter_localizations                                       113 KB
+      package:random_avatar/
+        random_avatar.dart                                                108 KB
+      package:petitparser                                                  77 KB
+      dart:ffi                                                             75 KB
+      package:just_audio/
+        just_audio.dart                                                    73 KB
+      package:intl                                                         72 KB
+      dart:convert                                                         68 KB
+      package:xml                                                          47 KB
+      package:rxdart                                                       45 KB
+      package:flutter_cache_manager                                        43 KB
+      package:sqflite_common                                               40 KB
+  assets/
+    flutter_assets                                                        340 KB
+  AndroidManifest.xml                                                       2 KB
+  res/
+    7b.png                                                                 81 KB
+    9o.png                                                                 81 KB
+    AV.png                                                                 81 KB
+    CG.png                                                                 10 KB
+    D2.png                                                                  8 KB
+    KL.png                                                                 81 KB
+    Qe1.png                                                                 1 KB
+    SD.png                                                                  3 KB
+    V0.png                                                                  3 KB
+    fB.png                                                                 81 KB
+    jy.png                                                                  4 KB
+    ot.png                                                                  2 KB
+    sw.png                                                                  1 KB
+    u3.png                                                                  2 KB
+    ya.xml                                                                  1 KB
+    ym.png                                                                  1 KB
+  resources.arsc                                                          327 KB
+  kotlin/
+    collections                                                             1 KB
+    kotlin.kotlin_builtins                                                  5 KB
+    ranges                                                                  1 KB
+    reflect                                                                 1 KB
+▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+A summary of your APK analysis can be found at: /home/david/.flutter-devtools/apk-code-size-analysis_01.json
+
+To analyze your app size in Dart DevTools, run the following command:
+flutter pub global activate devtools; flutter pub global run devtools --appSizeBase=apk-code-size-analysis_01.json
+```
