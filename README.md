@@ -274,6 +274,8 @@ app
   - 图标位置在`android/app/src/main/res/mipmap-xxx/ic_launcher.png`，根据分辨率要放置 5 份不同尺寸的图标。
   - app 启动画面在`android/app/src/main/res/drawable/launch_background.xml`，目前是显示图标，可以自定义更多。
     - 这里好像是 drawable-v21 文件夹下生效。还可以修改填充方式，例如从 center 到 fill。
+- （2023-04-28 基本完成） **更换 android 启动画面和图标**。
+  - 但注意，对应 AudioSource -> MediaItem -> artUri 属性。但不支持 Uinit8List，导致先存入临时文件，再获取其 uri，最后构建 AudioSource，会导致构建播放列表耗时非常久，对于目前的设计(点击 tab 之后构建播放列表成功之后再跳转到播放页)来说非常不方便。
 
 ---
 

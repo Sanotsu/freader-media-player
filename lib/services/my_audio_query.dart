@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:typed_data';
+
 import 'package:on_audio_query/on_audio_query.dart';
 
 class MyAudioQuery {
@@ -160,6 +162,24 @@ class MyAudioQuery {
         uriType: uriType,
         ignoreCase: ignoreCase,
       );
+
+
+  Future<Uint8List?> queryArtwork(
+    int id,
+    ArtworkType type, {
+    ArtworkFormat? format,
+    int? size,
+    int? quality,
+  }) async {
+    return _query.queryArtwork(
+      id,
+      type,
+      format: format,
+      size: size,
+      quality: quality,
+    );
+  }
+
 
   // 设置日志配置
   void setLogConfig() {

@@ -1,9 +1,12 @@
 // ignore_for_file: avoid_print
 
+import 'dart:io';
+
 import 'package:freader_music_player/services/my_shared_preferences.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../common/global/constants.dart';
@@ -152,6 +155,10 @@ class MyAudioHandler {
             title: ele.title,
             artist: ele.artist,
             album: ele.album,
+            // 这个属性与背景播放时状态栏显示音频缩略图相关。但just audio 不支持UInt8List了。
+            // 这里是得到Uint8List之后存为图片，放到临时地址，再获取该地址用于构建音源。
+            // 如果在构建的歌单音频很多，那这里会花很多时间。却没有什么办法
+            artUri: await getImageFileFromAssets(ele.id),
             // extras: cusExtras,
           ),
         ),
@@ -164,6 +171,20 @@ class MyAudioHandler {
     print("****************");
     print(_currentPlaylist);
     print(_initIndex);
+  }
+
+  // 获取指定音频的artwork UInt8List数据，转为file并返回其uri
+  Future<Uri?> getImageFileFromAssets(int audioId) async {
+    var tempData = await _audioQuery.queryArtwork(audioId, ArtworkType.AUDIO);
+
+    if (tempData == null) {
+      return null;
+    }
+
+    final directory = await getApplicationDocumentsDirectory();
+    final pathOfImage = await File('${directory.path}/$audioId.png').create();
+    File imageFile = await pathOfImage.writeAsBytes(tempData);
+    return imageFile.uri;
   }
 
   // 设置初始化播放列表源
