@@ -65,6 +65,8 @@ dependencies:
   marquee: ^2.2.3
   # 权限请求管理
   permission_handler: ^10.2.0
+  # 生成随机头像（用于测试娱乐，实际功能不需要）
+  random_avatar: ^0.0.8
 
 dev_dependencies:
   flutter_test:
@@ -94,6 +96,7 @@ flutter:
   assets:
     - assets/
     - assets/audio/nature.mp3
+    - assets/launch_background.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

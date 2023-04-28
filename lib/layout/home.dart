@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../common/utils/global_styles.dart';
 import '../models/change_display_mode.dart';
 import '../views/local_music/index.dart';
-import '../views/online_music/online_music_index.dart';
+// import '../views/online_music/online_music_index.dart';
 import '../views/user_center/index.dart';
 
 /// 主页面
@@ -25,7 +25,7 @@ class _HomePageState extends State<HomePage> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     LocalMusic(),
-    OnlineMusic(),
+    // OnlineMusic(),
     UserCenter(),
   ];
 
@@ -51,7 +51,7 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.music_note), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.cloud), label: 'Online'),
+          // BottomNavigationBarItem(icon: Icon(Icons.cloud), label: 'Online'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Other'),
         ],
         currentIndex: _selectedIndex,

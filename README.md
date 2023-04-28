@@ -270,6 +270,10 @@ app
 - （2023-04-26 基本完成） **新增按钮可以手动切换 flutter 预设的 dark 或 light 主题**。
 - （2023-04-26 基本完成） **构建用户中心的页面布局 demo**。
 - （2023-04-27 基本完成） **app 首次启动时询问是否授权运行存储操作**。
+- （2023-04-28 基本完成） **更换 android 启动画面和图标**。
+  - 图标位置在`android/app/src/main/res/mipmap-xxx/ic_launcher.png`，根据分辨率要放置 5 份不同尺寸的图标。
+  - app 启动画面在`android/app/src/main/res/drawable/launch_background.xml`，目前是显示图标，可以自定义更多。
+    - 这里好像是 drawable-v21 文件夹下生效。还可以修改填充方式，例如从 center 到 fill。
 
 ---
 

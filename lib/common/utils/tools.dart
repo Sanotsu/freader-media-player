@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:intl/intl.dart';
 
 // 10位的时间戳转字符串
@@ -29,3 +31,15 @@ String formatDurationToString2(Duration duration) {
 // 音频大小，从int的byte数值转为xxMB(保留2位小数)
 String formatAudioSizeToString(int num) =>
     "${(num / 1024 / 1024).toStringAsFixed(2)} MB";
+
+// 指定长度的随机字符串
+const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+Random _rnd = Random();
+String getRandomString(int length) {
+  return String.fromCharCodes(
+    Iterable.generate(
+      length,
+      (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length)),
+    ),
+  );
+}

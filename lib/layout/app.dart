@@ -114,9 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ? const HomePage(title: 'Flutter Demo Home Page')
           : isPermissionGranted
               ? const HomePage(title: 'Flutter Demo Home Page')
-              : Container(
-                  color: Theme.of(context).primaryColor,
-                ),
+              : const Image(image: AssetImage('assets/launch_background.png')),
     );
   }
 }

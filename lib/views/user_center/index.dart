@@ -3,9 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:random_avatar/random_avatar.dart';
 
 import '../../common/utils/global_styles.dart';
-import '../../common/utils/tool_widgets.dart';
+import '../../common/utils/tools.dart';
 import '../../models/change_display_mode.dart';
 import '../local_music/widgets/common_small_widgets.dart';
 
@@ -31,14 +32,15 @@ class _UserCenterState extends State<UserCenter> {
           style: TextStyle(fontSize: sizeHeadline1),
         ),
         subtitle: SimpleMarqueeOrText(
-          data: '故不积跬步，无以至千里；不积小流，无以成江海。',
+          data: '我于杀戮之中盛放，亦如黎明中的花朵。',
           style: TextStyle(fontSize: sizeContent2),
           velocity: 50,
           showLines: 2,
           height: 40.sp,
         ),
         // tileColor: Colors.cyan,
-        leading: Icon(Icons.account_box, size: 50.sp),
+        // leading: Icon(Icons.account_box, size: 50.sp),
+        leading: RandomAvatar('南方有', trBackground: true, height: 50, width: 50),
         trailing: SizedBox(
           width: 50.sp,
           child: Center(child: Icon(Icons.more_vert, size: 24.sp)),
@@ -178,16 +180,14 @@ class _UserCenterState extends State<UserCenter> {
                 ),
               ),
             ),
+            SizedBox(height: 60.sp, child: Center(child: demoSection)),
             SizedBox(
               height: 40.sp,
-              child: Container(
-                color: genRandomColor(),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "更多功能",
-                    style: TextStyle(fontSize: 20.sp),
-                  ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "更多功能",
+                  style: TextStyle(fontSize: 20.sp),
                 ),
               ),
             ),
@@ -200,9 +200,14 @@ class _UserCenterState extends State<UserCenter> {
               itemExtent: 100,
               itemCount: 4,
               itemBuilder: (context, index) {
-                return Container(
-                  color: genRandomColor(),
-                  child: demoSection,
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildRondomAvatar(),
+                    _buildRondomAvatar(),
+                    RandomAvatar(getRandomString(8), height: 50, width: 50),
+                    RandomAvatar(getRandomString(4), height: 50, width: 50)
+                  ],
                 );
               },
             ),
@@ -231,6 +236,15 @@ class _UserCenterState extends State<UserCenter> {
           ),
         ),
       ],
+    );
+  }
+
+  _buildRondomAvatar() {
+    return RandomAvatar(
+      getRandomString(8),
+      trBackground: true, // 将背景颜色设置为透明
+      height: 50,
+      width: 50,
     );
   }
 }
