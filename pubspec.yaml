@@ -79,10 +79,14 @@ dependencies:
   video_player: ^2.6.1
   # 一个插件，提供资产抽象管理API，无需UI集成，可以在Android、iOS和macOS上获取asset（图像/视频/音频）。
   photo_manager: ^2.6.0
+  # 图片预览操作等
+  photo_view: ^0.14.0
   # 以下3个在photo_manage_demo 中还有用，等本地视频组件写完之后，可能就不需要了
   http: ^0.13.0
   oktoast: ^3.1.0
   url_launcher: ^6.1.10
+  # 绘制svg文件
+  flutter_svg: ^2.0.5
 
 dev_dependencies:
   flutter_test:

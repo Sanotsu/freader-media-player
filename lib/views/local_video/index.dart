@@ -48,7 +48,7 @@ class _LocalVideoState extends State<LocalVideo> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('本地视频'),
+        title: const Text('本地相册'),
       ),
       body: Column(
         children: [

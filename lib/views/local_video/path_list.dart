@@ -13,7 +13,7 @@ class FilterPathList extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder<List<AssetPathEntity>>(
       future: PhotoManager.getAssetPathList(
-        type: RequestType.video,
+        // type: RequestType.video, // 默认的common只有图片和视频
         filterOption: filter,
       ),
       builder: (
@@ -53,7 +53,7 @@ class PathList extends StatelessWidget {
               future: path.assetCountAsync,
               builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
                 if (snapshot.hasData) {
-                  return Text("${snapshot.data} 个视频");
+                  return Text("${snapshot.data} 个媒体文件");
                 }
                 return const SizedBox();
               },
