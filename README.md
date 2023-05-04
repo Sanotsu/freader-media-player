@@ -430,3 +430,24 @@ A summary of your APK analysis can be found at: /home/david/.flutter-devtools/ap
 To analyze your app size in Dart DevTools, run the following command:
 flutter pub global activate devtools; flutter pub global run devtools --appSizeBase=apk-code-size-analysis_01.json
 ```
+
+-------------**在线音乐可能没办法做了，没有免费的音频资源 API 可用**--------------
+
+## 本地视频播放功能
+
+### 功能列表
+
+- 本地视频文件夹展示
+- 点击播放
+- 查看视频信息
+- 列表循环播放
+- 播放页面功能
+  - 全屏/调整百分比
+  - 快进/快退
+  - 暂停/继续
+  - 使用手势而不是按钮
+  - ……
+
+### 开发进度
+
+（2023-05-04）**扫描本地所有的视频，按照“文件夹列表 -> 指定文件夹视频列表 -> 点击按钮播放/暂停”层级显示。**

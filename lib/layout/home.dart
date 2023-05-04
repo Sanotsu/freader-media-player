@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../common/utils/global_styles.dart';
 import '../models/change_display_mode.dart';
 import '../views/local_music/index.dart';
-// import '../views/online_music/online_music_index.dart';
+import '../views/local_video/index.dart';
 import '../views/user_center/index.dart';
 
 /// 主页面
@@ -21,11 +21,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
 
   static const List<Widget> _widgetOptions = <Widget>[
     LocalMusic(),
-    // OnlineMusic(),
+    LocalVideo(),
     UserCenter(),
   ];
 
@@ -50,9 +50,10 @@ class _HomePageState extends State<HomePage> {
       body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.music_note), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.music_note), label: 'Music'),
           // BottomNavigationBarItem(icon: Icon(Icons.cloud), label: 'Online'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Other'),
+          BottomNavigationBarItem(icon: Icon(Icons.video_file), label: 'Video'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
         currentIndex: _selectedIndex,
         // 底部导航栏的颜色

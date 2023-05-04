@@ -158,7 +158,7 @@ class MyAudioHandler {
             // 这个属性与背景播放时状态栏显示音频缩略图相关。但just audio 不支持UInt8List了。
             // 这里是得到Uint8List之后存为图片，放到临时地址，再获取该地址用于构建音源。
             // 如果在构建的歌单音频很多，那这里会花很多时间。却没有什么办法
-            artUri: await getImageFileFromAssets(ele.id),
+            // artUri: await getImageFileFromAssets(ele.id),
             // extras: cusExtras,
           ),
         ),

@@ -69,6 +69,20 @@ dependencies:
   random_avatar: ^0.0.8
   # 文件系统中获取用户可用的地址
   path_provider: ^2.0.14
+  # 包含用于在不同数据表示之间进行转换的编码器和解码器。dart:convert的补充
+  convert: ^3.1.1
+  # 加密库
+  crypto: ^3.0.2
+  # HTTP CLIENT
+  dio: ^5.1.1
+  # 音频播放
+  video_player: ^2.6.1
+  # 一个插件，提供资产抽象管理API，无需UI集成，可以在Android、iOS和macOS上获取asset（图像/视频/音频）。
+  photo_manager: ^2.6.0
+  # 以下3个在photo_manage_demo 中还有用，等本地视频组件写完之后，可能就不需要了
+  http: ^0.13.0
+  oktoast: ^3.1.0
+  url_launcher: ^6.1.10
 
 dev_dependencies:
   flutter_test:

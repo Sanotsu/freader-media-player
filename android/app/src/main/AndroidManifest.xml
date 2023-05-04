@@ -18,6 +18,9 @@
     <!-- 启动前台服务 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
+    <!-- 网络服务权限 -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
    <application
         android:label="freader_music_player"
         android:name="${applicationName}"

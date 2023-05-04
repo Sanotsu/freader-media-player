@@ -53,3 +53,6 @@ ios
 .vscode
 
 **/upload-keystore.jks
+
+# 存放一些网站的api token
+**/tokens
