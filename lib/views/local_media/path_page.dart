@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-import 'image_list.dart';
-// import 'video_list.dart';
+import 'media_asset_list.dart';
 
 class PathPage extends StatefulWidget {
   const PathPage({Key? key, required this.path}) : super(key: key);
@@ -58,7 +57,6 @@ class _GalleryWidgetState extends State<GalleryWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return ImageList(list: _list);
-    // return VideoList(list: _list);
+    return MediaAssetList(list: _list);
   }
 }

@@ -3,18 +3,19 @@ import 'package:photo_manager/photo_manager.dart';
 
 import 'path_list.dart';
 
-/// 显示手机存储中所有的视频数据
-/// 组件层级关系: localvideo -> pathlist -> pathpage -> videolist -> imageitemwidget -> videoplayerscreen
-/// 页面层级关系: 主页面 > 含有视频的文件夹路径 > 该指定文件夹中的视频列表 > 点击播放视频
+/// 显示手机存储中所有的图片/视频数据（音频单独music模块，其他媒体文件暂不处理）
+/// 组件层级关系: localmedia/index -> pathlist -> pathpage -> mediaassetlist -> imageitemwidget 
+///     -> screen/videoplayerscreen or screen/image_viewer_screen
+/// 页面层级关系: 主页面 > 含有图片/视频的文件夹路径 > 该指定文件夹中的图片/视频列表 > 点击查看图片/播放视频
 
-class LocalVideo extends StatefulWidget {
-  const LocalVideo({Key? key}) : super(key: key);
+class LocalMedia extends StatefulWidget {
+  const LocalMedia({Key? key}) : super(key: key);
 
   @override
-  State<LocalVideo> createState() => _LocalVideoState();
+  State<LocalMedia> createState() => _LocalMediaState();
 }
 
-class _LocalVideoState extends State<LocalVideo> {
+class _LocalMediaState extends State<LocalMedia> {
   // 暂时默认排序为创建时间
   final List<OrderByItem> _orderBy = [
     OrderByItem.named(

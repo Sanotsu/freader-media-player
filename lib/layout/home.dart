@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../common/utils/global_styles.dart';
 import '../models/change_display_mode.dart';
 import '../views/local_music/index.dart';
-import '../views/local_video/index.dart';
+import '../views/local_media/index.dart';
 import '../views/user_center/index.dart';
 
 /// 主页面
@@ -25,7 +25,7 @@ class _HomePageState extends State<HomePage> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     LocalMusic(),
-    LocalVideo(),
+    LocalMedia(),
     UserCenter(),
   ];
 
