@@ -77,6 +77,10 @@ dependencies:
   dio: ^5.1.1
   # 音频播放
   video_player: ^2.6.1
+  # video player包装器，更方便使用
+  flick_video_player: ^0.5.0
+  # 包装现有组件检测可见性
+  visibility_detector: ^0.4.0+2
   # 一个插件，提供资产抽象管理API，无需UI集成，可以在Android、iOS和macOS上获取asset（图像/视频/音频）。
   photo_manager: ^2.6.0
   # 图片预览操作等

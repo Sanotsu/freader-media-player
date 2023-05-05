@@ -44,15 +44,49 @@ class _LocalVideoState extends State<LocalVideo> {
     return filter;
   }
 
+  // 默认查询图片和视频，可切换仅图片或仅视频
+  RequestType selectedRequestType = RequestType.video;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('本地相册'),
+        actions: [
+          PopupMenuButton<RequestType>(
+            icon: const Icon(Icons.filter_outlined),
+            initialValue: selectedRequestType,
+            onSelected: (RequestType item) {
+              setState(() {
+                selectedRequestType = item;
+              });
+            },
+            itemBuilder: (BuildContext context) =>
+                <PopupMenuEntry<RequestType>>[
+              const PopupMenuItem<RequestType>(
+                value: RequestType.common,
+                child: Text('图片和视频'),
+              ),
+              const PopupMenuItem<RequestType>(
+                value: RequestType.image,
+                child: Text('仅图片'),
+              ),
+              const PopupMenuItem<RequestType>(
+                value: RequestType.video,
+                child: Text('仅视频'),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Column(
         children: [
-          Expanded(child: FilterPathList(filter: filter)),
+          Expanded(
+            child: FilterPathList(
+              filter: filter,
+              requestType: selectedRequestType,
+            ),
+          ),
         ],
       ),
     );

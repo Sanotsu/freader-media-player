@@ -80,6 +80,7 @@ class _ImageListState extends State<ImageList> {
                     Navigator.of(ctx).push(
                       MaterialPageRoute(
                         builder: (BuildContext ctx) {
+                          // 这里只有播放单个视频，就算列表中有多个，也不会自动播放下一个。
                           return VideoPlayerScreen(file: tempFile);
                         },
                       ),

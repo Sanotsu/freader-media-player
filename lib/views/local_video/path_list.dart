@@ -5,15 +5,20 @@ import 'package:photo_manager/photo_manager.dart';
 import 'path_page.dart';
 
 class FilterPathList extends StatelessWidget {
-  final CustomFilter filter;
+  const FilterPathList({
+    Key? key,
+    required this.filter,
+    required this.requestType,
+  }) : super(key: key);
 
-  const FilterPathList({Key? key, required this.filter}) : super(key: key);
+  final CustomFilter filter;
+  final RequestType requestType;
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<AssetPathEntity>>(
       future: PhotoManager.getAssetPathList(
-        // type: RequestType.video, // 默认的common只有图片和视频
+        type: requestType, // 默认的common只有图片和视频
         filterOption: filter,
       ),
       builder: (

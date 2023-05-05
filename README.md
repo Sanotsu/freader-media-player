@@ -454,16 +454,22 @@ flutter pub global activate devtools; flutter pub global run devtools --appSizeB
 - （2023-05-04）**补充可扫描本地的所有图片，并可以简单预览和缩放**
   - 注意，在指定文件夹中点击某个图片进行预览时，要么先加载所有的图片，然后平缓切换每张；或者先只加载点击的那一张，在切换时再加载新的，这样切换就不平缓。
 - （2023-05-05）**视频播放可暂停，并添加简单的进度条**
--
-
----
+- ***
 
 bugs
 
-使用 image_picker 依赖时报错:
+1. 使用 image_picker 依赖时报错:
 
 ```sh
  Duplicate class androidx.lifecycle.ViewModelLazy found in modules jetified-lifecycle-viewmodel-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1) and lifecycle-viewmodel-2.5.1-runtime (androidx.lifecycle:lifecycle-viewmodel:2.5.1)
 ```
 
 参看: https://issuetracker.google.com/issues/242384116#comment4。对应修改build.gradle中的相关参数
+
+2. 使用 flick_video_player 依赖时报错:
+
+```
+ [ERROR:flutter/runtime/dart_vm_initializer.cc(41)] Unhandled Exception: PlatformException(channel-error, Unable to establish connection on channel., null, null)
+```
+
+参看：https://stackoverflow.com/questions/72880037/unhandled-exception-platformexceptionchannel-error-unable-to-establish-connec
