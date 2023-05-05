@@ -453,3 +453,17 @@ flutter pub global activate devtools; flutter pub global run devtools --appSizeB
 - （2023-05-04）**扫描本地所有的视频，按照“文件夹列表 -> 指定文件夹视频列表 -> 点击按钮播放/暂停”层级显示。**
 - （2023-05-04）**补充可扫描本地的所有图片，并可以简单预览和缩放**
   - 注意，在指定文件夹中点击某个图片进行预览时，要么先加载所有的图片，然后平缓切换每张；或者先只加载点击的那一张，在切换时再加载新的，这样切换就不平缓。
+- （2023-05-05）**视频播放可暂停，并添加简单的进度条**
+-
+
+---
+
+bugs
+
+使用 image_picker 依赖时报错:
+
+```sh
+ Duplicate class androidx.lifecycle.ViewModelLazy found in modules jetified-lifecycle-viewmodel-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1) and lifecycle-viewmodel-2.5.1-runtime (androidx.lifecycle:lifecycle-viewmodel:2.5.1)
+```
+
+参看: https://issuetracker.google.com/issues/242384116#comment4。对应修改build.gradle中的相关参数
