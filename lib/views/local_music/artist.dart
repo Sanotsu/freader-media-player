@@ -103,8 +103,7 @@ class _LocalMusicArtistState extends State<LocalMusicArtist> {
                 artworkHeight: 100.sp, // 这个高度显示不太对，实测始终是56，原因不明
                 artworkFit: BoxFit.cover,
                 keepOldArtwork: true, // 在生命周期内使用旧的缩略图
-                nullArtworkWidget:
-                    Icon(Icons.image_not_supported, size: 100.sp),
+                nullArtworkWidget: const SizedBox.shrink(),
               ),
               onTap: () {
                 print(

@@ -280,6 +280,7 @@ class _MusicListBuilderState extends State<MusicListBuilder> {
                           id: songId,
                           type: ArtworkType.AUDIO,
                           keepOldArtwork: true, // 在生命周期内使用旧的缩略图
+                          nullArtworkWidget: const SizedBox.shrink(),
                         ),
                         onTap: () async {
                           if (alp.isAudioLongPress == LongPressStats.YES) {

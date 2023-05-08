@@ -101,8 +101,7 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
                 artworkHeight: 100, // 高度设置无效，实测56，原因不明
                 artworkWidth: 100,
                 keepOldArtwork: true, // 在生命周期内使用旧的缩略图
-                nullArtworkWidget:
-                    Icon(Icons.image_not_supported, size: 100.sp),
+                nullArtworkWidget: const SizedBox.shrink(),
               ),
               onTap: () {
                 print(
