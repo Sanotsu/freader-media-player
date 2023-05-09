@@ -46,7 +46,7 @@ class _LocalMediaState extends State<LocalMedia> {
   }
 
   // 默认查询图片和视频，可切换仅图片或仅视频
-  RequestType selectedRequestType = RequestType.video;
+  RequestType selectedRequestType = RequestType.common;
 
   @override
   Widget build(BuildContext context) {

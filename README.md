@@ -462,7 +462,8 @@ flutter pub global activate devtools; flutter pub global run devtools --appSizeB
 - （2023-05-05）**重构了本地媒体模块，可下拉选择仅图片/仅视频/图片和视频**
 - （2023-05-08）**重构图片加载显示的逻辑**
   - 还是点击上下张的时候才重新加载该图片，避免初始化时候的长耗时。其他问题见上述说明，一闪一闪没有办法解决目前。
-- ***
+- （2023-05-09）**媒体文件 grid 预览页长按可多选，图片详情页点击显示图片标题和一些图片操作的功能按钮(仅按钮，功能未实现)。**
+  - 按钮的功能没有实现；也为了偷懒，能让预览页长按在 appbar 可显示功能按钮，原本 media-asset-list 组件的代码整合到了 path-page.dart 中，所以前者文件可删除了。
 
 bugs
 
@@ -483,3 +484,12 @@ bugs
 参看：https://stackoverflow.com/questions/72880037/unhandled-exception-platformexceptionchannel-error-unable-to-establish-connec
 
 https://stackoverflow.com/questions/65917811/how-to-display-a-futurefile-image
+
+===================================
+
+**2023-05-09 因为突然的离职需要，需要去准备找工作了，所以功能其实还有很多没弄，暂时中止了**:
+
+- 照片详情页，点击后下方显示的功能一个都没有实现
+- 视频播放只有固定单个，没有列表循环，也没有转向功能，也没有详情、删除、重命名等功能
+- 媒体文件(照片和图片)预览 gridlist 中，长按多选后需要展示的功能也都没实现
+- ……

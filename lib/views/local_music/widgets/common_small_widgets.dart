@@ -134,6 +134,7 @@ class SimpleMarqueeOrText extends StatefulWidget {
     this.showLines,
     this.height,
     this.width,
+    this.textAlignment = Alignment.center,
   });
 
   final String data;
@@ -146,6 +147,8 @@ class SimpleMarqueeOrText extends StatefulWidget {
   final double? height;
   // 滚动条的宽度
   final double? width;
+  // 文字的显示位置
+  final AlignmentGeometry? textAlignment;
 
   @override
   State<SimpleMarqueeOrText> createState() => _SimpleMarqueeOrTextState();
@@ -180,7 +183,10 @@ class _SimpleMarqueeOrTextState extends State<SimpleMarqueeOrText> {
                 style: widget.style,
                 velocity: widget.velocity ?? 10.0, // 滚动速度
               )
-            : Center(child: Text(widget.data, style: widget.style)),
+            : Align(
+                alignment: widget.textAlignment ?? Alignment.center,
+                child: Text(widget.data, style: widget.style),
+              ),
       );
     });
   }

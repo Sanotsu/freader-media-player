@@ -4,10 +4,15 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+
+import '../../../common/utils/global_styles.dart';
+import '../../local_music/widgets/common_small_widgets.dart';
 
 class GalleryPhotoViewWrapper extends StatefulWidget {
   GalleryPhotoViewWrapper({
@@ -37,7 +42,13 @@ class GalleryPhotoViewWrapper extends StatefulWidget {
 }
 
 class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
+  // 当前显示的图片索引
   late int currentIndex = widget.initialIndex;
+  // 是否显示app和bottom的bar
+  late bool isShowHeadAndBottom = false;
+  // appbar显示图片的文字
+  late dynamic headerTitle = "";
+  late dynamic headerSubtitle = "";
 
   // // 新加一个和文件数量等长的list,可为null
   // late List<Widget> listWidget = List.generate(
@@ -88,41 +99,109 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // 这两个属性是让appbar和bottombar在body上方显示，而不是同一层显示
+      // （即隐藏展开时body不会挤压或舒展）
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: isShowHeadAndBottom
+          ? AppBar(
+              title: ListTile(
+                minLeadingWidth: 0.sp,
+                title: SimpleMarqueeOrText(
+                  data: "$headerTitle",
+                  style: TextStyle(fontSize: sizeHeadline1),
+                  velocity: 50,
+                  showLines: 1,
+                  height: 24.sp,
+                  textAlignment: Alignment.centerLeft,
+                ),
+                subtitle: Text("$headerSubtitle"),
+              ),
+            )
+          : null,
+      bottomNavigationBar: isShowHeadAndBottom
+          ? BottomNavigationBar(
+              // 删除、详情、重命名、复制、（分享、等等其他功能暂时不管）
+              type: BottomNavigationBarType.fixed,
+              // 默认激活的索引是第一个。为了让所有按钮显示一致，选中未选择颜色一样
+              selectedItemColor: Colors.black,
+              unselectedItemColor: Colors.black,
+              selectedFontSize: 10.sp,
+              unselectedFontSize: 10.sp,
+              iconSize: 20.sp,
+              items: const <BottomNavigationBarItem>[
+                BottomNavigationBarItem(label: "删除", icon: Icon(Icons.delete)),
+                BottomNavigationBarItem(
+                    label: "详情", icon: Icon(Icons.info_outline)),
+                BottomNavigationBarItem(label: "重命名", icon: Icon(Icons.edit)),
+                BottomNavigationBarItem(label: "复制", icon: Icon(Icons.copy)),
+                BottomNavigationBarItem(label: "更多", icon: Icon(Icons.more)),
+              ],
+            )
+          : null,
       body: Container(
         decoration: widget.backgroundDecoration,
         constraints: BoxConstraints.expand(
           height: MediaQuery.of(context).size.height,
         ),
-        child: FutureBuilder<File?>(
-            future: initImageFromAssetEntity(),
-            builder: (context, item) {
-              print("item  $currentIndex-在builder中$item");
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Expanded(
+              flex: 9,
+              child: FutureBuilder<File?>(
+                future: initImageFromAssetEntity(),
+                builder: (context, item) {
+                  print("item  $currentIndex-在builder中$item");
 
-              // 从官网上看 https://api.flutter.dev/flutter/widgets/FutureBuilder-class.html
-              // 区分为hasError、hasData、和其他
-              // 有错显示错误
-              if (item.hasError) {
-                return Center(child: Text(item.error.toString()));
-              } else if (item.hasData) {
-                // 为什么这里更新了，pageview的内容不会变？为什么这个builder会执行两次，两次的内容不一致？
-                // listWidget[currentIndex] =
-                //     PhotoView(imageProvider: FileImage(item.data!));
+                  // 从官网上看 https://api.flutter.dev/flutter/widgets/FutureBuilder-class.html
+                  // 区分为hasError、hasData、和其他
+                  // 有错显示错误
+                  if (item.hasError) {
+                    return Center(child: Text(item.error.toString()));
+                  } else if (item.hasData) {
+                    // 为什么这里更新了，pageview的内容不会变？为什么这个builder会执行两次，两次的内容不一致？
+                    // listWidget[currentIndex] =
+                    //     PhotoView(imageProvider: FileImage(item.data!));
 
-                return PageView.builder(
-                  controller: PageController(initialPage: currentIndex),
-                  scrollDirection: Axis.horizontal,
-                  onPageChanged: onPageViewPageChanged,
-                  // itemCount: listWidget.length,
-                  itemCount: widget.galleryItems.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return PhotoView(imageProvider: FileImage(item.data!));
-                  },
-                );
-              } else {
-                // 无数据转圈等到加载完成
-                return const Center(child: CircularProgressIndicator());
-              }
-            }),
+                    // 构建图片名称和上次修改时间
+                    headerTitle = item.data!.path.split('/').last;
+                    headerSubtitle = DateFormat.yMMMMd('zh_CN')
+                        .add_Hms()
+                        .format(item.data!.lastModifiedSync());
+
+                    return PageView.builder(
+                      controller: PageController(initialPage: currentIndex),
+                      scrollDirection: Axis.horizontal,
+                      onPageChanged: onPageViewPageChanged,
+                      // itemCount: listWidget.length,
+                      itemCount: widget.galleryItems.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isShowHeadAndBottom = !isShowHeadAndBottom;
+                            });
+                          },
+                          child: PhotoView(
+                            imageProvider: FileImage(item.data!),
+                            backgroundDecoration: const BoxDecoration(
+                              // color: Theme.of(context).canvasColor,
+                              color: Colors.black,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  } else {
+                    // 无数据转圈等到加载完成
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

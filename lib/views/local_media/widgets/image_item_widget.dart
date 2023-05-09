@@ -7,11 +7,13 @@ class ImageItemWidget extends StatelessWidget {
     required this.entity,
     required this.option,
     this.onTap,
+    this.isLongPress,
   }) : super(key: key);
 
   final AssetEntity entity;
   final ThumbnailOption option;
   final GestureTapCallback? onTap;
+  final bool? isLongPress;
 
   Widget buildContent(BuildContext context) {
     if (entity.type == AssetType.audio) {
@@ -84,22 +86,28 @@ class ImageItemWidget extends StatelessWidget {
                           ),
                         ),
                       ),
-                    Icon(
-                      () {
-                        switch (entity.type) {
-                          case AssetType.other:
-                            return Icons.abc;
-                          case AssetType.image:
-                            return Icons.image;
-                          case AssetType.video:
-                            return Icons.video_file;
-                          case AssetType.audio:
-                            return Icons.audiotrack;
-                        }
-                      }(),
-                      color: Colors.white,
-                      size: 16,
-                    ),
+                    isLongPress == null || isLongPress == false
+                        ? Icon(
+                            () {
+                              switch (entity.type) {
+                                case AssetType.other:
+                                  return Icons.abc;
+                                case AssetType.image:
+                                  return Icons.image;
+                                case AssetType.video:
+                                  return Icons.video_file;
+                                case AssetType.audio:
+                                  return Icons.audiotrack;
+                              }
+                            }(),
+                            color: Colors.white,
+                            size: 16,
+                          )
+                        : const Icon(
+                            Icons.check,
+                            color: Colors.blue,
+                            size: 26,
+                          ),
                   ],
                 ),
               ),
