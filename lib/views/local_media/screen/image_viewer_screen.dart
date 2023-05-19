@@ -185,9 +185,9 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
                           },
                           child: PhotoView(
                             imageProvider: FileImage(item.data!),
-                            backgroundDecoration: const BoxDecoration(
-                              // color: Theme.of(context).canvasColor,
-                              color: Colors.black,
+                            backgroundDecoration: BoxDecoration(
+                              color: Theme.of(context).canvasColor,
+                              // color: Colors.black,
                             ),
                           ),
                         );

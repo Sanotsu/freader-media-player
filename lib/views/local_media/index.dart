@@ -1,10 +1,12 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import 'path_list.dart';
 
 /// 显示手机存储中所有的图片/视频数据（音频单独music模块，其他媒体文件暂不处理）
-/// 组件层级关系: localmedia/index -> pathlist -> pathpage -> mediaassetlist -> imageitemwidget 
+/// 组件层级关系: localmedia/index -> pathlist -> pathpage -> mediaassetlist -> imageitemwidget
 ///     -> screen/videoplayerscreen or screen/image_viewer_screen
 /// 页面层级关系: 主页面 > 含有图片/视频的文件夹路径 > 该指定文件夹中的图片/视频列表 > 点击查看图片/播放视频
 
@@ -50,6 +52,7 @@ class _LocalMediaState extends State<LocalMedia> {
 
   @override
   Widget build(BuildContext context) {
+    print("111 这是查询有媒体资源的主页面 index");
     return Scaffold(
       appBar: AppBar(
         title: const Text('本地相册'),
@@ -83,7 +86,7 @@ class _LocalMediaState extends State<LocalMedia> {
       body: Column(
         children: [
           Expanded(
-            child: FilterPathList(
+            child: MediaPathList(
               filter: filter,
               requestType: selectedRequestType,
             ),
