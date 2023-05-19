@@ -151,7 +151,7 @@ class _PathPageState extends State<PathPage> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            content: setupAlertDialoadContainer(),
+                            content: setupAlertDialogContainer(),
                             actions: [
                               TextButton(
                                 child: const Text('取消'),
@@ -181,7 +181,7 @@ class _PathPageState extends State<PathPage> {
     );
   }
 
-  Widget setupAlertDialoadContainer() {
+  Widget setupAlertDialogContainer() {
     // 从所有有图片的文件夹列表中，排除“最近”和当前文件夹，用于选中的图片文件复制到其他位置。
     List<AssetPathEntity> tempList = widget.pathList
         .where((e) =>

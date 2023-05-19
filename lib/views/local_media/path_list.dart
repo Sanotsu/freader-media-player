@@ -59,7 +59,8 @@ class _MediaPathListState extends State<MediaPathList> {
                     builder:
                         (BuildContext context, AsyncSnapshot<int> snapshot) {
                       if (snapshot.hasData) {
-                        print("构建文件夹中数量:${path.name}-${snapshot.data}");
+                        // print("构建文件夹中数量:${path.name}-${snapshot.data}");
+                        // ??? 2023-05-19 这个数值和实际的总是可能对不上，原因不明
                         return Text("${snapshot.data} 个媒体文件");
                       }
                       return const SizedBox();
