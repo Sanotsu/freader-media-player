@@ -470,6 +470,7 @@ flutter pub global activate devtools; flutter pub global run devtools --appSizeB
 - （2023-05-19）**实现媒体文件浏览页，下方详情功能。**
   - 重命名文件也可以，但是文件修改之后，第三方组件库不知道，所以名称不一样了，就会报错。重新获取也比较麻烦。
   - 更换第三方库或者使用其他方式实现的需求越来越明显。
+- （2023-05-19）**更新flutter sdk到3.10.1，其他pub依赖为当前最新。**
 
 bugs
 

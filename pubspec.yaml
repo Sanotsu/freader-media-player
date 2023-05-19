@@ -42,25 +42,22 @@ dependencies:
   # 为简单数据包装特定于平台的持久存储（持久化简单key-value数据）
   shared_preferences: ^2.1.0
   # 用于从设备存储中查询音频/歌曲信息[标题、艺术家、专辑等]。
-  on_audio_query: ^2.8.0
+  on_audio_query: ^2.9.0
   # 音乐播放组件
-  just_audio: ^0.9.32
+  just_audio: ^0.9.33
   # 配合上一个实现后台播放(其他高级音频背景播放，使用audio_service)
-  just_audio_background: ^0.0.1-beta.9
+  just_audio_background: ^0.0.1-beta.10
   # 同上配合使用，此插件会告知操作系统您的音频应用程序的性质（例如游戏、媒体播放器、助手等）以及您的应用程序将如何处理和启动音频中断（例如电话中断）
   audio_session: ^0.1.13
   # RxDart 扩展了 Dart Streams和 StreamControllers的功能 。
   rxdart: ^0.27.7
-  # 【测试对比用】另一个音频播放组件
-  assets_audio_player: ^3.0.6
-  # 【测试对比用一个完整的、随时可用的、用于 Flutter 的 Neumorphic ui 套件(配合上一个实现音频播放界面)
-  flutter_neumorphic: ^3.2.0
   # GetIt是一个简单的直接服务定位器，允许将接口与具体实现分离，并从应用程序的任何地方访问具体实现(一个单例的工具箱)。
-  get_it: ^7.2.0
+  get_it: ^7.6.0
   # InheritedWidget的包装器 ，使它们更易于使用和可重用。（子孙传值、简单应用状态管理之类的）
   provider: ^6.0.5
   # 国际化，时间格式化等工具类（0.17.0版本与flutter_localizations版本关联，更新的不行）
-  intl: 0.17.0
+  # intl: 0.17.0
+  intl: ^0.18.0
   # 文本跑马灯滚动
   marquee: ^2.2.3
   # 权限请求管理
@@ -68,13 +65,13 @@ dependencies:
   # 生成随机头像（用于测试娱乐，实际功能不需要）
   random_avatar: ^0.0.8
   # 文件系统中获取用户可用的地址
-  path_provider: ^2.0.14
+  path_provider: ^2.0.15
   # 包含用于在不同数据表示之间进行转换的编码器和解码器。dart:convert的补充
   convert: ^3.1.1
   # 加密库
-  crypto: ^3.0.2
+  crypto: ^3.0.3
   # HTTP CLIENT
-  dio: ^5.1.1
+  dio: ^5.1.2
   # 音频播放
   video_player: ^2.6.1
   # video player包装器，更方便使用
@@ -87,12 +84,6 @@ dependencies:
   video_thumbnail: ^0.5.3
   # 图片预览操作等
   photo_view: ^0.14.0
-  # 以下3个在photo_manage_demo 中还有用，等本地视频组件写完之后，可能就不需要了
-  http: ^0.13.0
-  oktoast: ^3.1.0
-  url_launcher: ^6.1.10
-  # 绘制svg文件
-  flutter_svg: ^2.0.5
 
 dev_dependencies:
   flutter_test:
@@ -103,7 +94,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.0
+  flutter_lints: ^2.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -121,7 +112,6 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/
-    - assets/audio/nature.mp3
     - assets/launch_background.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
