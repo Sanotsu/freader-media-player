@@ -2,7 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:provider/provider.dart';
 
+import '../../models/change_display_mode.dart';
 import 'path_list.dart';
 
 /// 显示手机存储中所有的图片/视频数据（音频单独music模块，其他媒体文件暂不处理）
@@ -52,46 +54,51 @@ class _LocalMediaState extends State<LocalMedia> {
 
   @override
   Widget build(BuildContext context) {
+    ChangeDisplayMode cdm = context.watch<ChangeDisplayMode>();
+    bool isDarkMode = cdm.currentDisplayMode == DisplayMode.DARK;
     print("111 这是查询有媒体资源的主页面 index");
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('本地相册'),
-        actions: [
-          PopupMenuButton<RequestType>(
-            icon: const Icon(Icons.filter_outlined),
-            initialValue: selectedRequestType,
-            onSelected: (RequestType item) {
-              setState(() {
-                selectedRequestType = item;
-              });
-            },
-            itemBuilder: (BuildContext context) =>
-                <PopupMenuEntry<RequestType>>[
-              const PopupMenuItem<RequestType>(
-                value: RequestType.common,
-                child: Text('图片和视频'),
-              ),
-              const PopupMenuItem<RequestType>(
-                value: RequestType.image,
-                child: Text('仅图片'),
-              ),
-              const PopupMenuItem<RequestType>(
-                value: RequestType.video,
-                child: Text('仅视频'),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: MediaPathList(
-              filter: filter,
-              requestType: selectedRequestType,
+    return MaterialApp(
+      theme: isDarkMode ? ThemeData.dark() : ThemeData.light(),
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('本地相册'),
+          actions: [
+            PopupMenuButton<RequestType>(
+              icon: const Icon(Icons.filter_outlined),
+              initialValue: selectedRequestType,
+              onSelected: (RequestType item) {
+                setState(() {
+                  selectedRequestType = item;
+                });
+              },
+              itemBuilder: (BuildContext context) =>
+                  <PopupMenuEntry<RequestType>>[
+                const PopupMenuItem<RequestType>(
+                  value: RequestType.common,
+                  child: Text('图片和视频'),
+                ),
+                const PopupMenuItem<RequestType>(
+                  value: RequestType.image,
+                  child: Text('仅图片'),
+                ),
+                const PopupMenuItem<RequestType>(
+                  value: RequestType.video,
+                  child: Text('仅视频'),
+                ),
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: MediaPathList(
+                filter: filter,
+                requestType: selectedRequestType,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

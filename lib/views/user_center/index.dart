@@ -32,7 +32,7 @@ class _UserCenterState extends State<UserCenter> {
           style: TextStyle(fontSize: sizeHeadline1),
         ),
         subtitle: SimpleMarqueeOrText(
-          data: '我于杀戮之中盛放，亦如黎明中的花朵。',
+          data: '个人资料模块占位页面，只有【切换主题按钮】可用。',
           style: TextStyle(fontSize: sizeContent2),
           velocity: 50,
           showLines: 2,
@@ -84,7 +84,7 @@ class _UserCenterState extends State<UserCenter> {
             child: IconButton(
               icon: const Icon(Icons.language),
               iconSize: 24.sp,
-              color: Theme.of(context).primaryColor,
+              // color: Theme.of(context).primaryColor,
               onPressed: () {},
             ),
           ),
@@ -95,11 +95,11 @@ class _UserCenterState extends State<UserCenter> {
             elevation: 1.sp,
             child: TextButton(
               style: TextButton.styleFrom(
-                iconColor: Theme.of(context).primaryColor,
+                // iconColor: Theme.of(context).primaryColor,
                 textStyle: TextStyle(fontSize: sizeContent2),
               ),
               onPressed: () {},
-              child: const Text('团结'),
+              child: const Text('团结', style: TextStyle(color: Colors.black)),
             ),
           ),
         ),
@@ -112,7 +112,7 @@ class _UserCenterState extends State<UserCenter> {
                 textStyle: TextStyle(fontSize: sizeContent2),
               ),
               onPressed: () {},
-              child: const Text('进步'),
+              child: const Text('进步', style: TextStyle(color: Colors.black)),
             ),
           ),
         ),
@@ -185,14 +185,16 @@ class _UserCenterState extends State<UserCenter> {
               height: 40.sp,
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text(
-                  "更多功能",
-                  style: TextStyle(fontSize: 20.sp),
+                child: ListTile(
+                  title: Text("更多功能(预留)", style: TextStyle(fontSize: 20.sp)),
+                  // subtitle: const Text("随机生成很多头像，带圆角或透明背景"),
                 ),
               ),
             ),
 
+            // 生成这一堆随机头像好像挺耗费性能的，暂时不显示了
             // 嵌套list view，内部这个需要加入 shrinkWrap 和 physics 这两个属性和值
+            /*
             ListView.builder(
               shrinkWrap: true,
               physics: const ClampingScrollPhysics(),
@@ -203,14 +205,15 @@ class _UserCenterState extends State<UserCenter> {
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildRondomAvatar(),
-                    _buildRondomAvatar(),
+                    buildRondomAvatar(),
+                    buildRondomAvatar(),
                     RandomAvatar(getRandomString(8), height: 50, width: 50),
                     RandomAvatar(getRandomString(4), height: 50, width: 50)
                   ],
                 );
               },
             ),
+            */
           ],
         ),
       ),
@@ -218,7 +221,8 @@ class _UserCenterState extends State<UserCenter> {
   }
 
   Column _buildButtonColumn(IconData icon, String label) {
-    Color cusColor = Theme.of(context).primaryColorDark;
+    // Color cusColor = Theme.of(context).primaryColorDark;
+    Color cusColor = Colors.black;
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -239,7 +243,7 @@ class _UserCenterState extends State<UserCenter> {
     );
   }
 
-  _buildRondomAvatar() {
+  buildRondomAvatar() {
     return RandomAvatar(
       getRandomString(8),
       trBackground: true, // 将背景颜色设置为透明
@@ -278,6 +282,7 @@ class _ChangeDarkModeButtonState extends State<ChangeDarkModeButton> {
           },
           icon: Icon(
             isDarkMode ? Icons.dark_mode : Icons.light_mode,
+            color: Theme.of(context).primaryColor,
             size: 24.0.sp,
           ),
         );

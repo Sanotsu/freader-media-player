@@ -43,7 +43,7 @@ class FreaderApp extends StatelessWidget {
           theme: ThemeData(
             primarySwatch: Colors.blue,
           ),
-          home: const MyHomePage(title: 'freader_music_player_home'),
+          home: const MyHomePage(),
         );
       },
     );
@@ -51,9 +51,7 @@ class FreaderApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  final String title;
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -111,9 +109,9 @@ class _MyHomePageState extends State<MyHomePage> {
         ChangeNotifierProvider(create: (_) => ChangeDisplayMode()),
       ],
       child: isLogin
-          ? const HomePage(title: 'Flutter Demo Home Page')
+          ? const HomePage()
           : isPermissionGranted
-              ? const HomePage(title: 'Flutter Demo Home Page')
+              ? const HomePage()
               : const Image(image: AssetImage('assets/launch_background.png')),
     );
   }

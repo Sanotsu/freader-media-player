@@ -70,7 +70,7 @@ class _LocalMusicArtistState extends State<LocalMusicArtist> {
         }
         // Waiting content.
         if (item.data == null) {
-          return const CircularProgressIndicator();
+          return const Center(child: CircularProgressIndicator());
         }
         // 'Library' is empty.
         if (item.data!.isEmpty) {

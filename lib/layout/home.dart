@@ -12,16 +12,14 @@ import '../views/user_center/index.dart';
 /// 主页面
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.title});
-
-  final String title;
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 1;
+  int _selectedIndex = 0;
 
   static const List<Widget> _widgetOptions = <Widget>[
     LocalMusic(),
@@ -50,10 +48,10 @@ class _HomePageState extends State<HomePage> {
       body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.music_note), label: 'Music'),
+          BottomNavigationBarItem(icon: Icon(Icons.music_note), label: '本地音乐'),
           // BottomNavigationBarItem(icon: Icon(Icons.cloud), label: 'Online'),
-          BottomNavigationBarItem(icon: Icon(Icons.video_file), label: 'Video'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(icon: Icon(Icons.video_file), label: '图片视频'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: '个人资料'),
         ],
         currentIndex: _selectedIndex,
         // 底部导航栏的颜色
