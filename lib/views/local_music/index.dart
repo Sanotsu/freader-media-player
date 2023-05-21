@@ -10,7 +10,6 @@ import '../../common/utils/global_styles.dart';
 import '../../common/utils/tools.dart';
 import '../../models/audio_long_press.dart';
 
-import '../../models/change_display_mode.dart';
 import '../../models/list_long_press.dart';
 import '../../models/sort_option_selected.dart';
 import '../../services/my_audio_query.dart';
@@ -80,26 +79,19 @@ class _LocalMusicState extends State<LocalMusic>
 
   @override
   Widget build(BuildContext context) {
-    ChangeDisplayMode cdm = context.read<ChangeDisplayMode>();
-
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AudioLongPress()),
         ChangeNotifierProvider(create: (_) => ListLongPress()),
         ChangeNotifierProvider(create: (_) => AudioOptionSelected()),
       ],
-      child: MaterialApp(
-        theme: cdm.currentDisplayMode == DisplayMode.DARK
-            ? ThemeData.dark()
-            : ThemeData.light(),
-        home: DefaultTabController(
-          length: 4,
-          child: Scaffold(
-            // 避免搜索时弹出键盘，让底部的minibar位置移动到tab顶部导致溢出的问题
-            resizeToAvoidBottomInset: false,
-            appBar: _buildAppBar(),
-            body: _buildBody(),
-          ),
+      child: DefaultTabController(
+        length: 4,
+        child: Scaffold(
+          // 避免搜索时弹出键盘，让底部的minibar位置移动到tab顶部导致溢出的问题
+          resizeToAvoidBottomInset: false,
+          appBar: _buildAppBar(),
+          body: _buildBody(),
         ),
       ),
     );

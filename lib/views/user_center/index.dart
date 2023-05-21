@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:random_avatar/random_avatar.dart';
@@ -8,6 +9,8 @@ import 'package:random_avatar/random_avatar.dart';
 import '../../common/utils/global_styles.dart';
 import '../../common/utils/tools.dart';
 import '../../models/change_display_mode.dart';
+import '../../services/my_audio_handler.dart';
+import '../../services/service_locator.dart';
 import '../local_music/widgets/common_small_widgets.dart';
 
 class UserCenter extends StatefulWidget {
@@ -18,6 +21,8 @@ class UserCenter extends StatefulWidget {
 }
 
 class _UserCenterState extends State<UserCenter> {
+  final _audioHandler = getIt<MyAudioHandler>();
+
   @override
   Widget build(BuildContext context) {
     ChangeDisplayMode cdm = context.watch<ChangeDisplayMode>();
@@ -90,7 +95,7 @@ class _UserCenterState extends State<UserCenter> {
           ),
         ),
         SizedBox(
-          width: 60.sp,
+          // width: 60.sp,
           child: Card(
             elevation: 1.sp,
             child: TextButton(
@@ -99,20 +104,25 @@ class _UserCenterState extends State<UserCenter> {
                 textStyle: TextStyle(fontSize: sizeContent2),
               ),
               onPressed: () {},
-              child: const Text('团结', style: TextStyle(color: Colors.black)),
+              child: const Text('退出登录', style: TextStyle(color: Colors.black)),
             ),
           ),
         ),
         SizedBox(
-          width: 60.sp,
+          // width: 60.sp,
           child: Card(
             elevation: 1.sp,
             child: TextButton(
               style: TextButton.styleFrom(
+                iconColor: Theme.of(context).primaryColor,
                 textStyle: TextStyle(fontSize: sizeContent2),
               ),
-              onPressed: () {},
-              child: const Text('进步', style: TextStyle(color: Colors.black)),
+              onPressed: () async {
+                _audioHandler.stop();
+                await SystemChannels.platform
+                    .invokeMethod('SystemNavigator.pop');
+              },
+              child: const Text('关闭应用'),
             ),
           ),
         ),
