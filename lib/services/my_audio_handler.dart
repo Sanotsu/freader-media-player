@@ -2,7 +2,6 @@
 
 import 'dart:io';
 
-import 'package:freader_music_player/services/my_shared_preferences.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -11,6 +10,7 @@ import 'package:rxdart/rxdart.dart';
 
 import '../common/global/constants.dart';
 import 'my_audio_query.dart';
+import 'my_shared_preferences.dart';
 import 'service_locator.dart';
 
 /// 单例的audio player，以及他的一些方法

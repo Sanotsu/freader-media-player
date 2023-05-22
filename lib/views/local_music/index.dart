@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:freader_music_player/common/global/constants.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:provider/provider.dart';
 
+import '../../common/global/constants.dart';
 import '../../common/utils/global_styles.dart';
 import '../../common/utils/tools.dart';
 import '../../models/audio_long_press.dart';

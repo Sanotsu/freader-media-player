@@ -37,7 +37,7 @@ class _UserCenterState extends State<UserCenter> {
           style: TextStyle(fontSize: sizeHeadline1),
         ),
         subtitle: SimpleMarqueeOrText(
-          data: '个人资料模块占位页面，只有【切换主题按钮】可用。',
+          data: '个人资料占位页面，只有“关闭应用”、“切换主题”可用。',
           style: TextStyle(fontSize: sizeContent2),
           velocity: 50,
           showLines: 2,

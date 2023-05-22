@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:freader_music_player/models/audio_long_press.dart';
 
+import '../../../models/audio_long_press.dart';
 import '../../../models/list_long_press.dart';
 
 /// 在本地音乐模块首页的appbar中的搜索框，或者进入指定歌单、歌手、专辑的音频列表中的appbar的搜索框

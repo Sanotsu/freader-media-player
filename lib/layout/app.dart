@@ -29,7 +29,7 @@ class FreaderApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (_, widget) {
         return MaterialApp(
-          title: 'freader_music_player',
+          title: 'freader_media_player',
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,

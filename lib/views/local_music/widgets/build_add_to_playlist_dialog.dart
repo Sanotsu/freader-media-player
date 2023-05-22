@@ -2,11 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:freader_music_player/common/global/constants.dart';
-import 'package:freader_music_player/models/list_long_press.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
+import '../../../common/global/constants.dart';
 import '../../../models/audio_long_press.dart';
+import '../../../models/list_long_press.dart';
 import '../../../services/my_audio_query.dart';
 import '../../../services/service_locator.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:freader_music_player/models/audio_long_press.dart';
-import 'package:freader_music_player/models/list_long_press.dart';
 
+import '../../../models/audio_long_press.dart';
+import '../../../models/list_long_press.dart';
 import '../../../services/my_audio_query.dart';
 import '../../../services/service_locator.dart';
 

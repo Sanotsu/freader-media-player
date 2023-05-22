@@ -2,9 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:freader_music_player/common/global/constants.dart';
 import 'package:provider/provider.dart';
 
+import '../../../common/global/constants.dart';
 import '../../../models/audio_long_press.dart';
 import '../../../models/list_long_press.dart';
 import '../../../models/sort_option_selected.dart';

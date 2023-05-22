@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:freader_music_player/models/audio_long_press.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 import '../../../common/utils/tools.dart';
+import '../../../models/audio_long_press.dart';
 import 'common_small_widgets.dart';
 
 // 显示歌单信息的弹窗

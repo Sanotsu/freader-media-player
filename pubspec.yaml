@@ -1,5 +1,5 @@
-name: freader_music_player
-description: A new Flutter project.
+name: freader_media_player
+description: freader_media_player(FMP Player)，一个简单的本地媒体播放器，用于播放本地音频，浏览本地图片，观看本地视频。
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
