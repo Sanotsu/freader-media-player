@@ -14,7 +14,7 @@ import '../services/service_locator.dart';
 import 'home.dart';
 
 class FreaderApp extends StatelessWidget {
-  const FreaderApp({Key? key}) : super(key: key);
+  const FreaderApp({super.key});
 
   // 获取登陆信息，如果已经登录，则进入homepage，否则进入登录页面
 
@@ -42,6 +42,7 @@ class FreaderApp extends StatelessWidget {
           locale: const Locale('zh'),
           theme: ThemeData(
             primarySwatch: Colors.blue,
+            useMaterial3: false,
           ),
           home: const MyHomePage(),
         );
@@ -51,7 +52,7 @@ class FreaderApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  const MyHomePage({super.key});
 
   @override
   // ignore: library_private_types_in_public_api

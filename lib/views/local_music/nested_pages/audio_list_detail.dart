@@ -42,14 +42,16 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+
         // 点击appbar返回按钮或者返回键时，可以做一些操作。这里返回一个重新加载列表中的音频标识。
         // 因为在歌单删除了音频或者添加之后，直接返回不会重新加载，显示的数量没变。
         if (mounted) {
           Navigator.pop(context, {"isReload": true});
         }
-        return false;
       },
       child: Scaffold(
         // 避免搜索时弹出键盘，让底部的minibar位置移动到tab顶部导致溢出的问题

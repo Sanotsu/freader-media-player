@@ -23,7 +23,7 @@ import '../widgets/common_small_widgets.dart';
 /// 因此需要传入音乐信息用于播放
 
 class JustAudioMusicPlayer extends StatefulWidget {
-  const JustAudioMusicPlayer({Key? key}) : super(key: key);
+  const JustAudioMusicPlayer({super.key});
 
   @override
   JustAudioMusicPlayerState createState() => JustAudioMusicPlayerState();

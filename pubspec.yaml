@@ -16,10 +16,10 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 0.2.0
+version: 0.2.1-beta+1
 
 environment:
-  sdk: ">=2.19.5 <3.0.0"
+    sdk: '>=3.0.1 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -61,7 +61,7 @@ dependencies:
   # 文本跑马灯滚动
   marquee: ^2.2.3
   # 权限请求管理
-  permission_handler: ^10.2.0
+  permission_handler: ^11.1.0
   # 生成随机头像（用于测试娱乐，实际功能不需要）
   random_avatar: ^0.0.8
   # 文件系统中获取用户可用的地址
@@ -77,7 +77,10 @@ dependencies:
   # 包装现有组件检测可见性
   visibility_detector: ^0.4.0+2
   # 一个插件，提供资产抽象管理API，无需UI集成，可以在Android、iOS和macOS上获取asset（图像/视频/音频）。
-  photo_manager: ^2.6.0
+  # 2024-01-08 要使用开发版本，否则出现Type 'DecoderCallback' not found.问题而无法编译
+  photo_manager: ^3.0.0-dev.5
+  # 2024-01-08 原本使用的AssetEntityImage 类变成这个单独的包了
+  photo_manager_image_provider: ^2.1.0
   # 使用视频创建缩略图
   video_thumbnail: ^0.5.3
   # 图片预览操作等
@@ -92,7 +95,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.1
+  flutter_lints: ^3.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

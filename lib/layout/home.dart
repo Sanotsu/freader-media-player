@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../common/utils/global_styles.dart';
@@ -33,8 +34,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  DateTime? _currentBackPressTime;
-
   @override
   Widget build(BuildContext context) {
     /// 全层提供通知
@@ -48,26 +47,48 @@ class _HomePageState extends State<HomePage> {
       theme: cdm.currentDisplayMode == DisplayMode.DARK
           ? ThemeData.dark()
           : ThemeData.light(),
-      home: WillPopScope(
-        onWillPop: () async {
-          DateTime now = DateTime.now();
-
-          if (_currentBackPressTime == null ||
-              now.difference(_currentBackPressTime!) >
-                  const Duration(seconds: 2)) {
-            _currentBackPressTime = now;
-
-            print("连续点击两次返回按钮，时间间隔在2秒外");
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Press back button again to exit'),
-              ),
-            );
-
-            return false;
+      home: PopScope(
+        // 点击返回键时暂停返回
+        canPop: false,
+        onPopInvoked: (didPop) async {
+          print("didPop-----------$didPop");
+          if (didPop) {
+            return;
           }
-          print("home 隔在2秒内");
-          return true;
+          final NavigatorState navigator = Navigator.of(context);
+          // 如果确认弹窗点击确认返回true，否则返回false
+          final bool? shouldPop = await showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('关闭'),
+                content: const Text("确定要退出播放器吗?"),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, false);
+                    },
+                    child: const Text("取消"),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, true);
+                    },
+                    child: const Text("确定"),
+                  ),
+                ],
+              );
+            },
+          ); // 只有当对话框返回true 才 pop(返回上一层)
+          if (shouldPop ?? false) {
+            // 如果还有可以关闭的导航，则继续pop
+            if (navigator.canPop()) {
+              navigator.pop();
+            } else {
+              // 如果已经到头来，则关闭应用程序
+              SystemNavigator.pop();
+            }
+          }
         },
         child: Scaffold(
           // home页的背景色(如果下层还有设定其他主题颜色，会被覆盖)
