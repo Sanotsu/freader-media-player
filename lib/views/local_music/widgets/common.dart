@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../common/utils/global_styles.dart';
 import '../../../services/my_audio_handler.dart';
 import '../../../services/service_locator.dart';
 
@@ -16,13 +15,13 @@ class SeekBar extends StatefulWidget {
   final ValueChanged<Duration>? onChangeEnd; // 当拖动进度结束时
 
   const SeekBar({
-    Key? key,
+    super.key,
     required this.duration,
     required this.position,
     required this.bufferedPosition,
     this.onChanged,
     this.onChangeEnd,
-  }) : super(key: key);
+  });
 
   @override
   SeekBarState createState() => SeekBarState();
@@ -295,7 +294,6 @@ void showSliderDialog({
   showDialog<void>(
     context: context,
     builder: (context) => AlertDialog(
-      backgroundColor: dartThemeMaterialColor3,
       title: Text(title, textAlign: TextAlign.center),
       content: StreamBuilder<double>(
         stream: stream,

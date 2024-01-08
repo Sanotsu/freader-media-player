@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+import '../../layout/home.dart';
 import 'path_list.dart';
 
 /// 显示手机存储中所有的图片/视频数据（音频单独music模块，其他媒体文件暂不处理）
@@ -54,6 +55,7 @@ class _LocalMediaState extends State<LocalMedia> {
   Widget build(BuildContext context) {
     print("111 这是查询有媒体资源的主页面 index");
     return Scaffold(
+      drawer: buildDrawer(context),
       appBar: AppBar(
         title: const Text('本地相册'),
         actions: [

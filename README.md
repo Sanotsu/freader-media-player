@@ -40,8 +40,7 @@ freader-media-player(FMP Player)，一个使用 flutter 开发的简单的本地
     │   └── service_locator.dart
     └── views
         ├── local_media
-        ├── local_music
-        └── user_center
+        └── local_music
 ```
 
 主要使用的插件库:

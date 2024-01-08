@@ -6,8 +6,8 @@ import 'package:on_audio_query/on_audio_query.dart';
 import 'package:provider/provider.dart';
 
 import '../../common/global/constants.dart';
-import '../../common/utils/global_styles.dart';
 import '../../common/utils/tools.dart';
+import '../../layout/home.dart';
 import '../../models/audio_long_press.dart';
 
 import '../../models/list_long_press.dart';
@@ -28,11 +28,6 @@ import 'widgets/music_player_mini_bar.dart';
 
 /// 正常来讲，应该把AudioPlayer处理成全局单例的，例如使用get_it，palyer的所有操作封装为一个service class，然后全局使用。
 /// 这里简单测试，就在最外层初始化，然后传递给子组件（虽然麻烦，但暂时不需要其他依赖）
-
-/// 我看别人的示例都是 MaterialApp -> DefaultTabController -> Scaffold>(appBar[TabBar],body[TabBarView]) 嵌套
-/// 而我之前是 Scaffold-> DefaultTabController-> Builder -> Center -> Column (children[TabBar,TabBarView])
-///     导致tab和appbar有明显的区分，没有融合
-
 class LocalMusic extends StatefulWidget {
   const LocalMusic({super.key});
 
@@ -59,22 +54,6 @@ class _LocalMusicState extends State<LocalMusic>
     super.initState();
 
     isAddListenerToTabController = false;
-
-    // 在此处
-    // _tabController = TabController(vsync: this, length: 4)
-    //   ..addListener(() {
-    //     if (_tabController.index.toDouble() ==
-    //         _tabController.animation?.value) {
-    //       switch (_tabController.index) {
-    //         case 0:
-    //           print("坚果");
-    //           break;
-    //         case 1:
-    //           print("前端");
-    //           break;
-    //       }
-    //     }
-    //   });
   }
 
   @override
@@ -88,6 +67,7 @@ class _LocalMusicState extends State<LocalMusic>
       child: DefaultTabController(
         length: 4,
         child: Scaffold(
+          drawer: buildDrawer(context),
           // 避免搜索时弹出键盘，让底部的minibar位置移动到tab顶部导致溢出的问题
           resizeToAvoidBottomInset: false,
           appBar: _buildAppBar(),
@@ -142,11 +122,11 @@ class _LocalMusicState extends State<LocalMusic>
         indicatorWeight: 0,
         // 下划线的尺寸(这个label表示下划线执行器的宽度与标签文本宽度一致。默认是整个tab的宽度)
         indicatorSize: TabBarIndicatorSize.label,
-        tabs: [
-          Tab(child: Text("歌单", style: TextStyle(fontSize: sizeHeadline2))),
-          Tab(child: Text("全部", style: TextStyle(fontSize: sizeHeadline2))),
-          Tab(child: Text("歌手", style: TextStyle(fontSize: sizeHeadline2))),
-          Tab(child: Text("专辑", style: TextStyle(fontSize: sizeHeadline2))),
+        tabs: const [
+          Tab(child: Text("歌单")),
+          Tab(child: Text("全部")),
+          Tab(child: Text("歌手")),
+          Tab(child: Text("专辑")),
         ],
       ),
     );

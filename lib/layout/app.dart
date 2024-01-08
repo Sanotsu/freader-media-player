@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../common/global/constants.dart';
-import '../models/change_display_mode.dart';
 import '../services/my_audio_handler.dart';
 import '../services/service_locator.dart';
 import 'home.dart';
@@ -105,15 +103,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ChangeDisplayMode()),
-      ],
-      child: isLogin
-          ? const HomePage()
-          : isPermissionGranted
-              ? const HomePage()
-              : const Image(image: AssetImage('assets/launch_background.png')),
-    );
+    return isLogin
+        ? const HomePage()
+        : isPermissionGranted
+            ? const HomePage()
+            : const Image(image: AssetImage('assets/launch_background.png'));
   }
 }
