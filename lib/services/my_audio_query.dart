@@ -16,9 +16,9 @@ class MyAudioQuery {
   OnAudioQuery get onAudioQueryController => _query;
 
 // （原本在构造函数中执行初始化 存储授权，现在在获得授权后在app处初始化）
-  MyAudioQuery() {
-    // setLogConfig();
-  }
+  // MyAudioQuery() {
+  //   // setLogConfig();
+  // }
 
   // 查询本地歌曲（条件暂时就不支持自定了。这里单纯把方法抽出来，工具单例化）
   Future<List<SongModel>> querySongs({

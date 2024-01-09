@@ -10,7 +10,8 @@ import 'package:on_audio_query/on_audio_query.dart';
 
 import '../../../common/utils/global_styles.dart';
 import '../../../services/my_audio_handler.dart';
-import '../../../services/my_shared_preferences.dart';
+import '../../../services/my_get_storage.dart';
+// import '../../../services/my_shared_preferences.dart';
 import '../../../services/service_locator.dart';
 import '../widgets/common.dart';
 import '../widgets/common_small_widgets.dart';
@@ -263,7 +264,8 @@ class ControlButtons extends StatefulWidget {
 class _ControlButtonsState extends State<ControlButtons> {
   final _audioHandler = getIt<MyAudioHandler>();
   // 统一简单存储操作的工具类实例
-  final _simpleShared = getIt<MySharedPreferences>();
+  // final _simpleShared = getIt<MySharedPreferences>();
+  final _simpleStorage = getIt<MyGetStorage>();
 
   @override
   Widget build(BuildContext context) {
@@ -313,7 +315,8 @@ class _ControlButtonsState extends State<ControlButtons> {
                 setState(() {
                   _audioHandler.setRepeatMode(temp);
                 });
-                await _simpleShared.setCurrentCycleMode(temp.toString());
+                // await _simpleShared.setCurrentCycleMode(temp.toString());
+                await _simpleStorage.setCurrentCycleMode(temp.toString());
               },
             );
           },
@@ -330,7 +333,19 @@ class _ControlButtonsState extends State<ControlButtons> {
                 ? () async {
                     // 要确保跳转完成之后再获取下一首的索引，否则可能就是当前正常播放的索引
                     await _audioHandler.seekToPrevious();
-                    // 通过回调函数的方式，把下一首歌曲的所以传递个父级，用于构建下一曲的预览
+
+                    var tempList = await _simpleStorage.getCurrentAudioInfo();
+
+                    print("【点击上一曲，当前的音乐信息】tempList,$tempList");
+
+                    print("【点击上一曲后当前的索引】 ${_audioHandler.currentIndex}");
+
+                    // 2024-01-09 理论上，在播放详情页切换上下一曲后，仅更新缓存中音乐编号即可(歌单类型、专辑编号是没有变化)
+                    await _simpleStorage.setCurrentAudioIndex(
+                      _audioHandler.currentIndex,
+                    );
+
+                    // 通过回调函数的方式，把下一首歌曲的索引传递个父级，用于构建下一曲的预览
                     widget.callback(_audioHandler.nextIndex);
                   }
                 : null,
@@ -386,7 +401,19 @@ class _ControlButtonsState extends State<ControlButtons> {
                 ? () async {
                     // 要确保跳转完成之后再获取下一首的索引，否则可能就是当前正常播放的索引
                     await _audioHandler.seekToNext();
-                    // 通过回调函数的方式，把下一首歌曲的所以传递个父级，用于构建下一曲的预览
+
+                    var tempList = await _simpleStorage.getCurrentAudioInfo();
+
+                    print("【点击下一曲，当前的音乐信息】tempList,$tempList");
+
+                    print("【点击下一曲 后 当前的索引】 ${_audioHandler.currentIndex}");
+
+                    // 2024-01-09 理论上，在播放详情页切换上下一曲后，仅更新缓存中音乐编号即可(歌单类型、专辑编号是没有变化)
+                    await _simpleStorage.setCurrentAudioIndex(
+                      _audioHandler.currentIndex,
+                    );
+
+                    // 通过回调函数的方式，把下一首歌曲的索引传递个父级，用于构建下一曲的预览
                     widget.callback(_audioHandler.nextIndex);
                   }
                 : null,
@@ -433,7 +460,8 @@ class _ControlButtonsState extends State<ControlButtons> {
                     _audioHandler.shuffle();
                   }
                   _audioHandler.setShuffleModeEnabled(enable);
-                  _simpleShared.setCurrentIsShuffleMode(enable.toString());
+                  // _simpleShared.setCurrentIsShuffleMode(enable.toString());
+                  _simpleStorage.setCurrentIsShuffleMode(enable.toString());
                 });
               },
             );

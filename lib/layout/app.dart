@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -62,6 +63,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool isPermissionGranted = false;
 
+  final box = GetStorage();
+
   // 音乐播放实例
   final _audioHandler = getIt<MyAudioHandler>();
 
@@ -70,7 +73,10 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     getLoginState();
     // app初次启动时要获取相关授权，取得之后就不需要重复请求了
-    _requestPermission();
+    // _requestPermission();
+    setState(() {
+      _requestPermission();
+    });
   }
 
   // 获取登陆状态
@@ -97,8 +103,20 @@ class _MyHomePageState extends State<MyHomePage> {
     final info = statuses[Permission.storage].toString();
     print("_requestPermission------------------$info");
 
+    var a = box.read(GlobalConstants.currentAudioListType);
+    var b = box.read(GlobalConstants.currentAudioIndex);
+    var c = box.read(GlobalConstants.currentAudioListId);
+
+    print("【【【在app启动时，myAudioHandlerInit前的 当前播放音乐:$a + $b + $c");
+
     // 获得授权后，音频控制初始化（主要从持久化数据中获取数据构建当前正在播放的音频和播放列表，没有持久化数据则是默认初始值）
-    _audioHandler.myAudioHandlerInit();
+    await _audioHandler.myAudioHandlerInit();
+
+    var aa = box.read(GlobalConstants.currentAudioListType);
+    var bb = box.read(GlobalConstants.currentAudioIndex);
+    var cc = box.read(GlobalConstants.currentAudioListId);
+
+    print("【【【在await myAudioHandlerInit 之后的 当前播放音乐:$aa + $bb + $cc");
   }
 
   @override

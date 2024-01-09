@@ -12,7 +12,8 @@ import '../../../models/list_long_press.dart';
 import '../../../models/sort_option_selected.dart';
 import '../../../services/my_audio_handler.dart';
 import '../../../services/my_audio_query.dart';
-import '../../../services/my_shared_preferences.dart';
+import '../../../services/my_get_storage.dart';
+// import '../../../services/my_shared_preferences.dart';
 import '../../../services/service_locator.dart';
 import '../nested_pages/just_audio_music_player_detail.dart';
 
@@ -45,7 +46,9 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
   // 音乐播放实例
   final _audioHandler = getIt<MyAudioHandler>();
   // 统一简单存储操作的工具类实例
-  final _simpleShared = getIt<MySharedPreferences>();
+  // final _simpleShared = getIt<MySharedPreferences>();
+
+  final _simpleStorage = getIt<MyGetStorage>();
 
   // 根据不同播放列表类型，构建不同的查询处理
   late Future<List<dynamic>> futureHandler;
@@ -298,13 +301,22 @@ class _MusicListFutureBuilderState extends State<MusicListFutureBuilder> {
                             await _audioHandler.refreshCurrentPlaylist();
 
                             // 将播放列表信息、被点击的音频编号\播放列表编号(全部歌曲tab除外)存入持久化
-                            await _simpleShared
+                            // await _simpleShared
+                            //     .setCurrentAudioListType(widget.audioListType);
+                            // await _simpleShared
+                            //     .setCurrentAudioIndex(index.toString());
+                            // if (widget.audioListType != AudioListTypes.all) {
+                            //   await _simpleShared.setCurrentAudioListId(
+                            //       widget.audioListId.toString());
+                            // }
+
+                            // 2024-01-09 使用get storage之后，可以有类型了，不必转为string
+                            await _simpleStorage
                                 .setCurrentAudioListType(widget.audioListType);
-                            await _simpleShared
-                                .setCurrentAudioIndex(index.toString());
+                            await _simpleStorage.setCurrentAudioIndex(index);
                             if (widget.audioListType != AudioListTypes.all) {
-                              await _simpleShared.setCurrentAudioListId(
-                                  widget.audioListId.toString());
+                              await _simpleStorage
+                                  .setCurrentAudioListId(widget.audioListId);
                             }
 
                             if (!mounted) return;

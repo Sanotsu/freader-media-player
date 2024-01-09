@@ -10,7 +10,8 @@ import 'package:rxdart/rxdart.dart';
 
 import '../common/global/constants.dart';
 import 'my_audio_query.dart';
-import 'my_shared_preferences.dart';
+import 'my_get_storage.dart';
+// import 'my_shared_preferences.dart';
 import 'service_locator.dart';
 
 /// 单例的audio player，以及他的一些方法
@@ -27,10 +28,11 @@ class MyAudioHandler {
   final _audioQuery = getIt<MyAudioQuery>();
 
   // 统一简单存储操作的工具类实例
-  final _simpleShared = getIt<MySharedPreferences>();
+  // final _simpleShared = getIt<MySharedPreferences>();
+  final _simpleStorage = getIt<MyGetStorage>();
 
   // 构造函数（原本在构造函数中执行初始化，现在在获得授权后在app处初始化）
-  MyAudioHandler();
+  // MyAudioHandler();
 
   // 获取当前播放列表和当前音乐索引（正常来讲，这个会存入db）
   // 其他情况改变了当前列表，则额外处理
@@ -38,9 +40,11 @@ class MyAudioHandler {
     print("这是在_getInitPlaylistAndIndex");
     // 获取当前的播放列表数据
     // 这个list有依次3个值：当前列表类型、当前音频在列表中的索引、当前播放列表编号
-    var tempList = await _simpleShared.getCurrentAudioInfo();
+    // var tempList = await _simpleShared.getCurrentAudioInfo();
+    var tempList = await _simpleStorage.getCurrentAudioInfo();
 
-    print("$tempList,,,,,,${tempList[0]},,,,${AudioListTypes.all}");
+    print(
+        "MyAudioHandler----$tempList,,,,,,${tempList[0]},,,,${AudioListTypes.all}");
 
     List<SongModel> songs;
     switch (tempList[0]) {
@@ -93,9 +97,29 @@ class MyAudioHandler {
   // 设置初始化播放列表源（这在app启动时就要加载完成）
   Future<void> _loadInitCurrentPlaylist() async {
     try {
+      /// ？？？TODO 2024-01-09 暂时解释不了
+      /// 我需要先这里设置一次音源，然后再去缓存查询上次记录音乐信息才有效果，否则就查询结果是空
+      ///     有尝试寻找原因，在app.dart进行_audioHandler.myAudioHandlerInit() 前获取也是空
+      ///     在这里重复查询，等待这几个工具类实例初始化完成，还是空。从现有代码就是先设置音乐，再查询就可以
+      ///
+      ///
+      ///     但是，如果这里重复了，选择了其他歌手、专辑等分类，更新了当前播放的音乐，退出app之后再进来，可能会报错，
+      ///     Cannot set the method call handler before the binary messenger has been initialized.
+      ///     报错位置就是上面的 final _player = AudioPlayer();
+      ///     但偶尔又没有报错
+      await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
+
       // 等待获取到持久化中的播放列表和索引之后，再绑定音源
       await _getInitPlaylistAndIndex();
+
+      print("启动后初始化的播放列表和索引 _currentPlaylist $_currentPlaylist");
+      print(" _initIndex $_initIndex");
+
       await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
+
+      print(" _player $_player");
+
+      print(" _player.sequenceStateStream ${_player.sequenceStateStream}");
 
       print(
           "_player.sequenceStateStream.length${_player.sequenceStateStream.length}");
@@ -267,12 +291,14 @@ class MyAudioHandler {
 
   // Stream<LoopMode> getLoopModeStream() => _player.loopModeStream;
   Future<Stream<LoopMode>> getLoopModeStream() async {
-    var temp = await _simpleShared.getCurrentCycleMode();
+    // var temp = await _simpleShared.getCurrentCycleMode();
+    var temp = await _simpleStorage.getCurrentCycleMode();
     return BehaviorSubject.seeded(temp).stream;
   }
 
   Future<LoopMode> getLoopModeValue() async {
-    var temp = await _simpleShared.getCurrentCycleMode();
+    // var temp = await _simpleShared.getCurrentCycleMode();
+    var temp = await _simpleStorage.getCurrentCycleMode();
     return BehaviorSubject.seeded(temp).stream.value;
   }
 
@@ -281,12 +307,14 @@ class MyAudioHandler {
 
   // 持久化数据中获取
   Future<Stream<bool>> getShuffleModeEnabledStream() async {
-    var temp = await _simpleShared.getCurrentIsShuffleMode();
+    // var temp = await _simpleShared.getCurrentIsShuffleMode();
+    var temp = await _simpleStorage.getCurrentIsShuffleMode();
     return BehaviorSubject.seeded(temp).stream;
   }
 
   Future<bool> getShuffleModeEnabledValue() async {
-    var temp = await _simpleShared.getCurrentIsShuffleMode();
+    // var temp = await _simpleShared.getCurrentIsShuffleMode();
+    var temp = await _simpleStorage.getCurrentIsShuffleMode();
     return BehaviorSubject.seeded(temp).stream.value;
   }
 

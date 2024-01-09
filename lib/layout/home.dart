@@ -5,6 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../common/utils/global_styles.dart';
+import '../services/my_audio_handler.dart';
+import '../services/my_get_storage.dart';
+import '../services/service_locator.dart';
 import '../views/local_music/index.dart';
 import '../views/local_media/index.dart';
 
@@ -19,6 +22,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+
+  final _audioHandler = getIt<MyAudioHandler>();
 
   static const List<Widget> _widgetOptions = <Widget>[
     LocalMusic(),
@@ -54,7 +59,7 @@ class _HomePageState extends State<HomePage> {
           builder: (context) {
             return AlertDialog(
               title: const Text('关闭'),
-              content: const Text("确定要退出播放器吗?"),
+              content: const Text("确定要退出FMP播放器吗?"),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -78,6 +83,10 @@ class _HomePageState extends State<HomePage> {
             navigator.pop();
           } else {
             // 如果已经到头来，则关闭应用程序
+            // 同时关闭音乐播放
+            _audioHandler.stop();
+            _audioHandler.dispose();
+
             SystemNavigator.pop();
           }
         }
@@ -110,6 +119,8 @@ class _HomePageState extends State<HomePage> {
 }
 
 buildDrawer(BuildContext context) {
+  final simpleStorage = getIt<MyGetStorage>();
+
   return Drawer(
     // 使用list view 内容高度超过页面可以滚动；
     child: ListView(
@@ -144,6 +155,20 @@ buildDrawer(BuildContext context) {
           leading: Icon(Icons.abc),
           title: Text('预留列表'),
           subtitle: Text('不积小流，无以成江海。'),
+        ),
+        ListTile(
+          leading: const Icon(Icons.abc),
+          title: const Text('测试'),
+          subtitle: const Text('获取当前getstorage'),
+          onTap: () async {
+            var a = await simpleStorage.getCurrentAudioInfo();
+            var b = await simpleStorage.getCurrentCycleMode();
+            var c = await simpleStorage.getCurrentIsShuffleMode();
+
+            print("当前 AudioInfo $a");
+            print("当前 CycleMode $b");
+            print("当前 IsShuffleMode $c");
+          },
         )
       ],
     ),
