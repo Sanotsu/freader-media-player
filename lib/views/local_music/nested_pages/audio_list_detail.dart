@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -14,7 +12,6 @@ import '../widgets/build_remove_playlist_or_audio_dialog.dart';
 import '../widgets/build_search_text_field.dart';
 import '../widgets/build_sort_options_dialog.dart';
 import '../widgets/music_list_builder.dart';
-// import '../widgets/music_list_future_builder.dart';
 import '../widgets/music_player_mini_bar.dart';
 
 /// 显示播放列表内部的歌曲，则需要传入播放列表类型、播放列表编号，额外播放列表名称用来做页面的标题
@@ -42,51 +39,29 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) async {
-        if (didPop) return;
-
-        // 点击appbar返回按钮或者返回键时，可以做一些操作。这里返回一个重新加载列表中的音频标识。
-        // 因为在歌单删除了音频或者添加之后，直接返回不会重新加载，显示的数量没变。
-        if (mounted) {
-          Navigator.pop(context, {"isReload": true});
-        }
-      },
-      child: Scaffold(
-        // 避免搜索时弹出键盘，让底部的minibar位置移动到tab顶部导致溢出的问题
-        resizeToAvoidBottomInset: false,
-        appBar: _buildAppBar(),
-        body: Column(
-          children: [
-            Expanded(
-              child: Consumer2<AudioLongPress, AudioOptionSelected>(
-                builder: (context, alp, aos, child) {
-                  print(
-                      "1111LocalMusicAudioListDetail ${alp.isAudioLongPress} ");
-
-                  /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
-                  ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
-                  /// 如果是默认显示的，应该有：排序、搜索、三个点（展开其他功能）
-                  // return MusicListFutureBuilder(
-                  //   audioListType: widget.audioListType,
-                  //   audioListId: widget.audioListId,
-                  //   callback: (value) => print(value),
-                  // );
-                  return MusicListBuilder(
-                    audioListType: widget.audioListType,
-                    audioListId: widget.audioListId,
-                  );
-                },
-              ),
+    return Scaffold(
+      // 避免搜索时弹出键盘，让底部的minibar位置移动到tab顶部导致溢出的问题
+      resizeToAvoidBottomInset: false,
+      appBar: _buildAppBar(),
+      body: Column(
+        children: [
+          Expanded(
+            // ？？？这里需要consumer吗================
+            child: Consumer2<AudioLongPress, AudioOptionSelected>(
+              builder: (context, alp, aos, child) {
+                return MusicListBuilder(
+                  audioListType: widget.audioListType,
+                  audioListId: widget.audioListId,
+                );
+              },
             ),
-            SizedBox(
-              height: 60.sp,
-              width: 1.sw,
-              child: const MusicPlayerMiniBar(),
-            ),
-          ],
-        ),
+          ),
+          SizedBox(
+            height: 60.sp,
+            width: 1.sw,
+            child: const MusicPlayerMiniBar(),
+          ),
+        ],
       ),
     );
   }
@@ -96,15 +71,16 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
     return AppBar(
       title: Consumer<AudioLongPress>(
         builder: (context, alp, child) {
+          /// 如果不是搜索，状态显示标题；如果是，显示搜索框
           if (!_iSClickAudioSearch) {
-            /// 如果不是搜索状态显示标题；如果是，显示搜索框
+            // 如果有被长按选中音频，显示选中了多少首；否则显示列表名称(歌单名、歌手名、专辑名等)
             var tempNum = alp.selectedAudioList.length;
 
             return tempNum > 0
                 ? Text("选中$tempNum首", style: TextStyle(fontSize: 16.sp))
                 : Text(widget.audioListTitle);
           } else {
-            return buildSearchTextField(alp);
+            return buildSearchTextField(context, alp);
           }
         },
       ),
@@ -112,13 +88,9 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
         // 因为使用了consumer，在其他组件中改变了其中类的属性，这里也会识别到
         Consumer<AudioLongPress>(
           builder: (context, alp, child) {
-            print(
-              "1111xxxxxxxxxxxxxxxxxxxxxxxxxxx ${alp.isAudioLongPress} ${alp.selectedAudioList.length}",
-            );
-
-            /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
-            ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
-            /// 如果是默认显示的，应该有：排序、搜索、三个点（展开其他功能）
+            /// 如果是在音频列表中对某音频进行了长按，则在顶部应用栏显示一些功能按钮
+            ///   暂时有：添加到播放列表、查看信息、取消选中
+            /// 如果是默认显示的，应该有：搜索、排序
             return alp.isAudioLongPress == LongPressStats.YES
                 ? buildLongPressButtons(alp)
                 : buildDefaultButtons();
@@ -173,10 +145,6 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
   }
 
   Widget buildLongPressButtons(AudioLongPress alp) {
-    print(
-      "111111buildLongPressButtonsXXXXXXXXXXXXXXX  ${alp.isAudioLongPress} ${widget.audioListType} ${alp.selectedAudioList}",
-    );
-
     return Row(
       children: [
         // 暂时只有在“歌单”分类时才有从歌单移除的按钮（on audio query 插件限制）

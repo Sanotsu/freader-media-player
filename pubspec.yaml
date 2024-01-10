@@ -39,8 +39,6 @@ dependencies:
   # 国际化（多国语言）
   flutter_localizations:
     sdk: flutter
-  # 为简单数据包装特定于平台的持久存储（持久化简单key-value数据）
-  shared_preferences: ^2.1.0
   # 用于从设备存储中查询音频/歌曲信息[标题、艺术家、专辑等]。
   on_audio_query: ^2.9.0
   # 音乐播放组件
@@ -55,8 +53,7 @@ dependencies:
   get_it: ^7.6.0
   # InheritedWidget的包装器 ，使它们更易于使用和可重用。（子孙传值、简单应用状态管理之类的）
   provider: ^6.0.5
-  # 国际化，时间格式化等工具类（0.17.0版本与flutter_localizations版本关联，更新的不行）
-  # intl: 0.17.0
+  # 国际化，时间格式化等工具类
   intl: ^0.18.0
   # 文本跑马灯滚动
   marquee: ^2.2.3

@@ -7,7 +7,9 @@ import '../../../models/list_long_press.dart';
 /// 前者是条件查询歌单、歌曲、歌手、专辑，后者统一为条件查询列表中的歌曲。
 
 // 构建appbar中的条件查询框
-Widget buildSearchTextField(dynamic pressState) {
+Widget buildSearchTextField(BuildContext context, dynamic pressState) {
+  var color = Theme.of(context).canvasColor;
+
   return TextField(
     onChanged: (String inputStr) async {
       if (pressState is AudioLongPress) {
@@ -17,18 +19,17 @@ Widget buildSearchTextField(dynamic pressState) {
       }
     },
     autofocus: true,
-    cursorColor: Colors.white,
-    style: const TextStyle(color: Colors.white, fontSize: 20),
+    cursorColor: color,
+    style: TextStyle(color: color),
     textInputAction: TextInputAction.search,
-    decoration: const InputDecoration(
+    decoration: InputDecoration(
       // 搜索框不显示下划线
-      border: InputBorder.none,
-      // enabledBorder:
-      //     UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-      // focusedBorder:
-      //     UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-      hintText: '搜索',
-      hintStyle: TextStyle(color: Colors.white60, fontSize: 20),
+      // border: InputBorder.none,
+      // 搜索框显示白底
+      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: color)),
+      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: color)),
+      hintText: '输入查询条件',
+      hintStyle: TextStyle(color: color),
     ),
   );
 }

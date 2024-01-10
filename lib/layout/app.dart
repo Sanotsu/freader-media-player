@@ -5,7 +5,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../common/global/constants.dart';
 import '../services/my_audio_handler.dart';
@@ -14,10 +13,6 @@ import 'home.dart';
 
 class FreaderApp extends StatelessWidget {
   const FreaderApp({super.key});
-
-  // 获取登陆信息，如果已经登录，则进入homepage，否则进入登录页面
-
-  final isLogin = false;
 
   // This widget is the root of your application.
   @override
@@ -54,13 +49,10 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _MyHomePageState createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool isLogin = false;
-
   bool isPermissionGranted = false;
 
   final box = GetStorage();
@@ -71,23 +63,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    getLoginState();
+
     // app初次启动时要获取相关授权，取得之后就不需要重复请求了
-    // _requestPermission();
-    setState(() {
-      _requestPermission();
-    });
-  }
-
-  // 获取登陆状态
-  Future<void> getLoginState() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      // 如果获取的登录状态字符串是 true，则表示登入过；否则就是没有登入过
-      isLogin = (prefs.getBool(GlobalConstants.loginState) ?? false);
-
-      print("isLogin-------$isLogin");
-    });
+    _requestPermission();
   }
 
   // 获取存储权限
@@ -121,10 +99,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return isLogin
+    return isPermissionGranted
         ? const HomePage()
-        : isPermissionGranted
-            ? const HomePage()
-            : const Image(image: AssetImage('assets/launch_background.png'));
+        : const Image(image: AssetImage('assets/launch_background.png'));
   }
 }

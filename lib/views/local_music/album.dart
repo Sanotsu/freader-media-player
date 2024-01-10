@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -31,35 +29,27 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
   Widget build(BuildContext context) {
     return Consumer2<ListLongPress, AudioOptionSelected>(
       builder: (context, llp, aos, child) {
-        print(
-          "localmusic index 下album中 ${llp.isPlaylistLongPress} ${llp.selectedPlaylistList.length} ${llp.localMusicAppBarSearchInput}",
-        );
+        /// 构建专辑列表，需要监测appbar中条件查询变化、排序选项变化，并及时更新显示符合条件的列表
 
-        /// 如果是在播放列表中对某音频进行了长按，则在此处显示一些功能按钮
-        ///   暂时有：查看信息、从当前列表移除、三个点（添加到播放列表、添加到队列(这个暂不实现)、全选等）
-        /// 如果是默认显示的，应该有：排序、搜索、三个点（展开其他功能）
+        // 如果是专辑的条件查询
+        if (llp.localMusicAppBarSearchInput != null) {
+          futureHandler = _audioQuery.queryWithFilters(
+            llp.localMusicAppBarSearchInput!,
+            WithFiltersType.ALBUMS,
+          );
+        } else {
+          // 如果等于null，说明是初始化，或者关闭了查询按钮，专辑要重新查询所有
+          futureHandler = _audioQuery.queryAlbums(
+            sortType: aos.albumSortType,
+            orderType: aos.orderType,
+          );
+        }
         return _buildList(context, llp, aos);
       },
     );
   }
 
   _buildList(BuildContext context, ListLongPress llp, AudioOptionSelected aos) {
-    // 如果是主页上歌单的条件查询
-    if (llp.localMusicAppBarSearchInput != null) {
-      print("执行了条件查询的逻辑");
-      futureHandler = _audioQuery.queryWithFilters(
-        llp.localMusicAppBarSearchInput!,
-        WithFiltersType.ALBUMS,
-      );
-    } else {
-      // 如果等于null，说明是初始化，或者关闭了查询按钮，歌单要重新查询所有
-      print("执行了专辑的【初始化】、【关闭条件查询】、【排序】的逻辑");
-      futureHandler = _audioQuery.queryAlbums(
-        sortType: aos.albumSortType,
-        orderType: aos.orderType,
-      );
-    }
-
     return FutureBuilder<List<dynamic>>(
       future: futureHandler,
       builder: (context, item) {
@@ -73,7 +63,7 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
         }
         // 'Library' is empty.
         if (item.data!.isEmpty) {
-          return const Center(child: Text("暂无专辑!"));
+          return const Center(child: Text("暂无专辑"));
         }
 
         // 得到查询的专辑列表
@@ -101,13 +91,14 @@ class _LocalMusicAlbumState extends State<LocalMusicAlbum> {
                 artworkHeight: 100, // 高度设置无效，实测56，原因不明
                 artworkWidth: 100,
                 keepOldArtwork: true, // 在生命周期内使用旧的缩略图
-                nullArtworkWidget: const SizedBox.shrink(),
+                // nullArtworkWidget: const SizedBox.shrink(),
+                // 没有缩略图时使用占位图
+                nullArtworkWidget: SizedBox(
+                  width: 100.sp,
+                  child: Image.asset(placeholderImageUrl, fit: BoxFit.fitWidth),
+                ),
               ),
               onTap: () {
-                print(
-                  '指定专辑 ${albums[index].artist}  was tapped! id Is ${albums[index].id}',
-                );
-
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     // 在选中指定歌单点击后，进入音频列表，同时监控是否有对音频长按

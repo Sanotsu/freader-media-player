@@ -11,7 +11,6 @@ import 'package:rxdart/rxdart.dart';
 import '../common/global/constants.dart';
 import 'my_audio_query.dart';
 import 'my_get_storage.dart';
-// import 'my_shared_preferences.dart';
 import 'service_locator.dart';
 
 /// 单例的audio player，以及他的一些方法
@@ -28,7 +27,6 @@ class MyAudioHandler {
   final _audioQuery = getIt<MyAudioQuery>();
 
   // 统一简单存储操作的工具类实例
-  // final _simpleShared = getIt<MySharedPreferences>();
   final _simpleStorage = getIt<MyGetStorage>();
 
   // 构造函数（原本在构造函数中执行初始化，现在在获得授权后在app处初始化）
@@ -40,7 +38,6 @@ class MyAudioHandler {
     print("这是在_getInitPlaylistAndIndex");
     // 获取当前的播放列表数据
     // 这个list有依次3个值：当前列表类型、当前音频在列表中的索引、当前播放列表编号
-    // var tempList = await _simpleShared.getCurrentAudioInfo();
     var tempList = await _simpleStorage.getCurrentAudioInfo();
 
     print(
@@ -291,13 +288,11 @@ class MyAudioHandler {
 
   // Stream<LoopMode> getLoopModeStream() => _player.loopModeStream;
   Future<Stream<LoopMode>> getLoopModeStream() async {
-    // var temp = await _simpleShared.getCurrentCycleMode();
     var temp = await _simpleStorage.getCurrentCycleMode();
     return BehaviorSubject.seeded(temp).stream;
   }
 
   Future<LoopMode> getLoopModeValue() async {
-    // var temp = await _simpleShared.getCurrentCycleMode();
     var temp = await _simpleStorage.getCurrentCycleMode();
     return BehaviorSubject.seeded(temp).stream.value;
   }
@@ -307,13 +302,11 @@ class MyAudioHandler {
 
   // 持久化数据中获取
   Future<Stream<bool>> getShuffleModeEnabledStream() async {
-    // var temp = await _simpleShared.getCurrentIsShuffleMode();
     var temp = await _simpleStorage.getCurrentIsShuffleMode();
     return BehaviorSubject.seeded(temp).stream;
   }
 
   Future<bool> getShuffleModeEnabledValue() async {
-    // var temp = await _simpleShared.getCurrentIsShuffleMode();
     var temp = await _simpleStorage.getCurrentIsShuffleMode();
     return BehaviorSubject.seeded(temp).stream.value;
   }

@@ -4,6 +4,10 @@ import 'dart:typed_data';
 
 import 'package:on_audio_query/on_audio_query.dart';
 
+///
+/// 2024-01-10 查询本地音频的工具类
+/// 注意：有些中文歌曲信息查询结果是乱码，组件库没有提供相关修改或者设定编码的方式
+///
 class MyAudioQuery {
 // 是否有权限获取
   bool _hasPermission = false;
@@ -163,7 +167,6 @@ class MyAudioQuery {
         ignoreCase: ignoreCase,
       );
 
-
   Future<Uint8List?> queryArtwork(
     int id,
     ArtworkType type, {
@@ -179,7 +182,6 @@ class MyAudioQuery {
       quality: quality,
     );
   }
-
 
   // 设置日志配置
   void setLogConfig() {

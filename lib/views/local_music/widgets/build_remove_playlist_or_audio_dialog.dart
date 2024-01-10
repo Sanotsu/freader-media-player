@@ -5,11 +5,15 @@ import '../../../models/list_long_press.dart';
 import '../../../services/my_audio_query.dart';
 import '../../../services/service_locator.dart';
 
-/// 在歌单长按点击删除，弹窗移除选中歌单的弹窗；在指定歌单的音频列表长按点击删除，弹窗移除选中音频的弹窗。
+/// 在歌单长按点击删除，弹窗移除选中歌单的弹窗；
+/// 在指定歌单的音频列表长按点击删除，弹窗移除选中音频的弹窗。
 
 // 显示删除歌单/音频的确认弹窗
-buildRemovePlaylistOrAudioDialog(BuildContext context, dynamic pressState,
-    {int? playlistId}) {
+buildRemovePlaylistOrAudioDialog(
+  BuildContext context,
+  dynamic pressState, {
+  int? playlistId,
+}) {
   // 获取查询音乐组件实例
   final audioQuery = getIt<MyAudioQuery>();
 
@@ -28,9 +32,6 @@ buildRemovePlaylistOrAudioDialog(BuildContext context, dynamic pressState,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  style: TextButton.styleFrom(
-                    textStyle: Theme.of(context).textTheme.labelLarge,
-                  ),
                   child: const Text('取消'),
                   onPressed: () {
                     setState(() {
@@ -45,9 +46,6 @@ buildRemovePlaylistOrAudioDialog(BuildContext context, dynamic pressState,
                   },
                 ),
                 TextButton(
-                  style: TextButton.styleFrom(
-                    textStyle: Theme.of(context).textTheme.labelLarge,
-                  ),
                   child: const Text('确认'),
                   onPressed: () {
                     setState(() {

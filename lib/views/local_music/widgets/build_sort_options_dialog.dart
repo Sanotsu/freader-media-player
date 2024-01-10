@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, constant_identifier_names
+// ignore_for_file: constant_identifier_names
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -50,14 +50,12 @@ List albumSortTypeList = [
   ["专辑歌曲数量", AlbumSortType.NUM_OF_SONGS],
 ];
 
-// 显示歌单信息的弹窗
+// 显示排序选项的弹窗
 buildSortOptionsDialog(
   BuildContext context,
   AudioOptionSelected aos,
   int currentTabIndex, // 当前tab索引，0-3对应歌单、全部音频、歌手、专辑
 ) {
-  print("xxxxxxxxxxx构建排序弹窗的当前tab索引 $currentTabIndex");
-
   // 当前是哪一个tab(歌单、音频、歌手、专辑)需要排序，构建不同的弹窗内容
   List tempList;
 
@@ -90,6 +88,11 @@ buildSortOptionsDialog(
     builder: (BuildContext context) {
       return AlertDialog(
         title: const Text('排序'),
+        // 排序选项内容和弹窗的标题与按钮上下间隔小一点
+        contentPadding: EdgeInsets.symmetric(
+          vertical: 0.sp,
+          horizontal: 20.sp,
+        ),
         content: StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return Column(
@@ -97,15 +100,20 @@ buildSortOptionsDialog(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  height: 180.sp,
+                  height: 0.3.sh,
                   child: ListView.builder(
                     shrinkWrap: true,
                     itemCount: tempList.length,
                     itemBuilder: (BuildContext context, int index) {
                       return RadioListTile<dynamic>(
-                        title: Text(tempList[index][0]),
+                        title: Text(
+                          tempList[index][0],
+                          style: TextStyle(fontSize: 13.sp),
+                        ),
                         value: tempList[index][1],
                         groupValue: selectedSortType,
+                        // dense: true,
+                        // contentPadding: EdgeInsets.all(1.sp),
                         onChanged: (dynamic value) {
                           setState(() => selectedSortType = value);
                         },
@@ -120,37 +128,33 @@ buildSortOptionsDialog(
                   endIndent: 0,
                   color: Colors.grey,
                 ),
-                SizedBox(
-                  height: 30.sp,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      // 大概48sp
-                      LabeledRadio(
-                        label: '升序',
-                        padding: EdgeInsets.symmetric(horizontal: 1.sp),
-                        value: OrderType.ASC_OR_SMALLER,
-                        groupValue: orderType,
-                        onChanged: (dynamic newValue) {
-                          setState(() {
-                            orderType = newValue;
-                          });
-                        },
-                      ),
-                      LabeledRadio(
-                        label: '降序',
-                        padding: EdgeInsets.symmetric(horizontal: 1.sp),
-                        value: OrderType.DESC_OR_GREATER,
-                        groupValue: orderType,
-                        onChanged: (dynamic newValue) {
-                          setState(() {
-                            orderType = newValue;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    // 大概48sp
+                    LabeledRadio(
+                      label: '升序',
+                      padding: EdgeInsets.symmetric(horizontal: 1.sp),
+                      value: OrderType.ASC_OR_SMALLER,
+                      groupValue: orderType,
+                      onChanged: (dynamic newValue) {
+                        setState(() {
+                          orderType = newValue;
+                        });
+                      },
+                    ),
+                    LabeledRadio(
+                      label: '降序',
+                      padding: EdgeInsets.symmetric(horizontal: 1.sp),
+                      value: OrderType.DESC_OR_GREATER,
+                      groupValue: orderType,
+                      onChanged: (dynamic newValue) {
+                        setState(() {
+                          orderType = newValue;
+                        });
+                      },
+                    ),
+                  ],
                 ),
               ],
             );
@@ -160,13 +164,11 @@ buildSortOptionsDialog(
           StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return TextButton(
-                style: TextButton.styleFrom(
-                  textStyle: Theme.of(context).textTheme.labelLarge,
-                ),
                 child: const Text('确认'),
                 onPressed: () {
                   setState(() {
-                    // ??? 目前实测，歌单排序原插件接口无效
+                    // ??? 2023-04-25左右 目前实测，歌单排序原插件接口无效
+                    // 2024-01-10 还是v2.9.0版本，也不能用
                     if (currentTabIndex == 0) {
                       aos.changePlaylistSortType(selectedSortType);
                     }

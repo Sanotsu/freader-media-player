@@ -2,11 +2,15 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:just_audio/just_audio.dart';
 
 import '../../../services/my_audio_handler.dart';
+import '../../../services/my_get_storage.dart';
 import '../../../services/service_locator.dart';
 
-// 音频进度条
+///
+/// 音频播放进度条
+///
 class SeekBar extends StatefulWidget {
   final Duration duration; // 音频总时长
   final Duration position; // 音频已播放的时长
@@ -153,7 +157,8 @@ class SeekBarState extends State<SeekBar> {
                   '${widget.position}',
               style: Theme.of(context).textTheme.bodySmall),
         ),
-        // // 此处剩余时间的数字显示区域
+
+        /// 此处剩余时间的数字显示区域
         // Positioned(
         //   right: 160.sp, // 距离右边界16个单位
         //   bottom: 0.0,
@@ -216,7 +221,7 @@ class SeekBarState extends State<SeekBar> {
                   title: "调整速度",
                   divisions: 18,
                   min: 0.2,
-                  max: 2.00,
+                  max: 2.0,
                   value: _audioHandler.speed,
                   stream: _audioHandler.getSpeedStream(),
                   onChanged: _audioHandler.setSpeed(),
@@ -253,6 +258,210 @@ class SeekBarState extends State<SeekBar> {
 
   // 剩余时长=总时长-已播放的时长
   // Duration get _remaining => widget.duration - widget.position;
+}
+
+///
+/// 当前歌曲控制按钮具体实现
+/// 音量、上一曲、暂停/播放、下一曲、倍速
+///
+class ControlButtons extends StatefulWidget {
+  const ControlButtons({super.key, required this.callback});
+
+  final Function callback;
+
+  @override
+  State<ControlButtons> createState() => _ControlButtonsState();
+}
+
+class _ControlButtonsState extends State<ControlButtons> {
+  final _audioHandler = getIt<MyAudioHandler>();
+  // 统一简单存储操作的工具类实例
+  final _simpleStorage = getIt<MyGetStorage>();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        /// 播放方式切换按钮（单曲循环、列表循环、不循环）
+        FutureBuilder<LoopMode>(
+          future: _audioHandler.getLoopModeValue(),
+          builder: (BuildContext context, AsyncSnapshot<LoopMode> snapshot) {
+            if (snapshot.hasError) {
+              return Text(snapshot.error.toString());
+            }
+
+            final loopMode = snapshot.data ?? LoopMode.off;
+
+            // 得到持久化的循环模式数据，要执行它才会生效
+            _audioHandler.setRepeatMode(loopMode);
+
+            // 显示对应循环模式的图标
+            const icons = [
+              Icon(Icons.repeat, color: Colors.orange),
+              Icon(Icons.repeat_one, color: Colors.orange),
+              Icon(Icons.repeat, color: Colors.grey),
+            ];
+            const cycleModes = [LoopMode.all, LoopMode.one, LoopMode.off];
+            final index = cycleModes.indexOf(loopMode);
+
+            return IconButton(
+              icon: icons[index],
+              iconSize: 32.sp,
+              onPressed: () async {
+                var temp = cycleModes[
+                    (cycleModes.indexOf(loopMode) + 1) % cycleModes.length];
+
+                setState(() {
+                  _audioHandler.setRepeatMode(temp);
+                });
+
+                await _simpleStorage.setCurrentCycleMode(temp.toString());
+
+                // 2024-01-10 理论上，在播放详情页改变了循环方式，也需要更新缓存中音乐编号(歌单类型、专辑编号是没有变化)
+                await _simpleStorage.setCurrentAudioIndex(
+                  _audioHandler.currentIndex,
+                );
+
+                // 2024-01-10 同理，也需要通过回调函数的方式，把下一首歌曲的索引传递个父级，用于构建下一曲的预览
+                widget.callback(_audioHandler.nextIndex);
+              },
+            );
+          },
+        ),
+
+        /// 上一曲按钮
+        StreamBuilder<SequenceState?>(
+          stream: _audioHandler.getSequenceStateStream(),
+          builder: (context, snapshot) => IconButton(
+            icon: const Icon(Icons.skip_previous),
+            iconSize: 32.sp,
+            onPressed: _audioHandler.hasPrevious()
+                ? () async {
+                    // 要确保跳转完成之后再获取下一首的索引，否则可能就是当前正常播放的索引
+                    await _audioHandler.seekToPrevious();
+
+                    // 2024-01-09 理论上，在播放详情页切换上下一曲后，仅更新缓存中音乐编号即可(歌单类型、专辑编号是没有变化)
+                    await _simpleStorage.setCurrentAudioIndex(
+                      _audioHandler.currentIndex,
+                    );
+
+                    // 通过回调函数的方式，把下一首歌曲的索引传递个父级，用于构建下一曲的预览
+                    widget.callback(_audioHandler.nextIndex);
+                  }
+                : null,
+          ),
+        ),
+
+        /// 播放/暂停/再次播放 按钮
+        StreamBuilder<PlayerState>(
+          stream: _audioHandler.getPlayerStateStream(),
+          builder: (context, snapshot) {
+            final playerState = snapshot.data;
+            final processingState = playerState?.processingState;
+            final playing = playerState?.playing;
+            if (processingState == ProcessingState.loading ||
+                processingState == ProcessingState.buffering) {
+              return Container(
+                margin: EdgeInsets.all(8.sp),
+                width: 64.sp,
+                height: 64.sp,
+                child: const CircularProgressIndicator(),
+              );
+            } else if (playing != true) {
+              return IconButton(
+                icon: const Icon(Icons.play_arrow),
+                iconSize: 64.sp,
+                onPressed: () => _audioHandler.play(),
+              );
+            } else if (processingState != ProcessingState.completed) {
+              return IconButton(
+                icon: const Icon(Icons.pause),
+                iconSize: 64.sp,
+                onPressed: () => _audioHandler.pause(),
+              );
+            } else {
+              return IconButton(
+                icon: const Icon(Icons.replay),
+                iconSize: 64.sp,
+                onPressed: () => _audioHandler.seek(Duration.zero,
+                    index: _audioHandler.getEffectiveIndices()!.first),
+              );
+            }
+          },
+        ),
+
+        /// 下一曲按钮
+        StreamBuilder<SequenceState?>(
+          stream: _audioHandler.getSequenceStateStream(),
+          builder: (context, snapshot) => IconButton(
+            icon: const Icon(Icons.skip_next),
+            iconSize: 32.sp,
+            onPressed: _audioHandler.hasNext()
+                ? () async {
+                    // 要确保跳转完成之后再获取下一首的索引，否则可能就是当前正常播放的索引
+                    await _audioHandler.seekToNext();
+
+                    // 2024-01-09 理论上，在播放详情页切换上下一曲后，仅更新缓存中音乐编号即可(歌单类型、专辑编号是没有变化)
+                    await _simpleStorage.setCurrentAudioIndex(
+                      _audioHandler.currentIndex,
+                    );
+
+                    // 通过回调函数的方式，把下一首歌曲的索引传递个父级，用于构建下一曲的预览
+                    widget.callback(_audioHandler.nextIndex);
+                  }
+                : null,
+          ),
+        ),
+
+        /// 随机播放的图标按钮
+        FutureBuilder<bool>(
+          future: _audioHandler.getShuffleModeEnabledValue(),
+          builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+            if (snapshot.hasError) {
+              return Text(snapshot.error.toString());
+            }
+            if (!snapshot.hasData) {
+              return Text(snapshot.error.toString());
+            }
+
+            final shuffleModeEnabled = snapshot.data ?? false;
+            // 得到持久化的随机状态数据，要执行它才会生效
+            _audioHandler.setShuffleModeEnabled(shuffleModeEnabled);
+
+            return IconButton(
+              icon: shuffleModeEnabled
+                  ? const Icon(Icons.shuffle, color: Colors.orange)
+                  : const Icon(Icons.shuffle, color: Colors.grey),
+              iconSize: 32.sp,
+              onPressed: () async {
+                final enable = !shuffleModeEnabled;
+
+                setState(() {
+                  if (enable) {
+                    _audioHandler.shuffle();
+                  }
+                  _audioHandler.setShuffleModeEnabled(enable);
+                });
+
+                await _simpleStorage.setCurrentIsShuffleMode(enable.toString());
+
+                // 2024-01-10 理论上，在播放详情页改变了循环方式，也需要更新缓存中音乐编号(歌单类型、专辑编号是没有变化)
+                await _simpleStorage.setCurrentAudioIndex(
+                  _audioHandler.currentIndex,
+                );
+
+                // 2024-01-10 同理，也需要通过回调函数的方式，把下一首歌曲的索引传递个父级，用于构建下一曲的预览
+                widget.callback(_audioHandler.nextIndex);
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
 }
 
 /// SliderComponentShape 为拇指(thumb)滑块、拇指覆盖物和数值指示器形状的基类。如果想要一个自定义的形状，需要创建它的子类。

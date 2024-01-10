@@ -40,9 +40,6 @@ class _LocalMusicState extends State<LocalMusic>
   // 是否点击了查询按钮
   bool _iSClickSearch = false;
 
-  // 自定义的tab控制器，主要用来监听tab切换，以便provide的模型可以记录当前的tab是哪一个
-  // late TabController _tabController;
-
   // 是否已经给tab Controller添加了监听器，避免重复监听
   late bool isAddListenerToTabController;
 
@@ -59,6 +56,10 @@ class _LocalMusicState extends State<LocalMusic>
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
+      // 2024-01-10 本地音乐模块主页面需要侦听：
+      //  音频长按状态、列表长按状态、操作选项变化；其中:
+      //    歌单tab、全部歌曲tab的列表可以长按，歌手和专辑则不行；
+      //    所有tab列表都可以在appbar进行条件查询、排序(歌单排序依赖库不支持)
       providers: [
         ChangeNotifierProvider(create: (_) => AudioLongPress()),
         ChangeNotifierProvider(create: (_) => ListLongPress()),
@@ -97,7 +98,7 @@ class _LocalMusicState extends State<LocalMusic>
               return const Text("本地音乐");
             }
           } else {
-            return buildSearchTextField(llp);
+            return buildSearchTextField(context, llp);
           }
         },
       ),
@@ -107,22 +108,8 @@ class _LocalMusicState extends State<LocalMusic>
         _buildDefaultButtons(),
         _buildLongPressButtons(),
       ],
-      bottom: TabBar(
-        // controller: _tabController,
-        // 指示器的样式(标签下的下划线)
-        indicator: UnderlineTabIndicator(
-          // 下划线的粗度和颜色
-          borderSide: BorderSide(
-            width: 3.0.sp,
-            color: Colors.white,
-          ),
-          // 下划线的四边的间距horizontal橫向
-          // insets: EdgeInsets.symmetric(horizontal: 2.0.sp),
-        ),
-        indicatorWeight: 0,
-        // 下划线的尺寸(这个label表示下划线执行器的宽度与标签文本宽度一致。默认是整个tab的宽度)
-        indicatorSize: TabBarIndicatorSize.label,
-        tabs: const [
+      bottom: const TabBar(
+        tabs: [
           Tab(child: Text("歌单")),
           Tab(child: Text("全部")),
           Tab(child: Text("歌手")),
@@ -137,10 +124,6 @@ class _LocalMusicState extends State<LocalMusic>
     return Builder(builder: (BuildContext context) {
       final TabController tabController = DefaultTabController.of(context);
 
-      print(
-        "主页index当前tab的索引 ${tabController.index} $isAddListenerToTabController",
-      );
-
       if (!isAddListenerToTabController) {
         tabController.addListener(() {
           if (!tabController.indexIsChanging) {
@@ -149,34 +132,33 @@ class _LocalMusicState extends State<LocalMusic>
             setState(() {
               currentTabIndex = tabController.index;
             });
-            // 不是tab切换后的tab为歌单列表，重置音频长按状态；如果不是，则重置歌单长按状态
 
             AudioLongPress alp = context.read<AudioLongPress>();
             ListLongPress llp = context.read<ListLongPress>();
 
-            switch (tabController.index) {
-              case 0:
-                alp.resetAudioLongPress();
-                print("主页index中tab为0 时执行了重置");
-                break;
-              case 1:
-                llp.resetListLongPress();
-                // llp.switchTabReset();
-                print("主页index中tab为1 时执行了重置");
-                break;
-              case 2:
-                // 目前歌手和专辑tab都不能长按，所以歌单或全部歌曲中有选中，切换到歌手或专辑，都重置
-                llp.resetListLongPress();
-                alp.resetAudioLongPress();
-                print("主页index中tab为2 时执行了重置");
+            llp.resetListLongPress();
+            alp.resetAudioLongPress();
 
-                break;
-              case 3:
-                llp.resetListLongPress();
-                alp.resetAudioLongPress();
-                print("主页index中tab为3 时执行了重置");
-                break;
-            }
+            // ？？？2024-01-10 这里tab有切换，不应该都重置就好了嘛？
+            // switch (tabController.index) {
+            //   case 0:
+            //     // 切换到歌单tab,重置音频长按状态
+            //     alp.resetAudioLongPress();
+            //     break;
+            //   case 1:
+            //     // 切换到全部tab,重置列表长按状态
+            //     llp.resetListLongPress();
+            //     break;
+            //   case 2:
+            //     // 目前歌手和专辑tab都不能长按，所以歌单或全部歌曲中有选中，切换到歌手或专辑，都重置
+            //     llp.resetListLongPress();
+            //     alp.resetAudioLongPress();
+            //     break;
+            //   case 3:
+            //     llp.resetListLongPress();
+            //     alp.resetAudioLongPress();
+            //     break;
+            // }
           }
         });
         // 添加了侦听器，设为 true
@@ -188,7 +170,6 @@ class _LocalMusicState extends State<LocalMusic>
           children: <Widget>[
             const Expanded(
               child: TabBarView(
-                // controller: _tabController,
                 children: <Widget>[
                   LocalMusicPlaylist(),
                   LocalMusicAll(),
@@ -211,12 +192,11 @@ class _LocalMusicState extends State<LocalMusic>
     });
   }
 
-  // 显示修改歌单名称弹窗
-  _buildRenamePlaylistDialog(BuildContext context, ListLongPress llp) async {
+  // ？？？TODO 显示修改歌单名称弹窗(一来库组件api有bug)
+  buildRenamePlaylistDialog(BuildContext context, ListLongPress llp) async {
     // 获取查询音乐组件实例
     final audioQuery = getIt<MyAudioQuery>();
 
-    print("点击了修改歌单名称");
     var playInput = llp.selectedPlaylistList[0].playlist;
     return await showDialog(
         context: context,
@@ -286,14 +266,13 @@ class _LocalMusicState extends State<LocalMusic>
         });
   }
 
-  // 显示歌单信息的弹窗
+  /// 显示歌单信息的弹窗
   _buildPlaylistInfoDialog(BuildContext context, ListLongPress llp) {
     PlaylistModel list = llp.selectedPlaylistList[0];
 
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
-        print(list.dateModified);
         return AlertDialog(
           title: const Text('歌单属性'),
           content: SizedBox(
@@ -304,16 +283,11 @@ class _LocalMusicState extends State<LocalMusic>
                 buildRowText("歌单名称", list.playlist),
                 buildRowText("歌曲数量", list.numOfSongs.toString()),
                 buildRowText("歌单编号", list.id.toString()),
+                buildRowText("创建时间", formatTimestampToString(list.dateAdded)),
                 buildRowText(
-                    "创建时间",
-                    list.dateAdded != null
-                        ? formatTimestampToString(list.dateAdded!)
-                        : ""),
-                buildRowText(
-                    "修改时间",
-                    list.dateModified != null
-                        ? formatTimestampToString(list.dateModified!)
-                        : ""),
+                  "修改时间",
+                  formatTimestampToString(list.dateModified),
+                ),
                 buildRowText("歌单位置", list.data.toString()),
               ],
             ),
@@ -350,9 +324,6 @@ class _LocalMusicState extends State<LocalMusic>
         // 如果是“全部”tab中音频被长按选中
         Consumer<AudioLongPress>(
           builder: (context, alp, child) {
-            print(
-              "xxxxxxxxxxxxxxxxxxxxxxxxxxx加入歌单 ${alp.isAudioLongPress} ",
-            );
             return alp.isAudioLongPress == LongPressStats.YES
                 ? Row(
                     children: [
@@ -385,11 +356,11 @@ class _LocalMusicState extends State<LocalMusic>
               // 如果是“歌单”tab中指定单个歌单被长按选中，可显示修改、查看详情、删除和取消选中
               return Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    tooltip: '修改歌单名称',
-                    onPressed: () => _buildRenamePlaylistDialog(context, llp),
-                  ),
+                  // IconButton(
+                  //   icon: const Icon(Icons.edit),
+                  //   tooltip: '修改歌单名称',
+                  //   onPressed: () => buildRenamePlaylistDialog(context, llp),
+                  // ),
                   IconButton(
                     icon: const Icon(Icons.info),
                     tooltip: '查看歌单详情',
