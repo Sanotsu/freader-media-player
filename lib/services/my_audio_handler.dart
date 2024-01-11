@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -88,41 +89,127 @@ class MyAudioHandler {
       default:
         songs = await _audioQuery.querySongs();
     }
+
     await buildPlaylist(songs, songs[tempList[1]]);
+  }
+
+  // 把指定音频所在的缩略图缓存起来，并记录音频编号和图片缓存的地址
+  buildArtUriCache(List<SongModel> songs) async {
+    // 如果缓存中还没有预设的占位音频缩略图，就先添加到缓存
+    if (box.read("placeholderArtUri") == null) {
+      await setDefaultArtUriFromAssets();
+    }
+
+    /// 2024-01-10 在初始化时，遍历音频文件，把查询到的音频文件的缩略图，保存到缓存中去
+    for (var e in songs) {
+      // 如果对应音频id的缩略图缓存已经存在，就不新加了
+      if (box.read(e.id.toString()) != null) {
+        continue;
+      }
+
+      // 查询指定音频的缩略图数据
+      var tempData = await _audioQuery.queryArtwork(e.id, ArtworkType.AUDIO);
+      if (tempData == null) {
+        // 音频文件没有缩略图就用预设图片
+        await box.write(e.id.toString(), box.read("placeholderArtUri"));
+        continue;
+      }
+
+      // 音频有带缩略图，就保存为缓存文件，然后缓存音频编号记录uri字符串
+      final directory = await getApplicationDocumentsDirectory();
+      final pathOfImage = await File('${directory.path}/${e.id}.png').create();
+      File imageFile = await pathOfImage.writeAsBytes(tempData);
+      await box.write(e.id.toString(), imageFile.uri.toString());
+    }
+  }
+
+  // 2024-01-10 启动时也把占位图片Uri保存到缓存
+  Future<void> setDefaultArtUriFromAssets() async {
+    // 预设当音频文件没有自带缩略图时，用来显示的预设图片位置
+    final byteData = await rootBundle.load(placeholderImageUrl);
+    final buffer = byteData.buffer;
+    // 从asset加载到缓存文件夹中
+    Directory tempDir = await getApplicationDocumentsDirectory();
+    String tempPath = tempDir.path;
+    var filePath = '$tempPath/placeholder.png';
+    final file = await File(filePath).writeAsBytes(
+      buffer.asUint8List(
+        byteData.offsetInBytes,
+        byteData.lengthInBytes,
+      ),
+    );
+
+    // 将缓存文件夹的地址保存到缓存去中，key为预设字符串
+    await box.write("placeholderArtUri", file.uri.toString());
+  }
+
+  /// 缓存所有音频的缩略图
+  Future<void> cacheAllAudioThumbnail() async {
+    /// 1 查到所有的音频文件
+    var songs = await _audioQuery.querySongs();
+
+    /// 2 将音频文件内置的缩略图缓存到app内部缓存文件夹中
+
+    // 如果缓存中还没有预设的占位音频缩略图，就先添加到缓存
+    if (box.read("placeholderArtUri") == null) {
+      await setDefaultArtUriFromAssets();
+    }
+
+    /// 2024-01-10 在初始化时，遍历音频文件，把查询到的音频文件的缩略图，保存到缓存中去
+    for (var e in songs) {
+      // 如果对应音频id的缩略图缓存已经存在，就不新加了
+      if (box.read(e.id.toString()) != null) {
+        continue;
+      }
+
+      // 查询指定音频的缩略图数据
+      var tempData = await _audioQuery.queryArtwork(e.id, ArtworkType.AUDIO);
+      if (tempData == null) {
+        // 音频文件没有缩略图就用预设图片
+        await box.write(e.id.toString(), box.read("placeholderArtUri"));
+        continue;
+      }
+
+      // 音频有带缩略图，就保存为缓存文件，然后缓存音频编号记录uri字符串
+      final directory = await getApplicationDocumentsDirectory();
+      final pathOfImage = await File('${directory.path}/${e.id}.png').create();
+      File imageFile = await pathOfImage.writeAsBytes(tempData);
+      await box.write(e.id.toString(), imageFile.uri.toString());
+    }
   }
 
   // 设置初始化播放列表源（这在app启动时就要加载完成）
   Future<void> _loadInitCurrentPlaylist() async {
-    try {
-      /// ？？？TODO 2024-01-09 暂时解释不了
-      /// 我需要先这里设置一次音源，然后再去缓存查询上次记录音乐信息才有效果，否则就查询结果是空
-      ///     有尝试寻找原因，在app.dart进行_audioHandler.myAudioHandlerInit() 前获取也是空
-      ///     在这里重复查询，等待这几个工具类实例初始化完成，还是空。从现有代码就是先设置音乐，再查询就可以
-      ///
-      ///
-      ///     但是，如果这里重复了，选择了其他歌手、专辑等分类，更新了当前播放的音乐，退出app之后再进来，可能会报错，
-      ///     Cannot set the method call handler before the binary messenger has been initialized.
-      ///     报错位置就是上面的 final _player = AudioPlayer();
-      ///     但偶尔又没有报错
-      await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
+    // try {
+    /// ？？？TODO 2024-01-09 暂时解释不了
+    /// 我需要先这里设置一次音源，然后再去缓存查询上次记录音乐信息才有效果，否则就查询结果是空
+    ///     有尝试寻找原因，在app.dart进行_audioHandler.myAudioHandlerInit() 前获取也是空
+    ///     在这里重复查询，等待这几个工具类实例初始化完成，还是空。从现有代码就是先设置音乐，再查询就可以
+    ///
+    ///
+    ///     但是，如果这里重复了，选择了其他歌手、专辑等分类，更新了当前播放的音乐，退出app之后再进来，可能会报错，
+    ///     Cannot set the method call handler before the binary messenger has been initialized.
+    ///     报错位置就是上面的 final _player = AudioPlayer();
+    ///     但偶尔又没有报错
+    await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
 
-      // 等待获取到持久化中的播放列表和索引之后，再绑定音源
-      await _getInitPlaylistAndIndex();
+    // 等待获取到持久化中的播放列表和索引之后，再绑定音源
+    await _getInitPlaylistAndIndex();
 
-      print("启动后初始化的播放列表和索引 _currentPlaylist $_currentPlaylist");
-      print(" _initIndex $_initIndex");
+    print("启动后初始化的播放列表和索引 _currentPlaylist $_currentPlaylist");
+    print(" _initIndex $_initIndex");
 
-      await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
+    await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
 
-      print(" _player $_player");
+    print(" _player $_player");
 
-      print(" _player.sequenceStateStream ${_player.sequenceStateStream}");
+    print(" _player.sequenceStateStream ${_player.sequenceStateStream}");
 
-      print(
-          "_player.sequenceStateStream.length${_player.sequenceStateStream.length}");
-    } catch (e) {
-      print("_loadInitCurrentPlaylist Error: $e");
-    }
+    print(
+        "_player.sequenceStateStream.length${_player.sequenceStateStream.length}");
+    // } catch (e) {
+    //   print("_loadInitCurrentPlaylist Error: $e");
+    // }
   }
 
   // 在播放过程中侦听错误。
@@ -135,9 +222,14 @@ class MyAudioHandler {
 
   /// ------------ 上面是内部私有方法
 
-  myAudioHandlerInit() async {
+  Future<bool> myAudioHandlerInit() async {
     try {
+      // 2024-01-11
+      // 第一步：启动app时，缓存所有音频文件的缩略图
+      await cacheAllAudioThumbnail();
+      // 第二步：构建上次退出时所播放的歌单和歌曲
       await _loadInitCurrentPlaylist();
+      // 第三步：添加在播放过程中的错误监听器
       _notifyAudioHandlerAboutPlaybackEvents();
 
       print("myAudioHandlerInit 中 正常执行，即将返回 true");
@@ -167,6 +259,9 @@ class MyAudioHandler {
       ///     2 本条 LocalPlaylistHasAudio 的row数据， "playlistHasAudio"
       ///  这里不先转换json而是直接赋值的的话，会导致因为引用类型的原因，在addAll()之后修改了原本的extrax的结构，会出问题
 
+      print(
+          '-------------${box.read(ele.id.toString())} ${box.read(ele.id.toString()).runtimeType}');
+
       // 其他的音频，顺序加入列表组件
       tempChildren.add(
         AudioSource.uri(
@@ -180,6 +275,13 @@ class MyAudioHandler {
             // 这里是得到Uint8List之后存为图片，放到临时地址，再获取该地址用于构建音源。
             // 如果在构建的歌单音频很多，那这里会花很多时间。却没有什么办法
             // artUri: await getImageFileFromAssets(ele.id),
+
+            /// 2024-01-10 新想法，在首次加载音频的时候，就把这些音频的缩略图放到缓存中，这里通过id查询该图片地址
+            /// 所以初次使用时，显示扫描的圈圈，就是构建缩略图操作，一个key value的map：{audio_id,image_path}
+            /// 之后直接从缓存取缩略图地址会快些
+            artUri: box.read(ele.id.toString()) != ""
+                ? Uri.parse(box.read(ele.id.toString()))
+                : null,
             // extras: cusExtras,
           ),
         ),
@@ -342,8 +444,6 @@ class MyAudioHandler {
   // 音频播放速度相关流和属性、方法
   int? get nextIndex => _player.nextIndex;
   int? get currentIndex => _player.currentIndex;
-
-  // ？？？获取当前播放列表和其音频索引，存入数据库中
 }
 
 /// 音频进度条位置数据（当前位置、缓存位置、总时长）

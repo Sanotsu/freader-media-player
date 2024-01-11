@@ -15,7 +15,7 @@ Future<void> main() async {
     androidNotificationChannelId: 'com.swm.freadermediaplayer',
     androidNotificationChannelName: 'Audio playback',
     androidNotificationOngoing: true,
-    notificationColor: const Color.fromARGB(1, 0, 206, 209),
+    // notificationColor: const Color.fromARGB(1, 0, 206, 209),
   );
   runApp(const FreaderApp());
 }

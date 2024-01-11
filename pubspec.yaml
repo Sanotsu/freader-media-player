@@ -42,9 +42,9 @@ dependencies:
   # 用于从设备存储中查询音频/歌曲信息[标题、艺术家、专辑等]。
   on_audio_query: ^2.9.0
   # 音乐播放组件
-  just_audio: ^0.9.33
+  just_audio: ^0.9.36
   # 配合上一个实现后台播放(其他高级音频背景播放，使用audio_service)
-  just_audio_background: ^0.0.1-beta.10
+  just_audio_background: ^0.0.1-beta.11
   # 同上配合使用，此插件会告知操作系统您的音频应用程序的性质（例如游戏、媒体播放器、助手等）以及您的应用程序将如何处理和启动音频中断（例如电话中断）
   audio_session: ^0.1.13
   # RxDart 扩展了 Dart Streams和 StreamControllers的功能 。

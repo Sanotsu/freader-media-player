@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../common/global/constants.dart';
 import '../common/utils/global_styles.dart';
 import '../services/my_audio_handler.dart';
 import '../services/my_get_storage.dart';
@@ -25,10 +26,51 @@ class _HomePageState extends State<HomePage> {
 
   final _audioHandler = getIt<MyAudioHandler>();
 
+  // 是否音频初始化加载完成
+  bool isLoading = false;
+
   static const List<Widget> _widgetOptions = <Widget>[
     LocalMusic(),
     LocalMedia(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    // app初次启动时要获取相关授权，取得之后就不需要重复请求了
+    initAudio();
+  }
+
+  // 获取存储权限
+  initAudio() async {
+    var a = box.read(GlobalConstants.currentAudioListType);
+    var b = box.read(GlobalConstants.currentAudioIndex);
+    var c = box.read(GlobalConstants.currentAudioListId);
+
+    print("【【【HOME PAGE中，myAudioHandlerInit前的 当前播放音乐:$a + $b + $c");
+
+    if (isLoading) {
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    // 获得授权后，音频控制初始化（主要从持久化数据中获取数据构建当前正在播放的音频和播放列表，没有持久化数据则是默认初始值）
+    await _audioHandler.myAudioHandlerInit();
+
+    var aa = box.read(GlobalConstants.currentAudioListType);
+    var bb = box.read(GlobalConstants.currentAudioIndex);
+    var cc = box.read(GlobalConstants.currentAudioListId);
+
+    print("【【【HOME PAGE中，await myAudioHandlerInit 之后的 当前播放音乐:$aa + $bb + $cc");
+
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -45,10 +87,8 @@ class _HomePageState extends State<HomePage> {
     ///
 
     return PopScope(
-      // 点击返回键时暂停返回
       canPop: false,
       onPopInvoked: (didPop) async {
-        print("didPop-----------$didPop");
         if (didPop) {
           return;
         }
@@ -92,8 +132,21 @@ class _HomePageState extends State<HomePage> {
         }
       },
       child: Scaffold(
+        // appBar: AppBar(title: const Text("HOME")),
         // home页的背景色(如果下层还有设定其他主题颜色，会被覆盖)
-        body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
+        body: isLoading
+            ? const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text("音频加载中……"),
+                    Text("首次使用耗时可能较长"),
+                  ],
+                ),
+              )
+            : Center(child: _widgetOptions.elementAt(_selectedIndex)),
         bottomNavigationBar: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
