@@ -11,7 +11,7 @@ import 'path_list.dart';
 /// 页面层级关系: 主页面 > 含有图片/视频的文件夹路径 > 该指定文件夹中的图片/视频列表 > 点击查看图片/播放视频
 
 class LocalMedia extends StatefulWidget {
-  const LocalMedia({Key? key}) : super(key: key);
+  const LocalMedia({super.key});
 
   @override
   State<LocalMedia> createState() => _LocalMediaState();
@@ -54,6 +54,7 @@ class _LocalMediaState extends State<LocalMedia> {
   Widget build(BuildContext context) {
     print("111 这是查询有媒体资源的主页面 index");
     return Scaffold(
+      // drawer: buildDrawer(context),
       appBar: AppBar(
         title: const Text('本地相册'),
         actions: [

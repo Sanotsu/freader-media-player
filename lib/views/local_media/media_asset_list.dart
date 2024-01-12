@@ -10,7 +10,7 @@ import 'screen/video_player_screen.dart';
 import 'widgets/image_item_widget.dart';
 
 class MediaAssetList extends StatefulWidget {
-  const MediaAssetList({Key? key, required this.list}) : super(key: key);
+  const MediaAssetList({super.key, required this.list});
 
   final List<AssetEntity> list;
 

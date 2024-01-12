@@ -11,8 +11,7 @@ import 'screen/video_player_screen.dart';
 import 'widgets/image_item_widget.dart';
 
 class PathPage extends StatefulWidget {
-  const PathPage({Key? key, required this.path, required this.pathList})
-      : super(key: key);
+  const PathPage({super.key, required this.path, required this.pathList});
 
   // 当前浏览的媒体文件属于哪一个文件夹
   final AssetPathEntity path;
@@ -54,18 +53,9 @@ class _PathPageState extends State<PathPage> {
   Widget build(BuildContext context) {
     print("333 这里是指定文件夹${widget.path.name}下文件预览界面PathPage");
 
-    return WillPopScope(
-      onWillPop: () async {
-        // 点击appbar返回按钮或者返回键时，先保持已读的进度
-        if (mounted) {
-          Navigator.pop(context, "data you want return");
-        }
-        return false;
-      },
-      child: Scaffold(
-        appBar: _buildAppBar(),
-        body: _buildAssetList(),
-      ),
+    return Scaffold(
+      appBar: _buildAppBar(),
+      body: _buildAssetList(),
     );
   }
 

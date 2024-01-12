@@ -1,19 +1,18 @@
 // ignore_for_file: avoid_print
 
+import 'dart:io';
+
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
-
 import 'package:on_audio_query/on_audio_query.dart';
-import 'package:provider/provider.dart';
 
+import '../../../common/global/constants.dart';
 import '../../../common/utils/global_styles.dart';
-import '../../../models/change_display_mode.dart';
 import '../../../services/my_audio_handler.dart';
-import '../../../services/my_shared_preferences.dart';
+import '../../../services/my_audio_query.dart';
 import '../../../services/service_locator.dart';
 import '../widgets/common.dart';
 import '../widgets/common_small_widgets.dart';
@@ -23,7 +22,7 @@ import '../widgets/common_small_widgets.dart';
 /// 因此需要传入音乐信息用于播放
 
 class JustAudioMusicPlayer extends StatefulWidget {
-  const JustAudioMusicPlayer({Key? key}) : super(key: key);
+  const JustAudioMusicPlayer({super.key});
 
   @override
   JustAudioMusicPlayerState createState() => JustAudioMusicPlayerState();
@@ -33,7 +32,8 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
     with WidgetsBindingObserver {
   final _audioHandler = getIt<MyAudioHandler>();
 
-  final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+  // 获取查询音乐组件实例
+  final _audioQuery = getIt<MyAudioQuery>();
 
   // 更新当前音乐的下一首
   late int nextAudionIndex = _audioHandler.nextIndex ?? 0;
@@ -42,11 +42,6 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
   void initState() {
     super.initState();
 
-    print("==============================");
-
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.black,
-    ));
     _init();
   }
 
@@ -67,394 +62,260 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    print("++++++++++++++但钱app的生命周期状态$state");
-
     if (state == AppLifecycleState.paused) {
-      // 在不使用时释放播放器的资源。使用 "stop"，则可以如果应用程序稍后恢复，它仍会记得从哪个位置恢复。
+      // 在不使用时释放播放器的资源。
+      // 使用 "stop"，则可以如果应用程序稍后恢复，它仍会记得从哪个位置恢复。
       _audioHandler.stop();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    ChangeDisplayMode cdm = context.watch<ChangeDisplayMode>();
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent, // 设置为透明色
+        elevation: 0, // 去除阴影
+        // 设置返回箭头颜色
+        iconTheme: IconThemeData(color: Theme.of(context).primaryColor),
+      ),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            /// 正在播放的音频区域
+            Expanded(flex: 4, child: _buildCrrentMusicInfo()),
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      // 如果指定了scaffoldMessengerKey ，则可以直接操作ScaffoldMessenger
-      //    该类提供了API，用于在屏幕的底部和顶部分别显示点心条和材料横幅。
-      scaffoldMessengerKey: _scaffoldMessengerKey,
-      home: Scaffold(
-        backgroundColor: cdm.currentDisplayMode == DisplayMode.DARK
-            ? dartThemeMaterialColor3
-            : Theme.of(context).primaryColor,
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              /// 正在播放的音频区域函数
-              Expanded(
-                flex: 4,
-                child: StreamBuilder<SequenceState?>(
-                  stream: _audioHandler.getSequenceStateStream(),
-                  builder: (context, snapshot) {
-                    final state = snapshot.data;
+            // divider看位置的，最后不用
+            // Divider(height: 2, thickness: 1.sp, color: Colors.grey),
 
-                    if (state?.sequence.isEmpty ?? true) {
-                      return const SizedBox();
-                    }
-
-                    final metadata = state!.currentSource!.tag as MediaItem;
-
-                    print(
-                      " player detail 当前正在播放的音乐： 索引 ${state.currentIndex} 专辑 ${metadata.album} 歌名 ${metadata.title}",
-                    );
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: QueryArtworkWidget(
-                              id: int.parse(metadata.id),
-                              type: ArtworkType.AUDIO,
-                              artworkWidth: 1.sw,
-                              artworkHeight: 20.sp,
-                              artworkBorder: BorderRadius.zero, // 图标边角无圆弧
-                              size: 100,
-                              keepOldArtwork: true, // 在生命周期内使用旧的缩略图
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: SingleChildScrollView(
-                            child: Column(children: [
-                              // 歌名
-                              SimpleMarqueeOrText(
-                                data: '${state.currentIndex}-${metadata.title}',
-                                style: TextStyle(fontSize: sizeHeadline0),
-                              ),
-                              // 分割占位
-                              SizedBox(height: 10.sp),
-                              // 歌手+专辑名
-                              SimpleMarqueeOrText(
-                                data:
-                                    '${metadata.artist ?? "未知歌手"} -- ${metadata.album ?? "未知专辑"}',
-                                style: TextStyle(fontSize: sizeHeadline2),
-                              ),
-                            ]),
-                          ),
-                        )
-                      ],
-                    );
-                  },
-                ),
+            /// 音频拖动进度条
+            Expanded(
+              flex: 1,
+              child: StreamBuilder<PositionData>(
+                // 当前播放位置音频数据
+                stream: _audioHandler.positionDataStream,
+                builder: (context, snapshot) {
+                  final positionData = snapshot.data;
+                  // 进度条左边是当前时间，右边是总时间
+                  return Center(
+                    child: SeekBar(
+                      duration: positionData?.duration ?? Duration.zero,
+                      position: positionData?.position ?? Duration.zero,
+                      bufferedPosition:
+                          positionData?.bufferedPosition ?? Duration.zero,
+                      onChangeEnd: (newPosition) {
+                        _audioHandler.seek(newPosition);
+                      },
+                    ),
+                  );
+                },
               ),
+            ),
 
-              // divider看位置的，最后不用
-              // Divider(height: 2, thickness: 1.sp, color: Colors.grey),
+            // divider看位置的，最后不用
+            // Divider(height: 2, thickness: 1.sp, color: Colors.grey),
 
-              /// 音频拖动进度条
-              Expanded(
-                flex: 1,
-                child: StreamBuilder<PositionData>(
-                  // 当前播放位置音频数据
-                  stream: _audioHandler.positionDataStream,
-                  builder: (context, snapshot) {
-                    final positionData = snapshot.data;
-                    // 进度条右边是剩余时间
-                    return Center(
-                      child: SeekBar(
-                        duration: positionData?.duration ?? Duration.zero,
-                        position: positionData?.position ?? Duration.zero,
-                        bufferedPosition:
-                            positionData?.bufferedPosition ?? Duration.zero,
-                        onChangeEnd: (newPosition) {
-                          _audioHandler.seek(newPosition);
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
+            /// 音频控制按钮区域
+            Expanded(
+              flex: 1,
+              child: Center(
+                child: ControlButtons(
+                  callback: (value) {
+                    // 播放主页面点击了任何按钮，都要返回下一首歌的索引，用来创建下一首歌的概要信息
+                    // 点击上下一曲、列表循环切换、随机播放等按钮都会改变下一首歌的索引
 
-              // divider看位置的，最后不用
-              // Divider(height: 2, thickness: 1.sp, color: Colors.grey),
-
-              /// 音频控制按钮区域
-              Expanded(
-                flex: 1,
-                child: Center(
-                  child: ControlButtons(
-                    callback: (value) {
-                      print("xxxxxxxxxxxxxxxxxxxxx$value");
+                    // 2024-01-12 因此可能存在列表就1首歌，那么控制按钮组件返回的上/下一个音频的编号可能为null
+                    // 所以这里要判断先
+                    if (value is int) {
                       setState(() {
                         nextAudionIndex = value;
                       });
-                    },
-                  ),
+                    }
+                  },
                 ),
               ),
+            ),
 
-              // Divider(height: 2, thickness: 1.sp, color: Colors.grey),
+            // divider看位置的，最后不用
+            // Divider(height: 2, thickness: 1.sp, color: Colors.grey),
 
-              /// 下一曲概述
-              Expanded(
-                flex: 1,
-                child: SizedBox(
-                  height: 8.sp,
-                  child: FutureBuilder(
-                    future: _audioHandler.getLoopModeValue(),
-                    builder: (context, AsyncSnapshot<LoopMode> snapshot) {
-                      if (snapshot.hasError) {
-                        return Text(snapshot.error.toString());
-                      }
-
-                      final loopMode = snapshot.data ?? LoopMode.off;
-
-                      // 因为下一曲的索引在初始化的时候就直接取得next，所以如果模式是单曲循环，则重置为当前的
-                      if (loopMode == LoopMode.one) {
-                        nextAudionIndex = _audioHandler.currentIndex!;
-                      }
-                      // 获取下一首音乐的基本信息并构建显示内容
-                      AudioSource temp = _audioHandler.getAudioSourceByIndex(
-                        nextAudionIndex,
-                      );
-
-                      final metadata = temp.sequence.first.tag as MediaItem;
-                      var nextInfo =
-                          "下一首：$nextAudionIndex-${metadata.title}-${metadata.artist}";
-
-                      return SizedBox(
-                        // 这个会让下面的 simpleMarqueeOrText 设置的宽度无效
-                        width: double.infinity,
-                        child: Padding(
-                          padding: EdgeInsets.all(2.sp),
-                          child: Card(
-                            elevation: 10.sp,
-                            color: cdm.currentDisplayMode == DisplayMode.DARK
-                                ? dartThemeMaterialColor2
-                                : Theme.of(context).primaryColor,
-                            child: SimpleMarqueeOrText(
-                              data: nextInfo,
-                              style: TextStyle(fontSize: sizeContent0),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              )
-            ],
-          ),
-        ),
-        // 左上角一个悬空的返回箭头按钮
-        floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
-        floatingActionButton: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white, size: 30.sp),
-          onPressed: () => Navigator.of(context).pop(),
+            /// 下一曲概述
+            Expanded(flex: 1, child: _buildNextMusicInfo())
+          ],
         ),
       ),
+      // 左上角一个悬空的返回箭头按钮
+      // 2024-01-12 有透明的appbar的话就不要这个类
+      // floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
+      // floatingActionButton: IconButton(
+      //   icon: Icon(Icons.arrow_back, size: 30.sp),
+      //   onPressed: () => Navigator.of(context).pop(),
+      // ),
     );
   }
-}
 
-/// 当前歌曲控制按钮具体实现
-/// 音量、上一曲、暂停/播放、下一曲、倍速
-class ControlButtons extends StatefulWidget {
-  const ControlButtons({super.key, required this.callback});
+  /// 当前音频信息区域
+  // 2024-01-12 在新手机上(andriod13的努比亚z50ultra)看到缩略图很糊，所以修改一下显示大小
+  _buildCrrentMusicInfo() {
+    return StreamBuilder<SequenceState?>(
+      stream: _audioHandler.getSequenceStateStream(),
+      builder: (context, snapshot) {
+        final state = snapshot.data;
 
-  final Function callback;
+        if (state?.sequence.isEmpty ?? true) {
+          return const SizedBox();
+        }
 
-  @override
-  State<ControlButtons> createState() => _ControlButtonsState();
-}
+        final metadata = state!.currentSource!.tag as MediaItem;
 
-class _ControlButtonsState extends State<ControlButtons> {
-  final _audioHandler = getIt<MyAudioHandler>();
-  // 统一简单存储操作的工具类实例
-  final _simpleShared = getIt<MySharedPreferences>();
+        print(
+          " player detail 当前正在播放的音乐： 索引 ${state.currentIndex} 专辑 ${metadata.album} 歌名 ${metadata.title}",
+        );
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ///> 播放方式切换按钮（单曲循环、列表循环、不循环）
+        print(metadata.artUri);
 
-        FutureBuilder<LoopMode>(
-          future: _audioHandler.getLoopModeValue(),
-          builder: (BuildContext context, AsyncSnapshot<LoopMode> snapshot) {
-            if (snapshot.hasError) {
-              return Text(snapshot.error.toString());
-            }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              flex: 9,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(0.15.sw, 0, 0.15.sw, 0.1.sw),
+                child: SizedBox(
+                  width: 1.0.sw,
+                  child: metadata.artUri != null
+                      ? Image.file(
+                          File.fromUri(metadata.artUri!),
+                          fit: BoxFit.fitWidth,
+                          filterQuality: FilterQuality.high,
+                        )
+                      : Image.asset(
+                          placeholderImageUrl,
+                          fit: BoxFit.fitWidth,
+                        ),
+                ),
 
-            final loopMode = snapshot.data ?? LoopMode.off;
+                /// 2024-01-12 这两者加载的图片在z50ultra都不清晰。但1080P的小米6 效果好很多
+                // QueryArtworkWidget(
+                //   id: int.parse(metadata.id),
+                //   type: ArtworkType.AUDIO,
+                //   artworkQuality: FilterQuality.high,
+                //   artworkWidth: 1.sw,
+                //   artworkBorder: BorderRadius.zero, // 图标边角无圆弧
+                //   keepOldArtwork: true, // 在生命周期内使用旧的缩略图
+                //   // 没有歌曲缩略图时使用占位图
+                //   nullArtworkWidget: SizedBox(
+                //     width: 1.sw,
+                //     child: Image.asset(
+                //       placeholderImageUrl,
+                //       fit: BoxFit.cover,
+                //     ),
+                //   ),
+                // ),
+              ),
+            ),
+            Expanded(
+              flex: 3,
+              child: SingleChildScrollView(
+                child: Column(children: [
+                  // 歌名
+                  SimpleMarqueeOrText(
+                    data: '${state.currentIndex}-${metadata.title}',
+                    style: TextStyle(fontSize: sizeHeadline0),
+                  ),
+                  // 分割占位
+                  SizedBox(height: 10.sp),
+                  // 歌手+专辑名
+                  SimpleMarqueeOrText(
+                    data:
+                        '${metadata.artist ?? "未知歌手"} -- ${metadata.album ?? "未知专辑"}',
+                    style: TextStyle(fontSize: sizeHeadline2),
+                  ),
+                ]),
+              ),
+            ),
 
-            // 得到持久化的循环模式数据，要执行它才会生效
-            _audioHandler.setRepeatMode(loopMode);
+            /// 2024-01-10 避免有些音频嵌入的信息是乱码，显示一个音频所在的地址辅助显示查看
+            Expanded(
+              flex: 1,
+              child: FutureBuilder<List<dynamic>>(
+                  future: _audioQuery.queryWithFilters(
+                    metadata.title,
+                    WithFiltersType.AUDIOS,
+                  ),
+                  builder: (context, item) {
+                    // 有错显示错误
+                    if (item.hasError) {
+                      return Center(child: Text(item.error.toString()));
+                    }
+                    // 无数据转圈等到加载完成
+                    if (item.data == null) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    // 数据为空显示无结果
+                    if (item.data!.isEmpty) {
+                      return const Center(child: Text("暂无音频信息"));
+                    }
 
-            // 显示对应循环模式的图标
-            const icons = [
-              Icon(Icons.repeat, color: Colors.orange),
-              Icon(Icons.repeat_one, color: Colors.orange),
-              Icon(Icons.repeat, color: Colors.grey),
-            ];
-            const cycleModes = [
-              LoopMode.all,
-              LoopMode.one,
-              LoopMode.off,
-            ];
-            final index = cycleModes.indexOf(loopMode);
+                    // 得到查询的歌单列表
+                    List<SongModel> audios = item.data!.toSongModel();
 
-            print("player detail中的loopMode-$loopMode index $index");
+                    // 滚动显示音频所在的地址，清除前面部分内容
+                    // 在Android上，音频内部存储地址默认前缀是`/storage/emulated/0`
+                    return SimpleMarqueeOrText(
+                      data: audios.isNotEmpty
+                          ? "存储位置: ${audios[0].data.substring(19)}"
+                          : '',
+                      style: TextStyle(fontSize: 12.sp),
+                    );
+                  }),
+            )
+          ],
+        );
+      },
+    );
+  }
 
-            return IconButton(
-              icon: icons[index],
-              iconSize: 32.sp,
-              onPressed: () async {
-                print(
-                  "当前 $loopMode 点击loopmode的索引  ${(cycleModes.indexOf(loopMode) + 1) % cycleModes.length}",
-                );
-                var temp = cycleModes[
-                    (cycleModes.indexOf(loopMode) + 1) % cycleModes.length];
-                setState(() {
-                  _audioHandler.setRepeatMode(temp);
-                });
-                await _simpleShared.setCurrentCycleMode(temp.toString());
-              },
-            );
-          },
-        ),
+  /// 下一首音频概要信息区域
+  _buildNextMusicInfo() {
+    return FutureBuilder(
+      future: _audioHandler.getLoopModeValue(),
+      builder: (context, AsyncSnapshot<LoopMode> snapshot) {
+        if (snapshot.hasError) {
+          return Text(snapshot.error.toString());
+        }
 
-        /// 上一曲按钮
+        final loopMode = snapshot.data ?? LoopMode.off;
 
-        StreamBuilder<SequenceState?>(
-          stream: _audioHandler.getSequenceStateStream(),
-          builder: (context, snapshot) => IconButton(
-            icon: const Icon(Icons.skip_previous),
-            iconSize: 32.sp,
-            onPressed: _audioHandler.hasPrevious()
-                ? () async {
-                    // 要确保跳转完成之后再获取下一首的索引，否则可能就是当前正常播放的索引
-                    await _audioHandler.seekToPrevious();
-                    // 通过回调函数的方式，把下一首歌曲的所以传递个父级，用于构建下一曲的预览
-                    widget.callback(_audioHandler.nextIndex);
-                  }
-                : null,
+        // 因为下一曲的索引在初始化的时候就直接取得next，所以如果模式是单曲循环，则重置为当前的
+        if (loopMode == LoopMode.one) {
+          nextAudionIndex = _audioHandler.currentIndex!;
+        }
+        // 获取下一首音乐的基本信息并构建显示内容
+        AudioSource temp = _audioHandler.getAudioSourceByIndex(
+          nextAudionIndex,
+        );
+
+        final metadata = temp.sequence.first.tag as MediaItem;
+        var nextInfo =
+            "下一首：$nextAudionIndex-${metadata.title}-${metadata.artist}";
+
+        return SizedBox(
+          // 这个会让下面的 simpleMarqueeOrText 设置的宽度无效
+          width: double.infinity,
+          child: Padding(
+            padding: EdgeInsets.all(5.sp),
+            child: Card(
+              elevation: 5.sp,
+              child: SimpleMarqueeOrText(
+                data: nextInfo,
+                style: TextStyle(fontSize: sizeContent0),
+              ),
+            ),
           ),
-        ),
-
-        /// 播放/暂停/再次播放 按钮
-
-        StreamBuilder<PlayerState>(
-          stream: _audioHandler.getPlayerStateStream(),
-          builder: (context, snapshot) {
-            final playerState = snapshot.data;
-            final processingState = playerState?.processingState;
-            final playing = playerState?.playing;
-            if (processingState == ProcessingState.loading ||
-                processingState == ProcessingState.buffering) {
-              return Container(
-                margin: EdgeInsets.all(8.sp),
-                width: 64.sp,
-                height: 64.sp,
-                child: const CircularProgressIndicator(),
-              );
-            } else if (playing != true) {
-              return IconButton(
-                icon: const Icon(Icons.play_arrow),
-                iconSize: 64.sp,
-                onPressed: () => _audioHandler.play(),
-              );
-            } else if (processingState != ProcessingState.completed) {
-              return IconButton(
-                icon: const Icon(Icons.pause),
-                iconSize: 64.sp,
-                onPressed: () => _audioHandler.pause(),
-              );
-            } else {
-              return IconButton(
-                icon: const Icon(Icons.replay),
-                iconSize: 64.sp,
-                onPressed: () => _audioHandler.seek(Duration.zero,
-                    index: _audioHandler.getEffectiveIndices()!.first),
-              );
-            }
-          },
-        ),
-
-        /// 下一曲按钮
-        StreamBuilder<SequenceState?>(
-          stream: _audioHandler.getSequenceStateStream(),
-          builder: (context, snapshot) => IconButton(
-            icon: const Icon(Icons.skip_next),
-            iconSize: 32.sp,
-            onPressed: _audioHandler.hasNext()
-                ? () async {
-                    // 要确保跳转完成之后再获取下一首的索引，否则可能就是当前正常播放的索引
-                    await _audioHandler.seekToNext();
-                    // 通过回调函数的方式，把下一首歌曲的所以传递个父级，用于构建下一曲的预览
-                    widget.callback(_audioHandler.nextIndex);
-                  }
-                : null,
-          ),
-        ),
-
-        ///> 随机播放的图标按钮
-
-        FutureBuilder<bool>(
-          future: _audioHandler.getShuffleModeEnabledValue(),
-          builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-            print(
-              "当前 点ssssssssssssssssssssssssss ${snapshot.hasData} ${snapshot.data}",
-            );
-
-            if (snapshot.hasError) {
-              return Text(snapshot.error.toString());
-            }
-            if (!snapshot.hasData) {
-              return Text(snapshot.error.toString());
-            }
-
-            print(
-              "当前 点击 随机播放 的索引 snapshot.data ${snapshot.data}",
-            );
-
-            final shuffleModeEnabled = snapshot.data ?? false;
-            // 得到持久化的随机状态数据，要执行它才会生效
-            _audioHandler.setShuffleModeEnabled(shuffleModeEnabled);
-
-            return IconButton(
-              icon: shuffleModeEnabled
-                  ? const Icon(Icons.shuffle, color: Colors.orange)
-                  : const Icon(Icons.shuffle, color: Colors.grey),
-              iconSize: 32.sp,
-              onPressed: () async {
-                final enable = !shuffleModeEnabled;
-                print(
-                  "当前 点击 随机播放 后  $enable",
-                );
-
-                setState(() {
-                  if (enable) {
-                    _audioHandler.shuffle();
-                  }
-                  _audioHandler.setShuffleModeEnabled(enable);
-                  _simpleShared.setCurrentIsShuffleMode(enable.toString());
-                });
-              },
-            );
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 }

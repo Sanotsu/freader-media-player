@@ -5,6 +5,8 @@ import 'layout/app.dart';
 import 'services/service_locator.dart';
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   // 启动时注册service
   await setupServiceLocator();
 

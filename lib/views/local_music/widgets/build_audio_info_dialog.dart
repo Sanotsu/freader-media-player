@@ -66,15 +66,13 @@ buildAudioInfoDialog(BuildContext context, AudioLongPress alp) {
                         buildRowText("歌手", list[0].artist ?? "未知歌手"),
                         buildRowText("专辑", list[0].album ?? "未知专辑"),
                         buildRowText(
-                            "修改时间",
-                            list[0].dateModified != null
-                                ? formatTimestampToString(list[0].dateModified!)
-                                : ""),
+                          "修改时间",
+                          formatTimestampToString(list[0].dateModified),
+                        ),
                         buildRowText(
-                            "获取时间",
-                            list[0].dateAdded != null
-                                ? formatTimestampToString(list[0].dateAdded!)
-                                : ""),
+                          "获取时间",
+                          formatTimestampToString(list[0].dateAdded),
+                        ),
                       ],
                     ),
             );

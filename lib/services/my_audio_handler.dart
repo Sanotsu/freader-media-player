@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -10,7 +11,7 @@ import 'package:rxdart/rxdart.dart';
 
 import '../common/global/constants.dart';
 import 'my_audio_query.dart';
-import 'my_shared_preferences.dart';
+import 'my_get_storage.dart';
 import 'service_locator.dart';
 
 /// 单例的audio player，以及他的一些方法
@@ -27,20 +28,20 @@ class MyAudioHandler {
   final _audioQuery = getIt<MyAudioQuery>();
 
   // 统一简单存储操作的工具类实例
-  final _simpleShared = getIt<MySharedPreferences>();
+  final _simpleStorage = getIt<MyGetStorage>();
 
   // 构造函数（原本在构造函数中执行初始化，现在在获得授权后在app处初始化）
-  MyAudioHandler();
+  // MyAudioHandler();
 
   // 获取当前播放列表和当前音乐索引（正常来讲，这个会存入db）
   // 其他情况改变了当前列表，则额外处理
   Future<void> _getInitPlaylistAndIndex() async {
-    print("这是在_getInitPlaylistAndIndex");
     // 获取当前的播放列表数据
     // 这个list有依次3个值：当前列表类型、当前音频在列表中的索引、当前播放列表编号
-    var tempList = await _simpleShared.getCurrentAudioInfo();
+    var tempList = await _simpleStorage.getCurrentAudioInfo();
 
-    print("$tempList,,,,,,${tempList[0]},,,,${AudioListTypes.all}");
+    print(
+        "listType ${tempList[0]}, audioIndex ${tempList[1]}, playlistId ${tempList[2]}");
 
     List<SongModel> songs;
     switch (tempList[0]) {
@@ -87,20 +88,128 @@ class MyAudioHandler {
       default:
         songs = await _audioQuery.querySongs();
     }
+
     await buildPlaylist(songs, songs[tempList[1]]);
+  }
+
+  // 把指定音频所在的缩略图缓存起来，并记录音频编号和图片缓存的地址
+  buildArtUriCache(List<SongModel> songs) async {
+    // 如果缓存中还没有预设的占位音频缩略图，就先添加到缓存
+    if (box.read("placeholderArtUri") == null) {
+      await setDefaultArtUriFromAssets();
+    }
+
+    /// 2024-01-10 在初始化时，遍历音频文件，把查询到的音频文件的缩略图，保存到缓存中去
+    for (var e in songs) {
+      // 如果对应音频id的缩略图缓存已经存在，就不新加了
+      if (box.read(e.id.toString()) != null) {
+        continue;
+      }
+
+      // 查询指定音频的缩略图数据
+      var tempData = await _audioQuery.queryArtwork(e.id, ArtworkType.AUDIO);
+      if (tempData == null) {
+        // 音频文件没有缩略图就用预设图片
+        await box.write(e.id.toString(), box.read("placeholderArtUri"));
+        continue;
+      }
+
+      // 音频有带缩略图，就保存为缓存文件，然后缓存音频编号记录uri字符串
+      final directory = await getApplicationDocumentsDirectory();
+      final pathOfImage = await File('${directory.path}/${e.id}.png').create();
+      File imageFile = await pathOfImage.writeAsBytes(tempData);
+      await box.write(e.id.toString(), imageFile.uri.toString());
+    }
+  }
+
+  // 2024-01-10 启动时也把占位图片Uri保存到缓存
+  Future<void> setDefaultArtUriFromAssets() async {
+    // 预设当音频文件没有自带缩略图时，用来显示的预设图片位置
+    final byteData = await rootBundle.load(placeholderImageUrl);
+    final buffer = byteData.buffer;
+    // 从asset加载到缓存文件夹中
+    Directory tempDir = await getApplicationDocumentsDirectory();
+    String tempPath = tempDir.path;
+    var filePath = '$tempPath/placeholder.png';
+    final file = await File(filePath).writeAsBytes(
+      buffer.asUint8List(
+        byteData.offsetInBytes,
+        byteData.lengthInBytes,
+      ),
+    );
+
+    // 将缓存文件夹的地址保存到缓存去中，key为预设字符串
+    await box.write("placeholderArtUri", file.uri.toString());
+  }
+
+  /// 缓存所有音频的缩略图
+  Future<void> cacheAllAudioThumbnail() async {
+    /// 1 查到所有的音频文件
+    var songs = await _audioQuery.querySongs();
+
+    /// 2 将音频文件内置的缩略图缓存到app内部缓存文件夹中
+
+    // 如果缓存中还没有预设的占位音频缩略图，就先添加到缓存
+    if (box.read("placeholderArtUri") == null) {
+      await setDefaultArtUriFromAssets();
+    }
+
+    /// 2024-01-10 在初始化时，遍历音频文件，把查询到的音频文件的缩略图，保存到缓存中去
+    for (var e in songs) {
+      // 如果对应音频id的缩略图缓存已经存在，就不新加了
+      if (box.read(e.id.toString()) != null) {
+        continue;
+      }
+
+      // 查询指定音频的缩略图数据
+      var tempData = await _audioQuery.queryArtwork(e.id, ArtworkType.AUDIO);
+      if (tempData == null) {
+        // 音频文件没有缩略图就用预设图片
+        await box.write(e.id.toString(), box.read("placeholderArtUri"));
+        continue;
+      }
+
+      // 音频有带缩略图，就保存为缓存文件，然后缓存音频编号记录uri字符串
+      final directory = await getApplicationDocumentsDirectory();
+      final pathOfImage = await File('${directory.path}/${e.id}.png').create();
+      File imageFile = await pathOfImage.writeAsBytes(tempData);
+      await box.write(e.id.toString(), imageFile.uri.toString());
+    }
   }
 
   // 设置初始化播放列表源（这在app启动时就要加载完成）
   Future<void> _loadInitCurrentPlaylist() async {
     try {
+      /// ？？？TODO 2024-01-09 暂时解释不了
+      /// 我需要先这里设置一次音源，然后再去缓存查询上次记录音乐信息才有效果，否则就查询结果是空
+      ///     有尝试寻找原因，在app.dart进行_audioHandler.myAudioHandlerInit() 前获取也是空
+      ///     在这里重复查询，等待这几个工具类实例初始化完成，还是空。从现有代码就是先设置音乐，再查询就可以
+      ///
+      ///     但是，如果这里重复了，选择了其他歌手、专辑等分类，更新了当前播放的音乐，退出app之后再进来，可能会报错，
+      ///     Cannot set the method call handler before the binary messenger has been initialized.
+      ///     报错位置就是上面的 final _player = AudioPlayer();
+      ///     但偶尔又没有报错
+      ///
+      ///  2024-01-12 不先设置好像缓存中上次播放内容又不是null了
+      // await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
+
+      // TEST
+      // var [a, b, c] = await _simpleStorage.getCurrentAudioInfo();
+
+      // print("TEST】】】】 初始化当前播放列表和音频【前】读取的缓存:");
+      // print("listType $a, audioIndex $b, playlistId $c");
+
       // 等待获取到持久化中的播放列表和索引之后，再绑定音源
       await _getInitPlaylistAndIndex();
-      await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
 
-      print(
-          "_player.sequenceStateStream.length${_player.sequenceStateStream.length}");
+      // TEST
+      // var [aa, bb, cc] = await _simpleStorage.getCurrentAudioInfo();
+      // print("TEST】】】】 初始化当前播放列表和音频【后】读取的缓存:");
+      // print("listType $aa, audioIndex $bb, playlistId $cc");
+
+      await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
     } catch (e) {
-      print("_loadInitCurrentPlaylist Error: $e");
+      print("【Error】 --- in _loadInitCurrentPlaylist : $e");
     }
   }
 
@@ -108,21 +217,25 @@ class MyAudioHandler {
   void _notifyAudioHandlerAboutPlaybackEvents() {
     _player.playbackEventStream.listen((event) {},
         onError: (Object e, StackTrace stackTrace) {
-      print('A stream error occurred: $e');
+      print("【Error】 --- in _notifyAudioHandlerAboutPlaybackEvents : $e");
     });
   }
 
   /// ------------ 上面是内部私有方法
 
-  myAudioHandlerInit() async {
+  Future<bool> myAudioHandlerInit() async {
     try {
+      // 2024-01-11
+      // 第一步：启动app时，缓存所有音频文件的缩略图
+      await cacheAllAudioThumbnail();
+      // 第二步：构建上次退出时所播放的歌单和歌曲
       await _loadInitCurrentPlaylist();
+      // 第三步：添加在播放过程中的错误监听器
       _notifyAudioHandlerAboutPlaybackEvents();
 
-      print("myAudioHandlerInit 中 正常执行，即将返回 true");
       return true;
     } catch (e) {
-      print("myAudioHandlerInit 中 出错:$e");
+      print("【Error】 --- in myAudioHandlerInit : $e");
       return false;
     }
   }
@@ -159,6 +272,13 @@ class MyAudioHandler {
             // 这里是得到Uint8List之后存为图片，放到临时地址，再获取该地址用于构建音源。
             // 如果在构建的歌单音频很多，那这里会花很多时间。却没有什么办法
             // artUri: await getImageFileFromAssets(ele.id),
+
+            /// 2024-01-10 新想法，在首次加载音频的时候，就把这些音频的缩略图放到缓存中，这里通过id查询该图片地址
+            /// 所以初次使用时，显示扫描的圈圈，就是构建缩略图操作，一个key value的map：{audio_id,image_path}
+            /// 之后直接从缓存取缩略图地址会快些
+            artUri: box.read(ele.id.toString()) != ""
+                ? Uri.parse(box.read(ele.id.toString()))
+                : null,
             // extras: cusExtras,
           ),
         ),
@@ -167,10 +287,6 @@ class MyAudioHandler {
 
     // 构建新的播放列表就直接替换，在原列表上新增或删除在使用add、remove等方法修改
     _currentPlaylist = ConcatenatingAudioSource(children: tempChildren);
-
-    print("****************");
-    print(_currentPlaylist);
-    print(_initIndex);
   }
 
   // 获取指定音频的artwork UInt8List数据，转为file并返回其uri
@@ -267,12 +383,12 @@ class MyAudioHandler {
 
   // Stream<LoopMode> getLoopModeStream() => _player.loopModeStream;
   Future<Stream<LoopMode>> getLoopModeStream() async {
-    var temp = await _simpleShared.getCurrentCycleMode();
+    var temp = await _simpleStorage.getCurrentCycleMode();
     return BehaviorSubject.seeded(temp).stream;
   }
 
   Future<LoopMode> getLoopModeValue() async {
-    var temp = await _simpleShared.getCurrentCycleMode();
+    var temp = await _simpleStorage.getCurrentCycleMode();
     return BehaviorSubject.seeded(temp).stream.value;
   }
 
@@ -281,12 +397,12 @@ class MyAudioHandler {
 
   // 持久化数据中获取
   Future<Stream<bool>> getShuffleModeEnabledStream() async {
-    var temp = await _simpleShared.getCurrentIsShuffleMode();
+    var temp = await _simpleStorage.getCurrentIsShuffleMode();
     return BehaviorSubject.seeded(temp).stream;
   }
 
   Future<bool> getShuffleModeEnabledValue() async {
-    var temp = await _simpleShared.getCurrentIsShuffleMode();
+    var temp = await _simpleStorage.getCurrentIsShuffleMode();
     return BehaviorSubject.seeded(temp).stream.value;
   }
 
@@ -321,8 +437,6 @@ class MyAudioHandler {
   // 音频播放速度相关流和属性、方法
   int? get nextIndex => _player.nextIndex;
   int? get currentIndex => _player.currentIndex;
-
-  // ？？？获取当前播放列表和其音频索引，存入数据库中
 }
 
 /// 音频进度条位置数据（当前位置、缓存位置、总时长）

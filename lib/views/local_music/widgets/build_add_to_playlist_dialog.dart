@@ -135,6 +135,9 @@ Future<void> buildAddToPlaylistDialog(
               child: const Text('添加'),
               onPressed: () {
                 // 添加被选中的音频到指定歌单
+
+                print("<<<<<<<<向歌单添加歌曲时被选中的歌单编号$selectedPlaylistId");
+
                 addAudioToPlaylist(
                     audioQuery, alp, selectedPlaylistId ?? 0, listType);
 

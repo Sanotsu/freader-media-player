@@ -16,10 +16,10 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 0.2.0
+version: 0.2.1-beta+1
 
 environment:
-  sdk: ">=2.19.5 <3.0.0"
+    sdk: '>=3.0.1 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -33,55 +33,58 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
+  cupertino_icons: ^1.0.6
   # flutter 屏幕适配方案，用于调整屏幕和字体大小的flutter插件，让你的UI在不同尺寸的屏幕上都能显示合理的布局!
-  flutter_screenutil: ^5.7.0
+  flutter_screenutil: ^5.9.0
   # 国际化（多国语言）
   flutter_localizations:
     sdk: flutter
-  # 为简单数据包装特定于平台的持久存储（持久化简单key-value数据）
-  shared_preferences: ^2.1.0
   # 用于从设备存储中查询音频/歌曲信息[标题、艺术家、专辑等]。
   on_audio_query: ^2.9.0
   # 音乐播放组件
-  just_audio: ^0.9.33
+  just_audio: ^0.9.36
   # 配合上一个实现后台播放(其他高级音频背景播放，使用audio_service)
-  just_audio_background: ^0.0.1-beta.10
+  just_audio_background: ^0.0.1-beta.11
   # 同上配合使用，此插件会告知操作系统您的音频应用程序的性质（例如游戏、媒体播放器、助手等）以及您的应用程序将如何处理和启动音频中断（例如电话中断）
-  audio_session: ^0.1.13
+  audio_session: ^0.1.18
   # RxDart 扩展了 Dart Streams和 StreamControllers的功能 。
   rxdart: ^0.27.7
   # GetIt是一个简单的直接服务定位器，允许将接口与具体实现分离，并从应用程序的任何地方访问具体实现(一个单例的工具箱)。
-  get_it: ^7.6.0
+  get_it: ^7.6.6
   # InheritedWidget的包装器 ，使它们更易于使用和可重用。（子孙传值、简单应用状态管理之类的）
-  provider: ^6.0.5
-  # 国际化，时间格式化等工具类（0.17.0版本与flutter_localizations版本关联，更新的不行）
-  # intl: 0.17.0
-  intl: ^0.18.0
+  provider: ^6.1.1
+  # 国际化，时间格式化等工具类
+  intl: ^0.18.1
   # 文本跑马灯滚动
   marquee: ^2.2.3
   # 权限请求管理
-  permission_handler: ^10.2.0
-  # 生成随机头像（用于测试娱乐，实际功能不需要）
-  random_avatar: ^0.0.8
+  permission_handler: ^11.1.0
   # 文件系统中获取用户可用的地址
-  path_provider: ^2.0.15
+  path_provider: ^2.1.2
   # 包含用于在不同数据表示之间进行转换的编码器和解码器。dart:convert的补充
   convert: ^3.1.1
   # 加密库
   crypto: ^3.0.3
   # 音频播放
-  video_player: ^2.6.1
+  video_player: ^2.8.2
   # video player包装器，更方便使用
-  flick_video_player: ^0.5.0
+  flick_video_player: ^0.7.0
   # 包装现有组件检测可见性
   visibility_detector: ^0.4.0+2
   # 一个插件，提供资产抽象管理API，无需UI集成，可以在Android、iOS和macOS上获取asset（图像/视频/音频）。
-  photo_manager: ^2.6.0
+  # 2024-01-08 要使用开发版本，否则出现Type 'DecoderCallback' not found.问题而无法编译
+  photo_manager: ^3.0.0-dev.5
+  # 2024-01-08 原本使用的AssetEntityImage 类变成这个单独的包了
+  photo_manager_image_provider: ^2.1.0
   # 使用视频创建缩略图
   video_thumbnail: ^0.5.3
   # 图片预览操作等
   photo_view: ^0.14.0
+  # shared_preferences持久话可能会丢失，使用这个代替
+  get_storage: ^2.1.1
+  # 获取设备信息，比如Android版本之类的
+  # 2024-01-12(9.x和flick_video_player0.7.0有冲突)
+  device_info_plus: ^8.2.2
 
 dev_dependencies:
   flutter_test:
@@ -92,7 +95,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.1
+  flutter_lints: ^3.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

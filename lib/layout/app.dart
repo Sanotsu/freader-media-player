@@ -1,24 +1,18 @@
 // ignore_for_file: avoid_print
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
-import '../common/global/constants.dart';
-import '../models/change_display_mode.dart';
-import '../services/my_audio_handler.dart';
-import '../services/service_locator.dart';
 import 'home.dart';
 
 class FreaderApp extends StatelessWidget {
-  const FreaderApp({Key? key}) : super(key: key);
-
-  // 获取登陆信息，如果已经登录，则进入homepage，否则进入登录页面
-
-  final isLogin = false;
+  const FreaderApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -42,6 +36,7 @@ class FreaderApp extends StatelessWidget {
           locale: const Locale('zh'),
           theme: ThemeData(
             primarySwatch: Colors.blue,
+            useMaterial3: false,
           ),
           home: const MyHomePage(),
         );
@@ -51,68 +46,94 @@ class FreaderApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  const MyHomePage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _MyHomePageState createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool isLogin = false;
+  // 当处于加载中时，显示空白(默认加载中，直到获取存储权限完成)
+  bool isLoading = true;
 
+  // 是否获得了存储权限(每获得就要退出app)
   bool isPermissionGranted = false;
-
-  // 音乐播放实例
-  final _audioHandler = getIt<MyAudioHandler>();
 
   @override
   void initState() {
     super.initState();
-    getLoginState();
+
     // app初次启动时要获取相关授权，取得之后就不需要重复请求了
     _requestPermission();
   }
 
-  // 获取登陆状态
-  Future<void> getLoginState() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      // 如果获取的登录状态字符串是 true，则表示登入过；否则就是没有登入过
-      isLogin = (prefs.getBool(GlobalConstants.loginState) ?? false);
-
-      print("isLogin-------$isLogin");
-    });
-  }
-
   // 获取存储权限
   _requestPermission() async {
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.storage,
-    ].request();
+    /// 2024-01-12 直接询问存储权限，不给就直接显示退出就好
+    // 2024-01-12 Android13之后，没有storage权限了，取而代之的是：
+    // Permission.photos, Permission.videos or Permission.audio等
+    // 参看:https://github.com/Baseflow/flutter-permission-handler/issues/1247
+    if (Platform.isAndroid) {
+      // 获取设备sdk版本
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      int sdkInt = androidInfo.version.sdkInt;
 
-    setState(() {
-      isPermissionGranted = true;
-    });
+      if (sdkInt <= 32) {
+        PermissionStatus storageStatus = await Permission.storage.request();
+        setState(() {
+          if (storageStatus.isGranted) {
+            isPermissionGranted = true;
+          } else {
+            isPermissionGranted = false;
+          }
+          isLoading = false;
+        });
+      } else {
+        Map<Permission, PermissionStatus> statuses = await [
+          Permission.audio,
+          Permission.photos,
+          Permission.videos,
+        ].request();
 
-    final info = statuses[Permission.storage].toString();
-    print("_requestPermission------------------$info");
-
-    // 获得授权后，音频控制初始化（主要从持久化数据中获取数据构建当前正在播放的音频和播放列表，没有持久化数据则是默认初始值）
-    _audioHandler.myAudioHandlerInit();
+        if (statuses[Permission.audio]!.isGranted &&
+            statuses[Permission.photos]!.isGranted &&
+            statuses[Permission.videos]!.isGranted) {
+          setState(() {
+            isPermissionGranted = true;
+            isLoading = false;
+          });
+        } else {
+          setState(() {
+            isPermissionGranted = false;
+            isLoading = false;
+          });
+        }
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ChangeDisplayMode()),
-      ],
-      child: isLogin
-          ? const HomePage()
-          : isPermissionGranted
-              ? const HomePage()
-              : const Image(image: AssetImage('assets/launch_background.png')),
-    );
+    return isLoading
+        ? Container(color: Colors.white)
+        : !isPermissionGranted
+            ? Container(
+                color: const Color.fromARGB(1, 0, 206, 209),
+                child: AlertDialog(
+                  title: const Text('未授予存储访问权限'),
+                  content: const Text('无权限去获取存储中的音视频文件。请授予应用程序访问存储的权限以继续使用。'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: const Text('确定'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        SystemChannels.platform
+                            .invokeMethod('SystemNavigator.pop');
+                      },
+                    ),
+                  ],
+                ),
+              )
+            : const HomePage();
   }
 }

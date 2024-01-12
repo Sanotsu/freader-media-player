@@ -3,7 +3,11 @@ import 'dart:math';
 import 'package:intl/intl.dart';
 
 // 10位的时间戳转字符串
-String formatTimestampToString(int timestamp) {
+String formatTimestampToString(int? timestamp) {
+  if (timestamp == null) {
+    return "";
+  }
+
   if (timestamp.toString().length == 10) {
     timestamp = timestamp * 1000;
   }

@@ -1,14 +1,9 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../common/global/constants.dart';
-import '../../models/audio_long_press.dart';
 import '../../models/list_long_press.dart';
-import '../../models/sort_option_selected.dart';
 import 'widgets/music_list_builder.dart';
-// import 'widgets/music_list_future_builder.dart';
 
 class LocalMusicAll extends StatefulWidget {
   const LocalMusicAll({super.key});
@@ -20,37 +15,14 @@ class LocalMusicAll extends StatefulWidget {
 class _LocalMusicAllState extends State<LocalMusicAll> {
   @override
   Widget build(BuildContext context) {
-    return Consumer3<ListLongPress, AudioLongPress, AudioOptionSelected>(
-      builder: (context, llp, alp, aos, child) {
-        print(
-          "1111xxxxLocalMusicAllxxx  ${llp.localMusicAppBarSearchInput} ${llp.localMusicAppBarSearchInput != null}",
-        );
-
-        // 如果“全部”中tab有输入搜索的条件，则在构建音频列表时带上该输入条件；否则不传
-        // return (llp.localMusicAppBarSearchInput != null)
-        //     ? MusicListFutureBuilder(
-        //         audioListType: AudioListTypes.all,
-        //         queryInputted: llp.localMusicAppBarSearchInput,
-        //         // 删除了这个测试的callback，从全部歌曲添加指定音频到指定歌单会不生效，原因不明。
-        //         callback: (value) => print(value),
-        //       )
-        //     : MusicListFutureBuilder(
-        //         audioListType: AudioListTypes.all,
-        //         // 删除了这个测试的callback，从全部歌曲添加指定音频到指定歌单会不生效，原因不明。
-        //         callback: (value) => print(value),
-        //       );
-
-        return (llp.localMusicAppBarSearchInput != null)
-            ? MusicListBuilder(
-                audioListType: AudioListTypes.all,
-                queryInputted: llp.localMusicAppBarSearchInput,
-                // 删除了这个测试的callback，从全部歌曲添加指定音频到指定歌单会不生效，原因不明。
-              )
-            : const MusicListBuilder(
-                audioListType: AudioListTypes.all,
-                // 删除了这个测试的callback，从全部歌曲添加指定音频到指定歌单会不生效，原因不明。
-              );
-      },
+    // 只需要监测是否有条件查询值即可(条件查询有输入变化，就及时更新符合查询条件的音频列表)
+    return Consumer<ListLongPress>(
+      // 如果是全部tab，指定列表类型为all；有输入搜索的条件，则在构建音频列表时带上该输入条件
+      // 如果是歌单、歌手、专辑tab，还需要传额外的歌单编号、歌手编号、专辑编号的列表编号栏位
+      builder: (context, llp, child) => MusicListBuilder(
+        audioListType: AudioListTypes.all,
+        queryInputted: llp.localMusicAppBarSearchInput,
+      ),
     );
   }
 }

@@ -11,6 +11,8 @@ class GlobalConstants {
   static String currentIsShuffleMode = "currentIsShuffleMode"; // 随机播放或顺序播放
 }
 
+const String placeholderImageUrl = 'assets/launch_background.png';
+
 /*
 // 音频播放列表支持的类型，使用扩展可以直接比较属性值
 enum AudioListType { all, playlist, artist, album }
