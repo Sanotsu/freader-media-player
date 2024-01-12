@@ -7,9 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../../common/global/constants.dart';
 import '../../common/utils/tools.dart';
-import '../../layout/home.dart';
 import '../../models/audio_long_press.dart';
-
 import '../../models/list_long_press.dart';
 import '../../models/sort_option_selected.dart';
 import '../../services/my_audio_query.dart';
@@ -68,7 +66,7 @@ class _LocalMusicState extends State<LocalMusic>
       child: DefaultTabController(
         length: 4,
         child: Scaffold(
-          drawer: buildDrawer(context),
+          // drawer: buildDrawer(context),
           // 避免搜索时弹出键盘，让底部的minibar位置移动到tab顶部导致溢出的问题
           resizeToAvoidBottomInset: false,
           appBar: _buildAppBar(),

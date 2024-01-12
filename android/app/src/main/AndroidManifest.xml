@@ -27,6 +27,7 @@
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name="com.ryanheise.audioservice.AudioServiceActivity"
+            android:enableOnBackInvokedCallback="true"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
@@ -39,6 +40,8 @@
                  to determine the Window background behind the Flutter UI. -->
 
             <!-- android:name=".MainActivity" 被替换成上面那个，因为just_audio_background: ^0.0.1-beta.9插件 -->
+
+            <!-- 2024-01-12添加了  android:enableOnBackInvokedCallback="true"  -->
 
             <meta-data
               android:name="io.flutter.embedding.android.NormalTheme"

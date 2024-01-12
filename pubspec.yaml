@@ -33,9 +33,9 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
+  cupertino_icons: ^1.0.6
   # flutter 屏幕适配方案，用于调整屏幕和字体大小的flutter插件，让你的UI在不同尺寸的屏幕上都能显示合理的布局!
-  flutter_screenutil: ^5.7.0
+  flutter_screenutil: ^5.9.0
   # 国际化（多国语言）
   flutter_localizations:
     sdk: flutter
@@ -46,31 +46,29 @@ dependencies:
   # 配合上一个实现后台播放(其他高级音频背景播放，使用audio_service)
   just_audio_background: ^0.0.1-beta.11
   # 同上配合使用，此插件会告知操作系统您的音频应用程序的性质（例如游戏、媒体播放器、助手等）以及您的应用程序将如何处理和启动音频中断（例如电话中断）
-  audio_session: ^0.1.13
+  audio_session: ^0.1.18
   # RxDart 扩展了 Dart Streams和 StreamControllers的功能 。
   rxdart: ^0.27.7
   # GetIt是一个简单的直接服务定位器，允许将接口与具体实现分离，并从应用程序的任何地方访问具体实现(一个单例的工具箱)。
-  get_it: ^7.6.0
+  get_it: ^7.6.6
   # InheritedWidget的包装器 ，使它们更易于使用和可重用。（子孙传值、简单应用状态管理之类的）
-  provider: ^6.0.5
+  provider: ^6.1.1
   # 国际化，时间格式化等工具类
-  intl: ^0.18.0
+  intl: ^0.18.1
   # 文本跑马灯滚动
   marquee: ^2.2.3
   # 权限请求管理
   permission_handler: ^11.1.0
-  # 生成随机头像（用于测试娱乐，实际功能不需要）
-  random_avatar: ^0.0.8
   # 文件系统中获取用户可用的地址
-  path_provider: ^2.0.15
+  path_provider: ^2.1.2
   # 包含用于在不同数据表示之间进行转换的编码器和解码器。dart:convert的补充
   convert: ^3.1.1
   # 加密库
   crypto: ^3.0.3
   # 音频播放
-  video_player: ^2.6.1
+  video_player: ^2.8.2
   # video player包装器，更方便使用
-  flick_video_player: ^0.5.0
+  flick_video_player: ^0.7.0
   # 包装现有组件检测可见性
   visibility_detector: ^0.4.0+2
   # 一个插件，提供资产抽象管理API，无需UI集成，可以在Android、iOS和macOS上获取asset（图像/视频/音频）。
@@ -82,8 +80,11 @@ dependencies:
   video_thumbnail: ^0.5.3
   # 图片预览操作等
   photo_view: ^0.14.0
-  #  shared_preferences持久话可能会丢失，使用这个代替
+  # shared_preferences持久话可能会丢失，使用这个代替
   get_storage: ^2.1.1
+  # 获取设备信息，比如Android版本之类的
+  # 2024-01-12(9.x和flick_video_player0.7.0有冲突)
+  device_info_plus: ^8.2.2
 
 dev_dependencies:
   flutter_test:

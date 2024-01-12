@@ -36,13 +36,12 @@ class MyAudioHandler {
   // 获取当前播放列表和当前音乐索引（正常来讲，这个会存入db）
   // 其他情况改变了当前列表，则额外处理
   Future<void> _getInitPlaylistAndIndex() async {
-    print("这是在_getInitPlaylistAndIndex");
     // 获取当前的播放列表数据
     // 这个list有依次3个值：当前列表类型、当前音频在列表中的索引、当前播放列表编号
     var tempList = await _simpleStorage.getCurrentAudioInfo();
 
     print(
-        "MyAudioHandler----$tempList,,,,,,${tempList[0]},,,,${AudioListTypes.all}");
+        "listType ${tempList[0]}, audioIndex ${tempList[1]}, playlistId ${tempList[2]}");
 
     List<SongModel> songs;
     switch (tempList[0]) {
@@ -180,43 +179,45 @@ class MyAudioHandler {
 
   // 设置初始化播放列表源（这在app启动时就要加载完成）
   Future<void> _loadInitCurrentPlaylist() async {
-    // try {
-    /// ？？？TODO 2024-01-09 暂时解释不了
-    /// 我需要先这里设置一次音源，然后再去缓存查询上次记录音乐信息才有效果，否则就查询结果是空
-    ///     有尝试寻找原因，在app.dart进行_audioHandler.myAudioHandlerInit() 前获取也是空
-    ///     在这里重复查询，等待这几个工具类实例初始化完成，还是空。从现有代码就是先设置音乐，再查询就可以
-    ///
-    ///
-    ///     但是，如果这里重复了，选择了其他歌手、专辑等分类，更新了当前播放的音乐，退出app之后再进来，可能会报错，
-    ///     Cannot set the method call handler before the binary messenger has been initialized.
-    ///     报错位置就是上面的 final _player = AudioPlayer();
-    ///     但偶尔又没有报错
-    await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
+    try {
+      /// ？？？TODO 2024-01-09 暂时解释不了
+      /// 我需要先这里设置一次音源，然后再去缓存查询上次记录音乐信息才有效果，否则就查询结果是空
+      ///     有尝试寻找原因，在app.dart进行_audioHandler.myAudioHandlerInit() 前获取也是空
+      ///     在这里重复查询，等待这几个工具类实例初始化完成，还是空。从现有代码就是先设置音乐，再查询就可以
+      ///
+      ///     但是，如果这里重复了，选择了其他歌手、专辑等分类，更新了当前播放的音乐，退出app之后再进来，可能会报错，
+      ///     Cannot set the method call handler before the binary messenger has been initialized.
+      ///     报错位置就是上面的 final _player = AudioPlayer();
+      ///     但偶尔又没有报错
+      ///
+      ///  2024-01-12 不先设置好像缓存中上次播放内容又不是null了
+      // await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
 
-    // 等待获取到持久化中的播放列表和索引之后，再绑定音源
-    await _getInitPlaylistAndIndex();
+      // TEST
+      // var [a, b, c] = await _simpleStorage.getCurrentAudioInfo();
 
-    print("启动后初始化的播放列表和索引 _currentPlaylist $_currentPlaylist");
-    print(" _initIndex $_initIndex");
+      // print("TEST】】】】 初始化当前播放列表和音频【前】读取的缓存:");
+      // print("listType $a, audioIndex $b, playlistId $c");
 
-    await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
+      // 等待获取到持久化中的播放列表和索引之后，再绑定音源
+      await _getInitPlaylistAndIndex();
 
-    print(" _player $_player");
+      // TEST
+      // var [aa, bb, cc] = await _simpleStorage.getCurrentAudioInfo();
+      // print("TEST】】】】 初始化当前播放列表和音频【后】读取的缓存:");
+      // print("listType $aa, audioIndex $bb, playlistId $cc");
 
-    print(" _player.sequenceStateStream ${_player.sequenceStateStream}");
-
-    print(
-        "_player.sequenceStateStream.length${_player.sequenceStateStream.length}");
-    // } catch (e) {
-    //   print("_loadInitCurrentPlaylist Error: $e");
-    // }
+      await _player.setAudioSource(_currentPlaylist, initialIndex: _initIndex);
+    } catch (e) {
+      print("【Error】 --- in _loadInitCurrentPlaylist : $e");
+    }
   }
 
   // 在播放过程中侦听错误。
   void _notifyAudioHandlerAboutPlaybackEvents() {
     _player.playbackEventStream.listen((event) {},
         onError: (Object e, StackTrace stackTrace) {
-      print('A stream error occurred: $e');
+      print("【Error】 --- in _notifyAudioHandlerAboutPlaybackEvents : $e");
     });
   }
 
@@ -232,10 +233,9 @@ class MyAudioHandler {
       // 第三步：添加在播放过程中的错误监听器
       _notifyAudioHandlerAboutPlaybackEvents();
 
-      print("myAudioHandlerInit 中 正常执行，即将返回 true");
       return true;
     } catch (e) {
-      print("myAudioHandlerInit 中 出错:$e");
+      print("【Error】 --- in myAudioHandlerInit : $e");
       return false;
     }
   }
@@ -258,9 +258,6 @@ class MyAudioHandler {
       ///     1 音频新增到db时的文件元数据，"metadata"
       ///     2 本条 LocalPlaylistHasAudio 的row数据， "playlistHasAudio"
       ///  这里不先转换json而是直接赋值的的话，会导致因为引用类型的原因，在addAll()之后修改了原本的extrax的结构，会出问题
-
-      print(
-          '-------------${box.read(ele.id.toString())} ${box.read(ele.id.toString()).runtimeType}');
 
       // 其他的音频，顺序加入列表组件
       tempChildren.add(
@@ -290,10 +287,6 @@ class MyAudioHandler {
 
     // 构建新的播放列表就直接替换，在原列表上新增或删除在使用add、remove等方法修改
     _currentPlaylist = ConcatenatingAudioSource(children: tempChildren);
-
-    print("****************");
-    print(_currentPlaylist);
-    print(_initIndex);
   }
 
   // 获取指定音频的artwork UInt8List数据，转为file并返回其uri

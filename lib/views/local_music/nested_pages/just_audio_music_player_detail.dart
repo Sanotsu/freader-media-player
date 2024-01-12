@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:io';
+
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -70,6 +72,12 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent, // 设置为透明色
+        elevation: 0, // 去除阴影
+        // 设置返回箭头颜色
+        iconTheme: IconThemeData(color: Theme.of(context).primaryColor),
+      ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -116,9 +124,14 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
                   callback: (value) {
                     // 播放主页面点击了任何按钮，都要返回下一首歌的索引，用来创建下一首歌的概要信息
                     // 点击上下一曲、列表循环切换、随机播放等按钮都会改变下一首歌的索引
-                    setState(() {
-                      nextAudionIndex = value;
-                    });
+
+                    // 2024-01-12 因此可能存在列表就1首歌，那么控制按钮组件返回的上/下一个音频的编号可能为null
+                    // 所以这里要判断先
+                    if (value is int) {
+                      setState(() {
+                        nextAudionIndex = value;
+                      });
+                    }
                   },
                 ),
               ),
@@ -133,15 +146,17 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
         ),
       ),
       // 左上角一个悬空的返回箭头按钮
-      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
-      floatingActionButton: IconButton(
-        icon: Icon(Icons.arrow_back, size: 30.sp),
-        onPressed: () => Navigator.of(context).pop(),
-      ),
+      // 2024-01-12 有透明的appbar的话就不要这个类
+      // floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
+      // floatingActionButton: IconButton(
+      //   icon: Icon(Icons.arrow_back, size: 30.sp),
+      //   onPressed: () => Navigator.of(context).pop(),
+      // ),
     );
   }
 
   /// 当前音频信息区域
+  // 2024-01-12 在新手机上(andriod13的努比亚z50ultra)看到缩略图很糊，所以修改一下显示大小
   _buildCrrentMusicInfo() {
     return StreamBuilder<SequenceState?>(
       stream: _audioHandler.getSequenceStateStream(),
@@ -158,30 +173,46 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
           " player detail 当前正在播放的音乐： 索引 ${state.currentIndex} 专辑 ${metadata.album} 歌名 ${metadata.title}",
         );
 
+        print(metadata.artUri);
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               flex: 9,
               child: Padding(
-                padding: EdgeInsets.all(8.sp),
-                child: QueryArtworkWidget(
-                  id: int.parse(metadata.id),
-                  type: ArtworkType.AUDIO,
-                  artworkWidth: 1.sw,
-                  artworkHeight: 20.sp,
-                  artworkBorder: BorderRadius.zero, // 图标边角无圆弧
-                  size: 100,
-                  keepOldArtwork: true, // 在生命周期内使用旧的缩略图
-                  // 没有歌曲缩略图时使用占位图
-                  nullArtworkWidget: SizedBox(
-                    width: 1.sw,
-                    child: Image.asset(
-                      placeholderImageUrl,
-                      fit: BoxFit.fitWidth,
-                    ),
-                  ),
+                padding: EdgeInsets.fromLTRB(0.15.sw, 0, 0.15.sw, 0.1.sw),
+                child: SizedBox(
+                  width: 1.0.sw,
+                  child: metadata.artUri != null
+                      ? Image.file(
+                          File.fromUri(metadata.artUri!),
+                          fit: BoxFit.fitWidth,
+                          filterQuality: FilterQuality.high,
+                        )
+                      : Image.asset(
+                          placeholderImageUrl,
+                          fit: BoxFit.fitWidth,
+                        ),
                 ),
+
+                /// 2024-01-12 这两者加载的图片在z50ultra都不清晰。但1080P的小米6 效果好很多
+                // QueryArtworkWidget(
+                //   id: int.parse(metadata.id),
+                //   type: ArtworkType.AUDIO,
+                //   artworkQuality: FilterQuality.high,
+                //   artworkWidth: 1.sw,
+                //   artworkBorder: BorderRadius.zero, // 图标边角无圆弧
+                //   keepOldArtwork: true, // 在生命周期内使用旧的缩略图
+                //   // 没有歌曲缩略图时使用占位图
+                //   nullArtworkWidget: SizedBox(
+                //     width: 1.sw,
+                //     child: Image.asset(
+                //       placeholderImageUrl,
+                //       fit: BoxFit.cover,
+                //     ),
+                //   ),
+                // ),
               ),
             ),
             Expanded(

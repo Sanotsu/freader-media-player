@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../common/global/constants.dart';
 import '../common/utils/global_styles.dart';
 import '../services/my_audio_handler.dart';
 import '../services/my_get_storage.dart';
@@ -44,12 +43,6 @@ class _HomePageState extends State<HomePage> {
 
   // 获取存储权限
   initAudio() async {
-    var a = box.read(GlobalConstants.currentAudioListType);
-    var b = box.read(GlobalConstants.currentAudioIndex);
-    var c = box.read(GlobalConstants.currentAudioListId);
-
-    print("【【【HOME PAGE中，myAudioHandlerInit前的 当前播放音乐:$a + $b + $c");
-
     if (isLoading) {
       return;
     }
@@ -60,12 +53,6 @@ class _HomePageState extends State<HomePage> {
 
     // 获得授权后，音频控制初始化（主要从持久化数据中获取数据构建当前正在播放的音频和播放列表，没有持久化数据则是默认初始值）
     await _audioHandler.myAudioHandlerInit();
-
-    var aa = box.read(GlobalConstants.currentAudioListType);
-    var bb = box.read(GlobalConstants.currentAudioIndex);
-    var cc = box.read(GlobalConstants.currentAudioListId);
-
-    print("【【【HOME PAGE中，await myAudioHandlerInit 之后的 当前播放音乐:$aa + $bb + $cc");
 
     setState(() {
       isLoading = false;
@@ -83,9 +70,6 @@ class _HomePageState extends State<HomePage> {
     /// 全层提供通知
     /// （因为歌单、全部歌曲、艺术家、专辑是tab一层，除`全部`外，需要长按列表改变app中显示的功能）
     /// 而在音频列表中长按音频，也有改变内部app bar显示的功能内容。这样`全部`这个没有中间层的也比较特殊
-    ///
-    ///
-
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) async {
@@ -160,10 +144,10 @@ class _HomePageState extends State<HomePage> {
           ],
           currentIndex: _selectedIndex,
           // 底部导航栏的颜色
-          backgroundColor: Theme.of(context).primaryColor,
-          // 被选中的item的图标颜色和文本颜色
-          selectedIconTheme: const IconThemeData(color: Colors.white),
-          selectedItemColor: Colors.white,
+          // backgroundColor: Theme.of(context).primaryColor,
+          // // 被选中的item的图标颜色和文本颜色
+          // selectedIconTheme: const IconThemeData(color: Colors.white),
+          // selectedItemColor: Colors.white,
           onTap: _onItemTapped,
         ),
       ),
@@ -171,6 +155,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+// 2024-01-12 抽屉目前无实际作用，暂时不启用
 buildDrawer(BuildContext context) {
   final simpleStorage = getIt<MyGetStorage>();
 
