@@ -246,6 +246,7 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
                   Expanded(
                     child: ListView(
                       shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(0.0),
                       children: <Widget>[
                         ListTile(

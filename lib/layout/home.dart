@@ -9,7 +9,8 @@ import '../services/my_audio_handler.dart';
 import '../services/my_get_storage.dart';
 import '../services/service_locator.dart';
 import '../views/local_music/index.dart';
-import '../views/local_media/index.dart';
+import '../views/local_photo/index.dart';
+import '../views/local_video/index.dart';
 
 /// 主页面
 
@@ -21,7 +22,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 2;
 
   final _audioHandler = getIt<MyAudioHandler>();
 
@@ -30,7 +31,9 @@ class _HomePageState extends State<HomePage> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     LocalMusic(),
-    LocalMedia(),
+    // LocalMedia(),
+    LocalPhoto(),
+    LocalVideo(),
   ];
 
   @override
@@ -137,9 +140,17 @@ class _HomePageState extends State<HomePage> {
               icon: Icon(Icons.music_note),
               label: '本地音乐',
             ),
+            // BottomNavigationBarItem(
+            //   icon: Icon(Icons.video_file),
+            //   label: '图片视频',
+            // ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.image),
+              label: '本地图片',
+            ),
             BottomNavigationBarItem(
               icon: Icon(Icons.video_file),
-              label: '图片视频',
+              label: '本地视频',
             ),
           ],
           currentIndex: _selectedIndex,

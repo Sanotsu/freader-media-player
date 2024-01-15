@@ -8,8 +8,11 @@ import 'path_page.dart';
 
 /// 展示有媒体资源的路径（文件夹）列表
 class MediaPathList extends StatefulWidget {
-  const MediaPathList(
-      {super.key, required this.filter, required this.requestType});
+  const MediaPathList({
+    super.key,
+    required this.filter,
+    required this.requestType,
+  });
 
   final CustomFilter filter;
   final RequestType requestType;

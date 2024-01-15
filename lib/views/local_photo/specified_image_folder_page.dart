@@ -6,12 +6,13 @@ import 'package:photo_manager/photo_manager.dart';
 
 import 'dart:io';
 
-import 'screen/image_viewer_screen.dart';
-import 'screen/video_player_screen.dart';
-import 'widgets/image_item_widget.dart';
+import '../local_media/screen/image_viewer_screen.dart';
+import '../local_media/screen/video_player_screen.dart';
+import '../local_media/widgets/image_item_widget.dart';
 
-class PathPage extends StatefulWidget {
-  const PathPage({super.key, required this.path, required this.pathList});
+class SpecifiedImageFolderPage extends StatefulWidget {
+  const SpecifiedImageFolderPage(
+      {super.key, required this.path, required this.pathList});
 
   // 当前浏览的媒体文件属于哪一个文件夹
   final AssetPathEntity path;
@@ -19,10 +20,11 @@ class PathPage extends StatefulWidget {
   final List<AssetPathEntity> pathList;
 
   @override
-  State<PathPage> createState() => _PathPageState();
+  State<SpecifiedImageFolderPage> createState() =>
+      _SpecifiedImageFolderPageState();
 }
 
-class _PathPageState extends State<PathPage> {
+class _SpecifiedImageFolderPageState extends State<SpecifiedImageFolderPage> {
   // 文件夹中的文件
   List<AssetEntity> _list = [];
   // 被选中的文件索引
