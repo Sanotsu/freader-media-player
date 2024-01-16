@@ -33,3 +33,18 @@ final List<int> points = <int>[0xe0b0, 0xe0b1, 0xe0b2, 0xe0b3, 0xe0b4];
 final Random r = Random();
 IconData genRandomIcon() =>
     IconData(r.nextInt(points.length), fontFamily: 'MaterialIcons');
+
+// 显示底部提示条(默认都是出错或者提示的)
+void showSnackMessage(
+  BuildContext context,
+  String message, {
+  Color? backgroundColor = Colors.red,
+}) {
+  var snackBar = SnackBar(
+    content: Text(message),
+    duration: const Duration(seconds: 3),
+    backgroundColor: backgroundColor,
+  );
+
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}

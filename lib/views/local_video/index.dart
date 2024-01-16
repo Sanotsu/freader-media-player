@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import 'specified_video_folder_page.dart';
@@ -99,16 +100,16 @@ class _LocalVideoState extends State<LocalVideo> {
 
         if (path.name.toLowerCase() != "recent") {
           return ListTile(
-            title: Text(path.name),
+            leading: Icon(Icons.folder, size: 56.sp),
+            // 注意，有一个name是空字符串的，那是最外层的文件夹
+            title: Text(path.name != "" ? path.name : "内部存储"),
             subtitle: FutureBuilder<int>(
               future: path.assetCountAsync,
               builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-                if (snapshot.hasData) {
-                  // print("构建文件夹中数量:${path.name}-${snapshot.data}");
-                  // ??? 2023-05-19 这个数值和实际的总是可能对不上，原因不明
-                  return Text("${snapshot.data} 个视频");
-                }
-                return const SizedBox();
+                // ??? 2023-05-19 这个数值和实际的总是可能对不上，原因不明
+                return snapshot.hasData
+                    ? Text("${snapshot.data} 个视频")
+                    : const SizedBox();
               },
             ),
             onTap: () async {
@@ -120,6 +121,7 @@ class _LocalVideoState extends State<LocalVideo> {
                       SpecifiedVideoFolderPage(path: path, pathList: list),
                 ),
               ).then((value) {
+                // 2024-01-15 不提供对视频的异动操作了，所以返回不用任何操作
                 print("这里是path page返回的数据 $value");
                 setState(() {
                   refresh();

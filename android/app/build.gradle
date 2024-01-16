@@ -84,6 +84,33 @@ android {
             signingConfig signingConfigs.release
         }
     }
+
+
+    // 2024-01-13（？？？没有成功，也没处理了）自定义打包的apk名称，参看
+    // https://github.com/flutter/flutter/issues/29509#issuecomment-648044290
+    // https://www.geeksforgeeks.org/how-to-change-the-default-generated-apk-name-in-android-studio/
+
+    // 可能是添加了 split参数`flutter build apk --split-per-abi`,
+    // 不添加可以build成功，`flutter build apk` 或 `flutter build apk --debug/release`，虽然终端log显示的名称没变
+    // 在 build/app/outputs/apk/release；但这样就是一个体积大的安装包
+    // fmp-player_release_0.2.1-beta.apk
+    // buildTypes {
+    //     release {
+    //         signingConfig signingConfigs.release
+    //          // 2024-01-12 测试指定打包apk的应用名称
+    //         applicationVariants.all { variant ->
+    //         variant.outputs.all {
+    //             def version = variant.versionName // 版本号
+    //             def buildType = variant.name // 包类型，debug 还是 release
+    //             outputFileName = "fmp-player_${buildType}_${version}.apk"
+
+    //             // def createTime = new Date().format('yyyy_MM_dd_HH_mm_ss') // 打包时间
+    //             // outputFileName = "fmp-player_${buildType}_${version}_${createTime}.apk"
+    //             }
+    //         }
+    //     }
+    // }
+   
 }
 
 flutter {

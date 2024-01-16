@@ -85,6 +85,8 @@ dependencies:
   # 获取设备信息，比如Android版本之类的
   # 2024-01-12(9.x和flick_video_player0.7.0有冲突)
   device_info_plus: ^8.2.2
+  dio: ^5.4.0
+  path: ^1.8.3
 
 dev_dependencies:
   flutter_test:
@@ -114,6 +116,8 @@ flutter:
   assets:
     - assets/
     - assets/launch_background.png
+    - assets/images/
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
