@@ -74,7 +74,7 @@ commonExceptionDialog(BuildContext context, String title, String message) {
   );
 }
 
-buildFileImage(File file) => Image.file(
+buildFileImage(File file, {BoxFit? fit}) => Image.file(
       file,
       errorBuilder: (
         BuildContext context,
@@ -83,6 +83,6 @@ buildFileImage(File file) => Image.file(
       ) =>
           Image.asset(
         placeholderImageUrl,
-        fit: BoxFit.scaleDown,
+        fit: fit ?? BoxFit.scaleDown,
       ),
     );
