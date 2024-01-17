@@ -116,7 +116,8 @@ flutter:
   assets:
     - assets/
     - assets/launch_background.png
-    - assets/images/
+    - assets/test/
+    - assets/test/images/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

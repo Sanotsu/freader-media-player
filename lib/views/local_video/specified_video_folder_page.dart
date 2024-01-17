@@ -6,6 +6,7 @@ import 'package:photo_manager/photo_manager.dart';
 
 import 'dart:io';
 
+import '../../common/global/constants.dart';
 import '../../common/utils/tool_widgets.dart';
 import '../../common/utils/tools.dart';
 import '../local_media/widgets/image_item_widget.dart';
@@ -17,13 +18,10 @@ import 'cus_video_player/cus_player.dart';
 /// 所以仅仅考虑只保留读取和观看的功能，其他都不要了
 ///
 class SpecifiedVideoFolderPage extends StatefulWidget {
-  const SpecifiedVideoFolderPage(
-      {super.key, required this.path, required this.pathList});
+  const SpecifiedVideoFolderPage({super.key, required this.path});
 
   // 当前浏览的媒体文件属于哪一个文件夹
   final AssetPathEntity path;
-  // 手机里一共找到哪些有媒体文件的文件夹（列表）
-  final List<AssetPathEntity> pathList;
 
   @override
   State<SpecifiedVideoFolderPage> createState() =>
@@ -47,16 +45,17 @@ class _SpecifiedVideoFolderPageState extends State<SpecifiedVideoFolderPage> {
   // 获取指定文件夹中的媒体文件
   Future<void> _refresh() async {
     final count = await widget.path.assetCountAsync;
-    if (count == 0) {
-      return;
-    }
+    if (count == 0) return;
 
-    print("这只指定文件夹${widget.path.name}中的数量$count");
     // 查询所有媒体实体列表（起止参数表示可以过滤只显示排序后中某一部分实体）
     final list = await widget.path.getAssetListRange(start: 0, end: count);
 
+    // 2024-01-17 过滤无法播放的适配
+    list.removeWhere((element) => element.videoDuration == Duration.zero);
+
     // 2024-01-15 需要获取所有的文件，存入文件列表
     List<File> files = [];
+
     for (AssetEntity element in list) {
       var temp = await element.file;
       if (temp != null) {
@@ -253,12 +252,15 @@ class _SpecifiedVideoFolderPageState extends State<SpecifiedVideoFolderPage> {
           leading: SizedBox(
             height: 56.sp,
             width: 84.sp,
-            child: ImageItemWidget(
-              entity: entity,
-              option: ThumbnailOption.ios(
-                size: const ThumbnailSize.square(500),
-              ),
-            ),
+            // 构建视频缩略图时，如果视频格式不支持，构建时会报大量错误。
+            child: entity.videoDuration != Duration.zero
+                ? ImageItemWidget(
+                    entity: entity,
+                    option: ThumbnailOption.ios(
+                      size: const ThumbnailSize.square(500),
+                    ),
+                  )
+                : Image.asset(placeholderImageUrl, fit: BoxFit.scaleDown),
           ),
           trailing: const Icon(Icons.more_vert),
           selectedColor: Colors.blue,
@@ -286,6 +288,17 @@ class _SpecifiedVideoFolderPageState extends State<SpecifiedVideoFolderPage> {
                   if (!mounted) return;
                   if (index < 0) {
                     showSnackMessage(context, "没找到对应点击的视频");
+                    return;
+                  }
+
+                  // 2024-01-17 如果点击的视频获取不到长度，就不进入播放页面
+                  // 理论上没有，因为进入页面初始化时就过滤掉了不可播放的视频
+                  if (entity.videoDuration == Duration.zero) {
+                    commonExceptionDialog(
+                      context,
+                      "提示",
+                      "不支持的视频格式: ${entity.mimeType}",
+                    );
                     return;
                   }
 

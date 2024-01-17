@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 
+import '../../../common/global/constants.dart';
+
 class ImageItemWidget extends StatelessWidget {
   const ImageItemWidget({
     super.key,
@@ -39,6 +41,9 @@ class ImageItemWidget extends StatelessWidget {
             thumbnailSize: option.size,
             thumbnailFormat: option.format,
             fit: BoxFit.cover,
+            errorBuilder: (BuildContext context, Object exception,
+                    StackTrace? stackTrace) =>
+                Image.asset(placeholderImageUrl, fit: BoxFit.scaleDown),
           ),
         ),
         PositionedDirectional(

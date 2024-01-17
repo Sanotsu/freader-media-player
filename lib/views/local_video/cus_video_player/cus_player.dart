@@ -64,9 +64,11 @@ class _CusVideoPlayerState extends State<CusVideoPlayer> {
     // 2024-01-15 需要获取所有的文件，存入文件列表
     List<File> files = [];
     for (AssetEntity element in widget.entities) {
-      var temp = await element.file;
-      if (temp != null) {
-        files.add(temp);
+      if (element.videoDuration != Duration.zero) {
+        var temp = await element.file;
+        if (temp != null) {
+          files.add(temp);
+        }
       }
     }
 
@@ -77,11 +79,12 @@ class _CusVideoPlayerState extends State<CusVideoPlayer> {
 
     if (currentFile != null) {
       flickManager = FlickManager(
-          videoPlayerController: VideoPlayerController.file(currentFile!),
-          // 自动播放下一个视频的倒计时，3秒
-          onVideoEnd: () {
-            dataManager.skipToNextVideo(const Duration(seconds: 3));
-          });
+        videoPlayerController: VideoPlayerController.file(currentFile!),
+        // 自动播放下一个视频的倒计时，3秒
+        onVideoEnd: () {
+          dataManager.skipToNextVideo(const Duration(seconds: 3));
+        },
+      );
 
       dataManager = DataManager(
         flickManager: flickManager,
@@ -107,15 +110,20 @@ class _CusVideoPlayerState extends State<CusVideoPlayer> {
       onPopInvoked: (didPop) async {
         if (didPop) return;
         // 返回之前重置方向为原始的
-        SystemChrome.setEnabledSystemUIMode(
-          SystemUiMode.manual,
-          overlays: SystemUiOverlay.values,
-        );
-        SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+        // SystemChrome.setEnabledSystemUIMode(
+        //   SystemUiMode.manual,
+        //   overlays: SystemUiOverlay.values,
+        // );
 
         if (flickManager.flickControlManager!.isFullscreen) {
           flickManager.flickControlManager?.exitFullscreen();
         }
+
+        SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.landscapeRight,
+          DeviceOrientation.landscapeLeft,
+        ]);
 
         Navigator.pop(context);
       },
