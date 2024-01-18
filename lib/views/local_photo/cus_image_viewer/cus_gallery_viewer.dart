@@ -48,6 +48,34 @@ class _CusGalleryViewerState extends State<CusGalleryViewer> {
   late dynamic headerTitle = "";
   late dynamic headerSubtitle = "";
 
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // app初次启动时要获取相关授权，取得之后就不需要重复请求了
+    initImageFromAssetEntity();
+  }
+
+  // 初始化图片
+  Future<void> initImageFromAssetEntity() async {
+    if (isLoading) return;
+    setState(() {
+      isLoading = true;
+    });
+
+    AssetEntity e = widget.galleryItems[currentIndex];
+    var temp = await e.file;
+
+    setState(() {
+      currentFile = temp;
+      headerTitle = e.title;
+      headerSubtitle = DateFormat.yMMMMd().add_Hms().format(e.modifiedDateTime);
+      isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,6 +123,8 @@ class _CusGalleryViewerState extends State<CusGalleryViewer> {
     );
   }
 
+  /// 2024-01-18 因为考虑不再提供图片的异动功能，所以暂时顶部显示当前索引，底部显示文件名和详情按钮
+  /// 其他的先不支持。
   _buildAppBar() {
     return AppBar(
       title: ListTile(
@@ -182,20 +212,26 @@ class _CusGalleryViewerState extends State<CusGalleryViewer> {
   }
 
   _buildPageView(File file) {
-    // 构建图片名称和上次修改时间
-    headerTitle = file.path.split('/').last;
-    headerSubtitle = DateFormat.yMMMMd().add_Hms().format(
-          file.lastModifiedSync(),
-        );
-
     return PageView.builder(
       controller: PageController(initialPage: currentIndex),
       scrollDirection: Axis.horizontal,
       // 因为这里传入的是entity列表，所以切换是要获取文件，所以看起来有点卡顿
       // ？？？如果传入就是文件列表，可能会好点
-      onPageChanged: (int index) {
+      onPageChanged: (int index) async {
         setState(() {
+          // 更新当前相册索引
           currentIndex = index;
+          // 构建图片名称和上次修改时间
+          headerTitle = widget.galleryItems[index].title;
+          headerSubtitle = DateFormat.yMMMMd().add_Hms().format(
+                widget.galleryItems[index].modifiedDateTime,
+              );
+        });
+
+        // 更新当前展示图片文件
+        var tempFile = await widget.galleryItems[index].file;
+        setState(() {
+          currentFile = tempFile;
         });
       },
       itemCount: widget.galleryItems.length,
@@ -204,7 +240,6 @@ class _CusGalleryViewerState extends State<CusGalleryViewer> {
           onTap: () {
             setState(() {
               isShowHeadAndBottom = !isShowHeadAndBottom;
-              currentFile = file;
             });
           },
           child: PhotoView(
