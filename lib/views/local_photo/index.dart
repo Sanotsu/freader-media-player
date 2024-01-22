@@ -66,7 +66,7 @@ class _LocalPhotoState extends State<LocalPhoto> {
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.filter_list_sharp),
+            icon: const Icon(Icons.filter_list_sharp, color: Colors.black),
           ),
           // 列表或网格的切换
           IconButton(

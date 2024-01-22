@@ -63,7 +63,7 @@ class _LocalVideoState extends State<LocalVideo> {
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.filter_list_sharp),
+            icon: const Icon(Icons.filter_list_sharp, color: Colors.black),
           )
         ],
       ),

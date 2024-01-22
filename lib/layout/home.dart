@@ -22,7 +22,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 1;
+  int _selectedIndex = 2;
 
   final _audioHandler = getIt<MyAudioHandler>();
 
@@ -31,9 +31,10 @@ class _HomePageState extends State<HomePage> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     LocalMusic(),
-    // LocalMedia(),
     LocalPhoto(),
     LocalVideo(),
+    // LocalMedia(),
+    // CustomFilterPhoto(),
   ];
 
   @override
@@ -135,15 +136,12 @@ class _HomePageState extends State<HomePage> {
               )
             : Center(child: _widgetOptions.elementAt(_selectedIndex)),
         bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
               icon: Icon(Icons.music_note),
               label: '本地音乐',
             ),
-            // BottomNavigationBarItem(
-            //   icon: Icon(Icons.video_file),
-            //   label: '图片视频',
-            // ),
             BottomNavigationBarItem(
               icon: Icon(Icons.image),
               label: '本地图片',
@@ -152,6 +150,17 @@ class _HomePageState extends State<HomePage> {
               icon: Icon(Icons.video_file),
               label: '本地视频',
             ),
+
+            /// 这个是之前旧的图片和视频放一起
+            // BottomNavigationBarItem(
+            //   icon: Icon(Icons.video_file),
+            //   label: '图片视频',
+            // ),
+            /// 这个是想单纯支持图片可查询
+            // BottomNavigationBarItem(
+            //   icon: Icon(Icons.all_inbox),
+            //   label: '查询图片',
+            // ),
           ],
           currentIndex: _selectedIndex,
           // 底部导航栏的颜色
