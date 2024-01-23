@@ -8,6 +8,7 @@ import '../common/utils/global_styles.dart';
 import '../services/my_audio_handler.dart';
 import '../services/my_get_storage.dart';
 import '../services/service_locator.dart';
+import '../views/local_all/index.dart';
 import '../views/local_music/index.dart';
 import '../views/local_photo/index.dart';
 import '../views/local_video/index.dart';
@@ -22,7 +23,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 2;
+  int _selectedIndex = 3;
 
   final _audioHandler = getIt<MyAudioHandler>();
 
@@ -35,6 +36,7 @@ class _HomePageState extends State<HomePage> {
     LocalVideo(),
     // LocalMedia(),
     // CustomFilterPhoto(),
+    LocalAllMedia(),
   ];
 
   @override
@@ -161,6 +163,11 @@ class _HomePageState extends State<HomePage> {
             //   icon: Icon(Icons.all_inbox),
             //   label: '查询图片',
             // ),
+
+            BottomNavigationBarItem(
+              icon: Icon(Icons.video_file),
+              label: '本地资源',
+            ),
           ],
           currentIndex: _selectedIndex,
           // 底部导航栏的颜色

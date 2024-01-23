@@ -108,8 +108,8 @@ class _LocalMusicState extends State<LocalMusic>
       ],
       bottom: const TabBar(
         tabs: [
-          Tab(child: Text("歌单")),
           Tab(child: Text("全部")),
+          Tab(child: Text("歌单")),
           Tab(child: Text("歌手")),
           Tab(child: Text("专辑")),
         ],
@@ -169,8 +169,8 @@ class _LocalMusicState extends State<LocalMusic>
             const Expanded(
               child: TabBarView(
                 children: <Widget>[
-                  LocalMusicPlaylist(),
                   LocalMusicAll(),
+                  LocalMusicPlaylist(),
                   LocalMusicArtist(),
                   LocalMusicAlbum(),
                 ],

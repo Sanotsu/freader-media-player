@@ -11,8 +11,8 @@ import 'package:photo_view/photo_view.dart';
 import '../../../common/utils/tools.dart';
 import '../../local_music/widgets/common_small_widgets.dart';
 
-class CusGalleryViewer extends StatefulWidget {
-  CusGalleryViewer({
+class CusViewer extends StatefulWidget {
+  CusViewer({
     super.key,
     this.loadingBuilder,
     this.backgroundDecoration,
@@ -34,11 +34,11 @@ class CusGalleryViewer extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return _CusGalleryViewerState();
+    return _CusViewerState();
   }
 }
 
-class _CusGalleryViewerState extends State<CusGalleryViewer> {
+class _CusViewerState extends State<CusViewer> {
   // 当前显示的图片索引
   late int currentIndex = widget.initialIndex;
   // 是否显示app和bottom的bar
@@ -101,8 +101,6 @@ class _CusGalleryViewerState extends State<CusGalleryViewer> {
                   future: widget.galleryItems[currentIndex].file,
                   builder: (context, item) {
                     print("item  $currentIndex-在builder中$item");
-
-                    // 从官网上看 https://api.flutter.dev/flutter/widgets/FutureBuilder-class.html
                     // 区分为hasError、hasData、和其他
                     // 有错显示错误
                     if (item.hasError) {
