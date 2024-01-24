@@ -38,7 +38,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
   final _audioHandler = getIt<MyAudioHandler>();
 
   // 指定相册内部文件可以列表展示和网格展示，网格展示要有缩略图
-  bool isGridMode = true;
+  bool isGridMode = false;
 
   // 这里指定文件夹下的条目点击后会创建对应的播放列表，但构建过程可能需要耗时，避免重复点击，点过之后旧显示转圈
   bool isListLoading = false;

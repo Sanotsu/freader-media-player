@@ -85,8 +85,12 @@ dependencies:
   # 获取设备信息，比如Android版本之类的
   # 2024-01-12(9.x和flick_video_player0.7.0有冲突)
   device_info_plus: ^8.2.2
-  dio: ^5.4.0
+  # 提供了操作路径(path)的常用操作：连接、分割、规范化等。
   path: ^1.8.3
+  # toast 插件，比snackbar好看的
+  oktoast: ^3.4.0
+  # 调整应用内亮度
+  screen_brightness: ^0.2.2+1
 
 dev_dependencies:
   flutter_test:
@@ -116,8 +120,6 @@ flutter:
   assets:
     - assets/
     - assets/launch_background.png
-    - assets/test/
-    - assets/test/images/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

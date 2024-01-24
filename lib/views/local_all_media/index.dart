@@ -31,10 +31,10 @@ class _LocalAllMediaState extends State<LocalAllMedia> {
   // 是否点击了搜索图表
   bool _iSClickSearch = false;
   // 图片文件夹(aka相册)可以列表展示和网格展示，网格展示要有缩略图
-  bool isGridMode = true;
+  bool isGridMode = false;
 
   // 默认查询图片和视频，可切换其他类别
-  RequestType selectedRequestType = RequestType.common;
+  RequestType selectedRequestType = RequestType.video;
   // 默认查询所有，可关键字筛选
   String queryKeywork = "";
 

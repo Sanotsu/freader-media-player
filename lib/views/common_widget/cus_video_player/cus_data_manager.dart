@@ -25,6 +25,8 @@ class CusDataManager {
   String getVideoName() =>
       path.basenameWithoutExtension(files[currentPlaying].path);
 
+  File getVideoFile() => (files[currentPlaying]);
+
   // 返回true或者false表示是否完成了跳转下一个视频；如果没有下一个视频，调用处就直接返回到列表页面
   bool skipToNextVideo([Duration? duration]) {
     if (hasNextVideo()) {
