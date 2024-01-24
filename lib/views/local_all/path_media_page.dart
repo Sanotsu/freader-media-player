@@ -38,6 +38,10 @@ class _PathMediaPageState extends State<PathMediaPage> {
   // 指定相册内部文件可以列表展示和网格展示，网格展示要有缩略图
   bool isGridMode = true;
 
+  // 这里指定文件夹下的条目点击后会创建对应的播放列表，但构建过程可能需要耗时，避免重复点击，点过之后旧显示转圈
+  bool isListLoading = false;
+  OverlayEntry? overlayEntry;
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +61,80 @@ class _PathMediaPageState extends State<PathMediaPage> {
     setState(() {
       if (mounted) _list = list;
     });
+  }
+
+  // 这里指定文件夹下的条目点击后会创建对应的播放列表，但构建过程可能需要耗时，避免重复点击，点过之后旧显示转圈
+  // 传true就构建加载圈；传false就取消
+  void toggleLoading(bool isLoading) {
+    // 如果已经有加载圈了，则直接返回
+    if (isLoading && isListLoading) {
+      return;
+    }
+
+    setState(() {
+      isListLoading = isLoading;
+    });
+
+    if (isLoading) {
+      overlayEntry = OverlayEntry(
+        builder: (context) => Stack(
+          children: [
+            const Positioned.fill(
+              child: AbsorbPointer(
+                absorbing: true, // 禁用底部内容的点击操作
+                child: ModalBarrier(
+                  color: Color.fromARGB(137, 175, 158, 158),
+                  dismissible: false,
+                ),
+              ),
+            ),
+            Positioned(
+              top: MediaQuery.of(context).size.height / 2 - 50,
+              left: MediaQuery.of(context).size.width / 2 - 50,
+              child: Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(137, 161, 153, 153),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      '当前路径资源较多',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                    Text(
+                      '播放列表构建中...',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      Overlay.of(context).insert(overlayEntry!);
+    } else {
+      overlayEntry?.remove();
+      overlayEntry = null;
+    }
   }
 
   @override
@@ -102,7 +180,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
 
   /// 构建媒体文件预览的grid列表
   _buildGridItem() {
-    GridView.builder(
+    return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
         mainAxisSpacing: 2,
@@ -110,40 +188,49 @@ class _PathMediaPageState extends State<PathMediaPage> {
         childAspectRatio: 1,
       ),
       itemCount: _list.length,
-      itemBuilder: (ctx, index) {
+      itemBuilder: (context, index) {
         final entity = _list[index];
-        return GestureDetector(
-          // 2024-01-23 这里的音频文件取不到封面之类的，就显示图标和标题
-          child: (entity.type == AssetType.audio)
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Icon(Icons.audiotrack, size: 18.sp),
-                    Text(
-                      entity.title ?? "",
-                      style: TextStyle(fontSize: 10.sp),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+
+        return Container(
+          // color: Colors.lightBlue,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Theme.of(context).disabledColor,
+            ),
+          ),
+          child: GestureDetector(
+            // 2024-01-23 这里的音频文件取不到封面之类的，就显示图标和标题
+            child: (entity.type == AssetType.audio)
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(Icons.audiotrack, size: 18.sp),
+                      Text(
+                        entity.title ?? "",
+                        style: TextStyle(fontSize: 10.sp),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  )
+                : ImageItemWidget(
+                    entity: entity,
+                    option: ThumbnailOption.ios(
+                      size: const ThumbnailSize.square(500),
                     ),
-                  ],
-                )
-              : ImageItemWidget(
-                  entity: entity,
-                  option: ThumbnailOption.ios(
-                    size: const ThumbnailSize.square(500),
+                    isLongPress: selectedCards.contains(index) ? true : false,
                   ),
-                  isLongPress: selectedCards.contains(index) ? true : false,
-                ),
-          onTap: () {
-            itemOnTap(entity, index);
-          },
-          onLongPress: () {
-            print("使用了长按");
-            setState(() {
-              selectedCards.add(index);
-            });
-          },
+            onTap: () {
+              itemOnTap(entity, index);
+            },
+            onLongPress: () {
+              print("使用了长按");
+              setState(() {
+                selectedCards.add(index);
+              });
+            },
+          ),
         );
       },
     );
@@ -165,12 +252,16 @@ class _PathMediaPageState extends State<PathMediaPage> {
             overflow: TextOverflow.ellipsis,
           ),
           subtitle: Text(entity.type.toString()),
-          leading: ImageItemWidget(
-            entity: entity,
-            option: ThumbnailOption.ios(
-              size: const ThumbnailSize.square(500),
+          leading: SizedBox(
+            height: 56.sp,
+            width: 80.sp,
+            child: ImageItemWidget(
+              entity: entity,
+              option: ThumbnailOption.ios(
+                size: const ThumbnailSize.square(500),
+              ),
+              isLongPress: selectedCards.contains(index) ? true : false,
             ),
-            isLongPress: selectedCards.contains(index) ? true : false,
           ),
           onTap: () {
             itemOnTap(entity, index);
@@ -205,6 +296,8 @@ class _PathMediaPageState extends State<PathMediaPage> {
         "图片中点击了 ${entity.title} ${entity.type} ${entity.originFile} 要播放或者显示",
       );
 
+      toggleLoading(true);
+
       // 2024-01-23 点击某一个视频，进入播放列表，轮播视频
       if (entity.type == AssetType.video) {
         File? tempFile = await entity.file;
@@ -220,6 +313,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
           if (!mounted) return;
           if (currentVideoIndex < 0) {
             showSnackMessage(context, "没找到对应点击的视频");
+            toggleLoading(false);
             return;
           }
 
@@ -231,8 +325,11 @@ class _PathMediaPageState extends State<PathMediaPage> {
               "提示",
               "不支持的视频格式: ${entity.mimeType}",
             );
+            toggleLoading(false);
             return;
           }
+
+          toggleLoading(false);
 
           if (!mounted) return;
           Navigator.of(context).push(
@@ -254,6 +351,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
             "提示",
             "找不到视频文件: ${entity.title}",
           );
+          toggleLoading(false);
           return;
         }
       } else if (entity.type == AssetType.image) {
@@ -265,6 +363,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
             imageEneities.indexWhere((f) => f.id == entity.id);
 
         /// ??? 理论上也应该和视频一样进行一些判断，暂时略过
+        toggleLoading(false);
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -295,6 +394,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
           if (!mounted) return;
           if (currentAudioIndex < 0) {
             showSnackMessage(context, "没找到对应点击的音频");
+            toggleLoading(false);
             return;
           }
 
@@ -306,19 +406,21 @@ class _PathMediaPageState extends State<PathMediaPage> {
               "提示",
               "不支持的音频格式: ${entity.mimeType}",
             );
+            toggleLoading(false);
             return;
           }
 
           /// 2024-01-23 还是使用全局的音频播放器来播放，歌单就是当前路径下的所有音频文件。
-          // await _audioHandler.buildPlaylistByAssetEntity(
-          //   audioEneities,
-          //   currentAudioIndex,
-          // );
+          await _audioHandler.buildPlaylistByAssetEntity(
+            audioEneities,
+            currentAudioIndex,
+          );
           //
           /// 2024-01-23 实际测试，如果歌曲特别多，好像也很慢，暂时就只播放当前那首
-          await _audioHandler.buildPlaylistByAssetEntity([entity], 0);
+          // await _audioHandler.buildPlaylistByAssetEntity([entity], 0);
           await _audioHandler.refreshCurrentPlaylist();
 
+          toggleLoading(false);
           if (!mounted) return;
           Navigator.of(context).push(
             MaterialPageRoute(
@@ -358,10 +460,13 @@ class _PathMediaPageState extends State<PathMediaPage> {
             "提示",
             "找不到音频文件: ${entity.title}",
           );
+          toggleLoading(false);
           return;
         }
       } else {
         print("点击的既不是图片也不是音频、视频:${entity.title}-${entity.type}");
+
+        toggleLoading(false);
       }
     }
   }

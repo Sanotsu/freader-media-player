@@ -357,20 +357,28 @@ _buildGrid(List<AssetPathEntity> list) {
             Expanded(
               flex: 2,
               // 有图片的才会显示，在路径处显示第一张图片为预览图
-              child: FutureBuilder<List<AssetEntity>>(
-                future: path.getAssetListRange(start: 0, end: 1),
-                builder: (BuildContext context,
-                    AsyncSnapshot<List<AssetEntity>> snapshot) {
-                  // 其实分为hasData、hasError、加载中几个情况。
-                  return (snapshot.hasData)
-                      ? ImageItemWidget(
-                          entity: snapshot.data![0],
-                          option: ThumbnailOption.ios(
-                            size: const ThumbnailSize.square(500),
-                          ),
-                        )
-                      : const SizedBox();
-                },
+              child: Container(
+                // color: Colors.lightBlue,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context).disabledColor,
+                  ),
+                ),
+                child: FutureBuilder<List<AssetEntity>>(
+                  future: path.getAssetListRange(start: 0, end: 1),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<List<AssetEntity>> snapshot) {
+                    // 其实分为hasData、hasError、加载中几个情况。
+                    return (snapshot.hasData)
+                        ? ImageItemWidget(
+                            entity: snapshot.data![0],
+                            option: ThumbnailOption.ios(
+                              size: const ThumbnailSize.square(500),
+                            ),
+                          )
+                        : const SizedBox();
+                  },
+                ),
               ),
             ),
             Expanded(
