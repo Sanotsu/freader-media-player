@@ -8,7 +8,7 @@ import '../common/utils/global_styles.dart';
 import '../services/my_audio_handler.dart';
 import '../services/my_get_storage.dart';
 import '../services/service_locator.dart';
-import '../views/local_all/index.dart';
+import '../views/local_all_media/index.dart';
 import '../views/local_music/index.dart';
 import '../views/local_photo/index.dart';
 import '../views/local_video/index.dart';
@@ -34,8 +34,6 @@ class _HomePageState extends State<HomePage> {
     LocalMusic(),
     LocalPhoto(),
     LocalVideo(),
-    // LocalMedia(),
-    // CustomFilterPhoto(),
     LocalAllMedia(),
   ];
 
@@ -141,7 +139,7 @@ class _HomePageState extends State<HomePage> {
           type: BottomNavigationBarType.fixed,
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.music_note),
+              icon: Icon(Icons.audiotrack),
               label: '本地音乐',
             ),
             BottomNavigationBarItem(
@@ -152,21 +150,9 @@ class _HomePageState extends State<HomePage> {
               icon: Icon(Icons.video_file),
               label: '本地视频',
             ),
-
-            /// 这个是之前旧的图片和视频放一起
-            // BottomNavigationBarItem(
-            //   icon: Icon(Icons.video_file),
-            //   label: '图片视频',
-            // ),
-            /// 这个是想单纯支持图片可查询
-            // BottomNavigationBarItem(
-            //   icon: Icon(Icons.all_inbox),
-            //   label: '查询图片',
-            // ),
-
             BottomNavigationBarItem(
-              icon: Icon(Icons.video_file),
-              label: '本地资源',
+              icon: Icon(Icons.all_inbox),
+              label: '全部资源',
             ),
           ],
           currentIndex: _selectedIndex,

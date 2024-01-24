@@ -1,10 +1,3 @@
-// This example demonstrates how to play a playlist with a mix of URI and asset
-// audio sources, and the ability to add/remove/reorder playlist items.
-//
-// To run:
-//
-// flutter run -t lib/example_playlist.dart
-
 // ignore_for_file: avoid_print
 
 import 'package:audio_session/audio_session.dart';
@@ -21,7 +14,7 @@ import 'common.dart';
 /// 2024-01-23
 /// 本来想单独写一个简单的播放页面，新开音频播放，播完当前就停止，返回就关闭。
 /// 但是没有成功。
-/// 还是用全局单例的那个，当前播放列表就是文件夹中音频列表，只不过不存入缓存，下次的还是之前的。
+/// 还是用“本地音乐”模块那个全局单例，当前播放列表就是文件夹中音频列表，只不过不存入缓存，下次的还是之前的。
 ///
 ///
 class CusAudioPlayer extends StatefulWidget {

@@ -9,11 +9,13 @@ import 'dart:io';
 import '../../common/utils/tool_widgets.dart';
 import '../../services/my_audio_handler.dart';
 import '../../services/service_locator.dart';
-import '../local_media/widgets/image_item_widget.dart';
+import '../common_widget/cus_gallery_viewer/index.dart';
+import '../common_widget/image_item_widget.dart';
 
+import '../common_widget/show_media_info_dialog.dart';
 import '../local_music/nested_pages/just_audio_music_player_detail.dart';
-import 'cus_image_viewer/cus_viewer.dart';
-import 'cus_video_player/cus_player.dart';
+
+import '../common_widget/cus_video_player/index.dart';
 
 class PathMediaPage extends StatefulWidget {
   const PathMediaPage({super.key, required this.path, required this.pathList});
@@ -202,15 +204,17 @@ class _PathMediaPageState extends State<PathMediaPage> {
             // 2024-01-23 这里的音频文件取不到封面之类的，就显示图标和标题
             child: (entity.type == AssetType.audio)
                 ? Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(Icons.audiotrack, size: 18.sp),
-                      Text(
-                        entity.title ?? "",
-                        style: TextStyle(fontSize: 10.sp),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      Expanded(
+                        child: Icon(Icons.audiotrack, size: 18.sp),
+                      ),
+                      Expanded(
+                        child: Text(
+                          entity.title ?? "",
+                          style: TextStyle(fontSize: 10.sp),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   )
@@ -253,14 +257,26 @@ class _PathMediaPageState extends State<PathMediaPage> {
           ),
           subtitle: Text(entity.type.toString()),
           leading: SizedBox(
-            height: 56.sp,
-            width: 80.sp,
+            height: 36.sp,
+            width: 48.sp,
             child: ImageItemWidget(
               entity: entity,
               option: ThumbnailOption.ios(
                 size: const ThumbnailSize.square(500),
               ),
               isLongPress: selectedCards.contains(index) ? true : false,
+            ),
+          ),
+          trailing: SizedBox(
+            width: 32.sp,
+            child: IconButton(
+              onPressed: () {
+                showMediaInfoDialog(entity, context);
+              },
+              icon: Icon(
+                Icons.info_outline,
+                color: Theme.of(context).primaryColor,
+              ),
             ),
           ),
           onTap: () {
@@ -336,7 +352,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
             MaterialPageRoute(
               builder: (BuildContext ctx) {
                 // 这里轮播当前路径下的所有符合条件的视频文件。
-                return CusPlayer(
+                return CusVideoPlayer(
                   entities: videoEneities,
                   index: currentVideoIndex,
                 );
@@ -367,7 +383,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => CusViewer(
+            builder: (context) => CusGalleryViewer(
               galleryItems: imageEneities,
               backgroundDecoration: const BoxDecoration(
                 color: Colors.black,

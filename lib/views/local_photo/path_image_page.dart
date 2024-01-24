@@ -5,21 +5,20 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../../common/utils/tool_widgets.dart';
-import '../local_media/widgets/image_item_widget.dart';
-import 'cus_image_viewer/cus_gallery_viewer.dart';
+import '../common_widget/image_item_widget.dart';
+import '../common_widget/cus_gallery_viewer/index.dart';
 
-class SpecifiedImageFolderPage extends StatefulWidget {
-  const SpecifiedImageFolderPage({super.key, required this.path});
+class PathImagePage extends StatefulWidget {
+  const PathImagePage({super.key, required this.path});
 
   // 当前浏览的媒体文件属于哪一个文件夹
   final AssetPathEntity path;
 
   @override
-  State<SpecifiedImageFolderPage> createState() =>
-      _SpecifiedImageFolderPageState();
+  State<PathImagePage> createState() => _PathImagePageState();
 }
 
-class _SpecifiedImageFolderPageState extends State<SpecifiedImageFolderPage> {
+class _PathImagePageState extends State<PathImagePage> {
   // 文件夹中的文件
   List<AssetEntity> _list = [];
   // 被选中的文件索引

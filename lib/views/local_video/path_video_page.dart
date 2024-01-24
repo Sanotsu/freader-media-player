@@ -9,26 +9,24 @@ import 'dart:io';
 import '../../common/global/constants.dart';
 import '../../common/utils/tool_widgets.dart';
 import '../../common/utils/tools.dart';
-import '../local_media/widgets/image_item_widget.dart';
-
-import 'cus_video_player/cus_player.dart';
+import '../common_widget/cus_video_player/index.dart';
+import '../common_widget/image_item_widget.dart';
 
 ///
 /// 2024-01-15 从理论上来讲，异动(修改、删除、复制等)操作越来越严格。
 /// 所以仅仅考虑只保留读取和观看的功能，其他都不要了
 ///
-class SpecifiedVideoFolderPage extends StatefulWidget {
-  const SpecifiedVideoFolderPage({super.key, required this.path});
+class PathVideoPage extends StatefulWidget {
+  const PathVideoPage({super.key, required this.path});
 
   // 当前浏览的媒体文件属于哪一个文件夹
   final AssetPathEntity path;
 
   @override
-  State<SpecifiedVideoFolderPage> createState() =>
-      _SpecifiedVideoFolderPageState();
+  State<PathVideoPage> createState() => _PathVideoPageState();
 }
 
-class _SpecifiedVideoFolderPageState extends State<SpecifiedVideoFolderPage> {
+class _PathVideoPageState extends State<PathVideoPage> {
   // 文件夹中的文件实体
   List<AssetEntity> _list = [];
   // 文件夹中的视频文件

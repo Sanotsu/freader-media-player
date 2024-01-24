@@ -5,14 +5,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
 
-import 'data_manager.dart';
+import 'cus_data_manager.dart';
 
 ///
 /// 2024-01-16
 /// 从感官说，这里的尺寸不添加.sp，在横向或竖向展示时才是一致的；加了.sp之后，竖向播放时图标会小很多
 ///
-class CusPlayerControls extends StatelessWidget {
-  const CusPlayerControls({
+class CusVideoPlayerControls extends StatelessWidget {
+  const CusVideoPlayerControls({
     super.key,
     this.iconSize = 25,
     this.fontSize = 12,
@@ -23,7 +23,7 @@ class CusPlayerControls extends StatelessWidget {
   });
   final double iconSize;
   final double fontSize;
-  final DataManager? dataManager;
+  final CusDataManager? dataManager;
   final AssetEntity currentEntity;
   final FlickManager flickManager;
 

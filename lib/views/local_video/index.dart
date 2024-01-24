@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-import 'specified_video_folder_page.dart';
+import 'path_video_page.dart';
 
 /// 2024-01-13 重构
 /// 针对图片和视频分开不同的模块，对于指定类型更加单纯地处理
@@ -60,12 +60,6 @@ class _LocalVideoState extends State<LocalVideo> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('本地视频'),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.filter_list_sharp, color: Colors.black),
-          )
-        ],
       ),
       body: Column(
         children: [
@@ -106,7 +100,7 @@ class _LocalVideoState extends State<LocalVideo> {
                 ? ListTile(
                     leading: Icon(Icons.folder, size: 56.sp),
                     // 注意，有一个name是空字符串的，那是最外层的文件夹
-                    title: Text(path.name != "" ? path.name : "内部存储"),
+                    title: Text(path.name != "" ? path.name : "设备根目录"),
                     subtitle: Text("${snapshot.data} 个视频"),
                     onTap: () async {
                       await Navigator.push(
@@ -114,7 +108,7 @@ class _LocalVideoState extends State<LocalVideo> {
                         MaterialPageRoute(
                           // 进入指定文件夹
                           builder: (BuildContext ctx) =>
-                              SpecifiedVideoFolderPage(path: path),
+                              PathVideoPage(path: path),
                         ),
                       );
                     },

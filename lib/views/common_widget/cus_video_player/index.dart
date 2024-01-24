@@ -8,7 +8,7 @@ import 'package:photo_manager/photo_manager.dart';
 
 import 'package:video_player/video_player.dart';
 
-import 'data_manager.dart';
+import 'cus_data_manager.dart';
 import 'cus_player_controls.dart';
 
 class CusVideoPlayer extends StatefulWidget {
@@ -28,7 +28,7 @@ class CusVideoPlayer extends StatefulWidget {
 
 class _CusVideoPlayerState extends State<CusVideoPlayer> {
   late FlickManager flickManager;
-  late DataManager dataManager;
+  late CusDataManager dataManager;
 
   late File? currentFile;
   late AssetEntity currentEntity;
@@ -86,7 +86,7 @@ class _CusVideoPlayerState extends State<CusVideoPlayer> {
         },
       );
 
-      dataManager = DataManager(
+      dataManager = CusDataManager(
         flickManager: flickManager,
         files: files,
         // ??? 注意，如果这里的currentFile整的有null的话，那这里传所以可能就和实际视频列表数量对不上了
@@ -163,7 +163,7 @@ class _CusVideoPlayerState extends State<CusVideoPlayer> {
                           flickVideoWithControls: FlickVideoWithControls(
                             // 自定义的播放器控制器
                             controls: SafeArea(
-                              child: CusPlayerControls(
+                              child: CusVideoPlayerControls(
                                 flickManager: flickManager,
                                 dataManager: dataManager,
                                 currentEntity: currentEntity,

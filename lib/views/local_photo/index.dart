@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-import 'specified_image_folder_page.dart';
+import 'path_image_page.dart';
 
 /// 2024-01-13 重构
 /// 针对图片和视频分开不同的模块，对于指定类型更加单纯地处理
@@ -64,10 +64,6 @@ class _LocalPhotoState extends State<LocalPhoto> {
       appBar: AppBar(
         title: const Text('本地图片'),
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.filter_list_sharp, color: Colors.black),
-          ),
           // 列表或网格的切换
           IconButton(
             onPressed: () {
@@ -127,7 +123,7 @@ class _LocalPhotoState extends State<LocalPhoto> {
               MaterialPageRoute(
                 // 进入指定文件夹
                 builder: (BuildContext ctx) =>
-                    SpecifiedImageFolderPage(path: path),
+                    PathImagePage(path: path),
               ),
             );
           },
@@ -156,7 +152,7 @@ class _LocalPhotoState extends State<LocalPhoto> {
               MaterialPageRoute(
                 // 进入指定文件夹
                 builder: (BuildContext ctx) =>
-                    SpecifiedImageFolderPage(path: path),
+                    PathImagePage(path: path),
               ),
             );
           },
@@ -217,7 +213,7 @@ class _LocalPhotoState extends State<LocalPhoto> {
                           child: ListTile(
                             // 注意，有一个name是空字符串的，那是最外层的文件夹
                             title: Text(
-                              path.name != "" ? path.name : "手机根目录",
+                              path.name != "" ? path.name : "设备根目录",
                               softWrap: true,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

@@ -6,16 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-import '../local_media/widgets/image_item_widget.dart';
+import '../common_widget/image_item_widget.dart';
 import 'path_media_page.dart';
 
-/// 页面层级关系: 主页面 > 含有图片/视频的文件夹路径 > 该指定文件夹中的图片/视频列表 > 点击查看图片/播放视频
+/// 页面层级关系: 主页面 > 含有媒体资源的文件夹路径 > 该指定文件夹中的媒体资源列表 > 点击查看该路径下图片/播放视频、音频
 ///
-/// 图片视频页面的层级应该是这样:
-///   所有的图片/视频文件夹列表 (index)
-///     - 切换仅图片/仅视频时，重新查询文件夹列表
-///     - 点击某个文件夹项次时，进入文件夹中，显示文件夹中的媒体文件列表 (folderIndex/旧PathPage)
-///         - 点击某个具体图片/视频，进入图片浏览/视频播放页面
+/// 媒体资源页面的层级应该是这样:
+///   所有的媒体资源文件夹列表 (index)
+///     - 输入关键字查询、或者切换查询媒体资源类型后，重新查询符合条件的文件夹列表
+///     - 点击某个文件夹项次时，进入文件夹中，显示文件夹中的媒体文件列表 (path_media_page)
+///         - 点击某个具体媒体资源，进入媒体资源播放浏览详情页面
 
 class LocalAllMedia extends StatefulWidget {
   const LocalAllMedia({super.key});
@@ -55,7 +55,8 @@ class _LocalAllMediaState extends State<LocalAllMedia> {
       ),
     );
 
-    // 这里安卓和ios在图片类型时mediaType都是 1，视频和音频时，略有不同(注意：mediaType的值是number)
+    // 这里安卓和ios在图片类型时mediaType都是 1，视频和音频时，略有不同
+    // (注意：mediaType的值是number的 1 2 3,而且Android和IOS下还不同)
     if (selectedRequestType == RequestType.image) {
       // group.andText('${CustomColumns.base.mediaType} = 1 ');
       group.andText(_genMediaTypeText('= 1'));
@@ -86,7 +87,7 @@ class _LocalAllMediaState extends State<LocalAllMedia> {
     return Scaffold(
       appBar: AppBar(
         title: (!_iSClickSearch)
-            ? const Text('本地相册')
+            ? const Text('所有资源')
             : TextField(
                 onChanged: (String inputStr) {
                   setState(() {
@@ -160,9 +161,11 @@ class _LocalAllMediaState extends State<LocalAllMedia> {
                 value: RequestType.all,
                 child: Text('全部'),
               ),
+              // 2024-01-23 虽然common预设的是图片和视频，但是查询没有效果
+              // 我这个用来构建sql，只是指定 MediaType 而已
               const PopupMenuItem<RequestType>(
                 value: RequestType.common,
-                child: Text('图片和视频'),
+                child: Text('音频和视频'),
               ),
               const PopupMenuItem<RequestType>(
                 value: RequestType.image,
@@ -386,7 +389,7 @@ _buildGrid(List<AssetPathEntity> list) {
               child: ListTile(
                 // 注意，有一个name是空字符串的，那是最外层的文件夹
                 title: Text(
-                  path.name != "" ? path.name : "手机根目录",
+                  path.name != "" ? path.name : "设备根目录",
                   softWrap: true,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
