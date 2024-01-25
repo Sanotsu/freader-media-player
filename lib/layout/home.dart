@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../common/utils/tool_widgets.dart';
 import '../services/my_audio_handler.dart';
+import '../services/my_get_storage.dart';
 import '../services/service_locator.dart';
 import '../views/local_all_media/index.dart';
 import '../views/local_music/index.dart';
@@ -18,19 +20,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 1;
+  // 默认选中第一个底部导航条目
+  int _selectedIndex = 0;
 
   final _audioHandler = getIt<MyAudioHandler>();
+  // 统一简单存储操作的工具类实例
+  final _simpleStorage = getIt<MyGetStorage>();
 
   // 是否音频初始化加载完成
   bool isLoading = false;
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    LocalMusic(),
-    LocalVideo(),
-    LocalPhoto(),
-    LocalAllMedia(),
-  ];
+  // 2024-01-25 彩蛋功能，底部导航栏的数量和页面根据缓存中的值来改变
+  List<Widget> _widgetOptions = [];
+  List<BottomNavigationBarItem> bottomNavBarItems = [];
 
   @override
   void initState() {
@@ -38,6 +40,39 @@ class _HomePageState extends State<HomePage> {
 
     // app初次启动时要获取相关授权，取得之后就不需要重复请求了
     initAudio();
+
+    // 2024-01-25 根据缓存值显示底部导航条目数量
+    changeBottomNavItemNum();
+  }
+
+  /// 2024-01-25 彩蛋功能，根据缓存展示底部导航栏条目的数量
+  /// 2 个时就只显示本地音乐盒全部资源；否则就4个全部显示
+  changeBottomNavItemNum() {
+    setState(() {
+      var num = _simpleStorage.getBottomNavItemMun();
+
+      if (num > 2) {
+        _widgetOptions = const [
+          LocalMusic(),
+          LocalVideo(),
+          LocalPhoto(),
+          LocalAllMedia(),
+        ];
+
+        bottomNavBarItems = const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.audiotrack), label: '本地音乐'),
+          BottomNavigationBarItem(icon: Icon(Icons.video_file), label: '本地视频'),
+          BottomNavigationBarItem(icon: Icon(Icons.image), label: '本地图片'),
+          BottomNavigationBarItem(icon: Icon(Icons.all_inbox), label: '全部资源'),
+        ];
+      } else {
+        _widgetOptions = const [LocalMusic(), LocalAllMedia()];
+        bottomNavBarItems = const [
+          BottomNavigationBarItem(icon: Icon(Icons.audiotrack), label: '本地音乐'),
+          BottomNavigationBarItem(icon: Icon(Icons.all_inbox), label: '全部资源'),
+        ];
+      }
+    });
   }
 
   // 获取存储权限
@@ -82,7 +117,30 @@ class _HomePageState extends State<HomePage> {
           builder: (context) {
             return AlertDialog(
               title: const Text('关闭'),
-              content: const Text("确定要退出FMP播放器吗?"),
+              // content: const Text("确定要退出FMP播放器吗?"),
+              /// 2024-01-25 彩蛋功能，长按退出的正文，可切换底部导航栏item的数量
+              content: GestureDetector(
+                onLongPress: () async {
+                  if (_simpleStorage.getBottomNavItemMun() > 2) {
+                    await _simpleStorage.setBottomNavItemMun(2);
+                  } else {
+                    await _simpleStorage.setBottomNavItemMun(4);
+                  }
+
+                  setState(() {
+                    changeBottomNavItemNum();
+                  });
+                  if (!mounted) return;
+                  Navigator.pop(context, false);
+
+                  showSnackMessage(
+                    context,
+                    "恭喜你找到隐藏彩蛋。\n长按退出弹窗正文，可切换底部导航栏数量！",
+                    seconds: 5,
+                  );
+                },
+                child: const Text("确定要退出FMP播放器吗?"),
+              ),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -132,24 +190,7 @@ class _HomePageState extends State<HomePage> {
             : Center(child: _widgetOptions.elementAt(_selectedIndex)),
         bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.audiotrack),
-              label: '本地音乐',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.video_file),
-              label: '本地视频',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.image),
-              label: '本地图片',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.all_inbox),
-              label: '全部资源',
-            ),
-          ],
+          items: bottomNavBarItems,
           currentIndex: _selectedIndex,
           // // 底部导航栏的颜色
           // backgroundColor: Theme.of(context).primaryColor,

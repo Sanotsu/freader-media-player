@@ -78,4 +78,14 @@ class MyGetStorage {
     }
     return isShuffle;
   }
+
+  /// 2024-01-25 彩蛋功能，我觉得本地视频和本地图片模块和全部资源重复太多，可以不显示
+  /// 所以存一个标识来决定显示。
+  /// 默认显示全部四个，但可以在每次退出弹窗中，双击content文字修改为2个(如果已经是2个就恢复到4个)
+  ///
+  Future<void> setBottomNavItemMun(int number) async {
+    await box.write("BottomNavItemMun", number);
+  }
+
+  int getBottomNavItemMun() => box.read("BottomNavItemMun") ?? 4;
 }
