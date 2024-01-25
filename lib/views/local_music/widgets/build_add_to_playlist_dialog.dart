@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -22,8 +20,6 @@ Future<void> buildAddToPlaylistDialog(
   final audioQuery = getIt<MyAudioQuery>();
   // 每次打开添加到歌单，都没有预设被选中的
   int? selectedPlaylistId = 0;
-
-  print("buildAddToPlaylistDialog====  $listType");
 
   return await showDialog<void>(
     context: ctx,
@@ -64,13 +60,7 @@ Future<void> buildAddToPlaylistDialog(
                                     value: playlists[index].id,
                                     groupValue: selectedPlaylistId,
                                     onChanged: (int? value) {
-                                      print(
-                                        "ddddddddddddd $selectedPlaylistId  ${playlists[index].id}",
-                                      );
-
                                       setState(() {
-                                        print(
-                                            "sssssssssssssssssssssssssssss $value");
                                         selectedPlaylistId = value;
                                       });
                                     },
@@ -96,8 +86,6 @@ Future<void> buildAddToPlaylistDialog(
                           ),
                           child: const Text('创建新歌单'),
                           onPressed: () async {
-                            print("点击了新建歌单按钮11111");
-
                             Navigator.of(ctext).pop();
                             await _displayTextInputDialog(ctext, alp, listType);
                           },
@@ -135,11 +123,12 @@ Future<void> buildAddToPlaylistDialog(
               child: const Text('添加'),
               onPressed: () {
                 // 添加被选中的音频到指定歌单
-
-                print("<<<<<<<<向歌单添加歌曲时被选中的歌单编号$selectedPlaylistId");
-
                 addAudioToPlaylist(
-                    audioQuery, alp, selectedPlaylistId ?? 0, listType);
+                  audioQuery,
+                  alp,
+                  selectedPlaylistId ?? 0,
+                  listType,
+                );
 
                 setState(() {
                   // 单击了添加功能按钮之后，立马切回长按状态为否，等到添加到列表完成
@@ -164,7 +153,6 @@ _displayTextInputDialog(
   // 获取查询音乐组件实例
   final audioQuery = getIt<MyAudioQuery>();
 
-  print("点击了添加新歌单");
   var playInput = "";
   return await showDialog(
       context: context,
@@ -245,9 +233,6 @@ _displayTextInputDialog(
                   PlaylistModel p = list
                       .firstWhere((PlaylistModel e) => e.playlist == playInput);
 
-                  print(
-                      "输入新建的歌单名称 $playInput ${p.id} ${alp.selectedAudioList}");
-
                   /// 4 添加歌单中被选中的音频到指定另一歌单
                   addAudioToPlaylist(audioQuery, alp, p.id, listType);
 
@@ -271,18 +256,15 @@ addAudioToPlaylist(
   String listType,
 ) {
   if (listType != AudioListTypes.playlist) {
-    print("不是从A歌单到B歌单添加音频");
     // 不是从A歌单到B歌单添加音频
     for (var e in alp.selectedAudioList) {
       maq.addToPlaylist(playlistId, e.id);
     }
   } else {
     // 如果是A歌单到B歌单，选择的音频，通过名称查询到原始音频信息列表
-    print("如果是A歌单到B歌单，选择的音频，通过名称查询到原始音频信息列表");
     for (var e in alp.selectedAudioList) {
       maq.queryWithFilters(e.title, WithFiltersType.AUDIOS).then((songs) {
         // 假设同名的歌曲就一首，有多首也只取第一首放入指定歌单
-        print("${SongModel(songs[0]).id}");
         maq.addToPlaylist(playlistId, SongModel(songs[0]).id);
       });
     }

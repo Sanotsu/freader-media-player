@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -11,6 +9,7 @@ import '../../common/utils/tool_widgets.dart';
 import '../../common/utils/tools.dart';
 import '../common_widget/cus_video_player/index.dart';
 import '../common_widget/image_item_widget.dart';
+import '../common_widget/show_media_info_dialog.dart';
 
 ///
 /// 2024-01-15 从理论上来讲，异动(修改、删除、复制等)操作越来越严格。
@@ -260,7 +259,19 @@ class _PathVideoPageState extends State<PathVideoPage> {
                   )
                 : Image.asset(placeholderImageUrl, fit: BoxFit.scaleDown),
           ),
-          trailing: const Icon(Icons.more_vert),
+
+          trailing: SizedBox(
+            width: 32.sp,
+            child: IconButton(
+              onPressed: () {
+                showMediaInfoDialog(entity, context);
+              },
+              icon: Icon(
+                Icons.info_outline,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+          ),
           selectedColor: Colors.blue,
           selected: selectedItems.contains(index) ? true : false,
           onTap: () async {
@@ -310,7 +321,11 @@ class _PathVideoPageState extends State<PathVideoPage> {
                   );
                 }
               } else {
-                print("点击的不是视频:${entity.title}-${entity.type}");
+                showSnackMessage(
+                  context,
+                  "点击的不是视频:${entity.title}-${entity.type}",
+                );
+                return;
               }
             }
           },

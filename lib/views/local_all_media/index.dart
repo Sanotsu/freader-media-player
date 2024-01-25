@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -25,18 +23,17 @@ class LocalAllMedia extends StatefulWidget {
 }
 
 class _LocalAllMediaState extends State<LocalAllMedia> {
-  // 用户可以有很多筛选条件(但暂时未启用)
+  // 用户可以有很多筛选条件，目前仅支持文件名称关键字查询
   late CustomFilter filter;
+  // 默认查询图片和视频，可切换其他类别
+  RequestType selectedRequestType = RequestType.all;
+  // 默认查询所有，可关键字筛选
+  String queryKeywork = "";
 
   // 是否点击了搜索图表
   bool _iSClickSearch = false;
   // 图片文件夹(aka相册)可以列表展示和网格展示，网格展示要有缩略图
   bool isGridMode = false;
-
-  // 默认查询图片和视频，可切换其他类别
-  RequestType selectedRequestType = RequestType.video;
-  // 默认查询所有，可关键字筛选
-  String queryKeywork = "";
 
   @override
   void initState() {
@@ -44,9 +41,12 @@ class _LocalAllMediaState extends State<LocalAllMedia> {
     filter = createFilter();
   }
 
-  // 2024-01-19使用这个查询条件，目前能运行，但是getAssetPathList()调用时指定的type无效
-  // 比如我指定了 type: RequestType.image，结果还是有音频和视频
+  /// 2024-01-19 单独使用这个 AdvancedCustomFilter/ CustomFilter 查询条件，目前能运行，
+  ///    但是getAssetPathList()调用时指定的type无效
+  ///    比如我指定了 type: RequestType.image，结果还是有音频和视频
+  /// 所以这里的切换媒体类型是构建的sql语句查询指定 mediaType
   CustomFilter createFilter() {
+    // 有输入关键字就构建标题的模糊查询
     final group = WhereConditionGroup().and(
       ColumnWhereCondition(
         column: CustomColumns.android.title,
@@ -58,7 +58,6 @@ class _LocalAllMediaState extends State<LocalAllMedia> {
     // 这里安卓和ios在图片类型时mediaType都是 1，视频和音频时，略有不同
     // (注意：mediaType的值是number的 1 2 3,而且Android和IOS下还不同)
     if (selectedRequestType == RequestType.image) {
-      // group.andText('${CustomColumns.base.mediaType} = 1 ');
       group.andText(_genMediaTypeText('= 1'));
     } else if (selectedRequestType == RequestType.audio) {
       group.andText(_genMediaTypeText('= ${Platform.isAndroid ? 2 : 3}'));
@@ -125,18 +124,9 @@ class _LocalAllMediaState extends State<LocalAllMedia> {
                     });
                   },
                 ),
-          // Row(
-          //   crossAxisAlignment: CrossAxisAlignment.center,
-          //   mainAxisAlignment: MainAxisAlignment.end,
-          //   children: [
-          //     // 下拉按钮，切换报告的时间范围
-          //     buildDropdownButton(),
-          //   ],
-          // ),
-          // 选择媒体资源类型
-          // 查询时指定的type没有用，就在sql中拼接
+
+          // 选择媒体资源类型。查询时指定的type没有用，就在sql中拼接
           PopupMenuButton<RequestType>(
-            // icon: const Icon(Icons.filter_list),
             icon: Icon(
               selectedRequestType == RequestType.common
                   ? Icons.perm_media
@@ -207,51 +197,10 @@ class _LocalAllMediaState extends State<LocalAllMedia> {
       ),
     );
   }
-
-  buildDropdownButton() {
-    return DropdownButton(
-      borderRadius: BorderRadius.all(Radius.circular(10.sp)),
-      // 默认背景是白色，但我需要字体默认是白色，和appbar中其他保持一致，那么背景色改为灰色
-      dropdownColor: const Color.fromARGB(255, 124, 96, 96),
-      isDense: true,
-      items: [
-        RequestType.all,
-        RequestType.common,
-        RequestType.image,
-        RequestType.audio,
-        RequestType.video,
-      ]
-          .map<DropdownMenuItem<RequestType>>(
-            (RequestType value) => DropdownMenuItem<RequestType>(
-              value: value,
-              child: Text(
-                (value.toString()),
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12.sp,
-                ),
-                textAlign: TextAlign.end,
-              ),
-            ),
-          )
-          .toList(),
-      value: selectedRequestType,
-      onChanged: (RequestType? newValue) {
-        setState(() {
-          // 只改变了类型，关键字还保留旧的
-          // 修改下拉按钮的显示值,
-          selectedRequestType = newValue!;
-          filter = createFilter();
-        });
-      },
-      isExpanded: false,
-      // 将下划线设置为空的Container
-      underline: Container(),
-    );
-  }
 }
 
 _buildMediaFolderList(filter, isGridMode) {
+  // 标题关键字或者类型有修改，filter就会更新，查询结果也一样
   return FutureBuilder<List<AssetPathEntity>>(
     future: PhotoManager.getAssetPathList(
       type: RequestType.all,
@@ -263,8 +212,6 @@ _buildMediaFolderList(filter, isGridMode) {
       AsyncSnapshot<List<AssetPathEntity>> snapshot,
     ) {
       if (snapshot.hasData) {
-        print("getAssetPathList查询的结果${snapshot.data!}");
-
         List<AssetPathEntity> list = snapshot.data!;
         return isGridMode ? _buildGrid(list) : _buildList(list);
       }
@@ -302,15 +249,6 @@ _buildList(List<AssetPathEntity> list) {
           },
         ),
         leading: Icon(Icons.folder, size: 56.sp),
-        // trailing: FutureBuilder<int>(
-        //   future: path.assetCountAsync,
-        //   builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-        //     // 其实分为hasData、hasError、加载中几个情况。
-        //     return (snapshot.hasData)
-        //         ? Text("${snapshot.data} 个资源")
-        //         : const SizedBox();
-        //   },
-        // ),
         onTap: () {
           Navigator.push(
             context,
@@ -360,8 +298,8 @@ _buildGrid(List<AssetPathEntity> list) {
             Expanded(
               flex: 2,
               // 有图片的才会显示，在路径处显示第一张图片为预览图
+              // 加一个边框避免音频没有缩略图不好看
               child: Container(
-                // color: Colors.lightBlue,
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: Theme.of(context).disabledColor,

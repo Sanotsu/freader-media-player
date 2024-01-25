@@ -1,21 +1,16 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-import 'dart:io';
-
 import '../../common/utils/tool_widgets.dart';
+import '../../common/utils/tools.dart';
 import '../../services/my_audio_handler.dart';
 import '../../services/service_locator.dart';
 import '../common_widget/cus_gallery_viewer/index.dart';
 import '../common_widget/image_item_widget.dart';
-
 import '../common_widget/show_media_info_dialog.dart';
-import '../local_music/nested_pages/just_audio_music_player_detail.dart';
-
 import '../common_widget/cus_video_player/index.dart';
+import '../local_music/nested_pages/just_audio_music_player_detail.dart';
 
 class PathMediaPage extends StatefulWidget {
   const PathMediaPage({super.key, required this.path, required this.pathList});
@@ -33,8 +28,9 @@ class _PathMediaPageState extends State<PathMediaPage> {
   // 文件夹中的文件
   List<AssetEntity> _list = [];
   // 被选中的文件索引
-  var selectedCards = [];
+  var selectedEntityIndexes = [];
 
+  // 点击某个音频文件时，需要使用这个单例的音频控制器
   final _audioHandler = getIt<MyAudioHandler>();
 
   // 指定相册内部文件可以列表展示和网格展示，网格展示要有缩略图
@@ -53,11 +49,8 @@ class _PathMediaPageState extends State<PathMediaPage> {
   // 获取指定文件夹中的媒体文件
   Future<void> initPathAssets() async {
     final count = await widget.path.assetCountAsync;
-    if (count == 0) {
-      return;
-    }
+    if (count == 0) return;
 
-    print("这只指定文件夹${widget.path.name}中的数量$count");
     // 查询所有媒体实体列表（起止参数表示可以过滤只显示排序后中某一部分实体）
     final list = await widget.path.getAssetListRange(start: 0, end: count);
     setState(() {
@@ -144,30 +137,43 @@ class _PathMediaPageState extends State<PathMediaPage> {
     return Scaffold(
       /// 构建标题工具栏(没有条目被长按选择则不显示功能按钮)
       appBar: AppBar(
-        title: selectedCards.isNotEmpty
-            ? Text("${selectedCards.length}/${_list.length}")
+        title: selectedEntityIndexes.isNotEmpty
+            ? Text("${selectedEntityIndexes.length}/${_list.length}")
             : Text(widget.path.name),
         actions: <Widget>[
-          selectedCards.isNotEmpty
-              ? Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.cancel),
-                      tooltip: '取消选中',
-                      onPressed: () {
-                        setState(() {
-                          selectedCards.length = 0;
-                        });
-                      },
-                    )
-                  ],
+          if (selectedEntityIndexes.isNotEmpty)
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.cancel),
+                  tooltip: '取消选中',
+                  onPressed: () {
+                    setState(() {
+                      selectedEntityIndexes.length = 0;
+                    });
+                  },
                 )
-              : Container(),
+              ],
+            ),
+          if (selectedEntityIndexes.isNotEmpty)
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.info_outline),
+                  tooltip: '查看信息',
+                  onPressed: () {
+                    buildSelectedItemInfoDialog();
+                  },
+                )
+              ],
+            ),
           // 列表或网格的切换
           IconButton(
             onPressed: () {
               setState(() {
                 isGridMode = !isGridMode;
+                // 显示切换时也取消选中
+                selectedEntityIndexes.length = 0;
               });
             },
             icon: isGridMode
@@ -176,12 +182,12 @@ class _PathMediaPageState extends State<PathMediaPage> {
           ),
         ],
       ),
-      body: isGridMode ? _buildGridItem() : _buildList(),
+      body: isGridMode ? buildGridItem() : buildList(),
     );
   }
 
   /// 构建媒体文件预览的grid列表
-  _buildGridItem() {
+  buildGridItem() {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
@@ -194,7 +200,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
         final entity = _list[index];
 
         return Container(
-          // color: Colors.lightBlue,
+          // 加一个边框避免音频没有缩略图不好看
           decoration: BoxDecoration(
             border: Border.all(
               color: Theme.of(context).disabledColor,
@@ -223,15 +229,15 @@ class _PathMediaPageState extends State<PathMediaPage> {
                     option: ThumbnailOption.ios(
                       size: const ThumbnailSize.square(500),
                     ),
-                    isLongPress: selectedCards.contains(index) ? true : false,
+                    isLongPress:
+                        selectedEntityIndexes.contains(index) ? true : false,
                   ),
             onTap: () {
-              itemOnTap(entity, index);
+              buildItemOnTap(entity, index);
             },
             onLongPress: () {
-              print("使用了长按");
               setState(() {
-                selectedCards.add(index);
+                selectedEntityIndexes.add(index);
               });
             },
           ),
@@ -240,7 +246,8 @@ class _PathMediaPageState extends State<PathMediaPage> {
     );
   }
 
-  _buildList() {
+  /// 构建媒体文件预览的list列表
+  buildList() {
     return ListView.builder(
       itemCount: _list.length,
       itemBuilder: (BuildContext context, int index) {
@@ -264,7 +271,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
               option: ThumbnailOption.ios(
                 size: const ThumbnailSize.square(500),
               ),
-              isLongPress: selectedCards.contains(index) ? true : false,
+              isLongPress: selectedEntityIndexes.contains(index) ? true : false,
             ),
           ),
           trailing: SizedBox(
@@ -280,46 +287,42 @@ class _PathMediaPageState extends State<PathMediaPage> {
             ),
           ),
           onTap: () {
-            itemOnTap(entity, index);
+            buildItemOnTap(entity, index);
           },
           onLongPress: () {
-            print("使用了长按");
             setState(() {
-              selectedCards.add(index);
+              selectedEntityIndexes.add(index);
             });
           },
+          // 列表形态时，被长按选中的就改变被选中的颜色和状态
+          selected: selectedEntityIndexes.contains(index),
+          selectedColor: Theme.of(context).primaryColor,
         );
       },
     );
   }
 
-  itemOnTap(AssetEntity entity, int index) async {
+  // 条目被点击的操作，要区分是否已经有长按了
+  buildItemOnTap(AssetEntity entity, int index) async {
     // 如果已经处于长按状态，点击则为添加多选
-    if (selectedCards.isNotEmpty) {
-      print(
-        "图片中点击了 $index $selectedCards ${entity.title} 要添加或者移除",
-      );
+    if (selectedEntityIndexes.isNotEmpty) {
       setState(() {
         // 如果已经选中了，再点则为移除选中
-        if (selectedCards.contains(index)) {
-          selectedCards.remove(index);
+        if (selectedEntityIndexes.contains(index)) {
+          selectedEntityIndexes.remove(index);
         } else {
-          selectedCards.add(index);
+          selectedEntityIndexes.add(index);
         }
       });
     } else {
-      print(
-        "图片中点击了 ${entity.title} ${entity.type} ${entity.originFile} 要播放或者显示",
-      );
-
+      // 如果是音频或者视频，需要构建播放列表，需要耗费一些时间；
+      // 避免重复点击浪费更多时间，所以要显示加载圈
       toggleLoading(true);
 
       // 2024-01-23 点击某一个视频，进入播放列表，轮播视频
       if (entity.type == AssetType.video) {
-        File? tempFile = await entity.file;
-
         // 如果视频文件存在才进行进入播放页面等其他操作
-        if (tempFile != null) {
+        if ((await entity.file) != null) {
           List<AssetEntity> videoEneities =
               _list.where((e) => e.type == AssetType.video).toList();
           // 找到点击的视频在过滤后的视频列表中的索引
@@ -395,12 +398,8 @@ class _PathMediaPageState extends State<PathMediaPage> {
         );
       } else if (entity.type == AssetType.audio) {
         // ??? 理论上应该video player可以播放的，实际好像有点问题
-        // 这个是单个音频播放试一下
-
-        File? tempFile = await entity.file;
-
         // 如果视频文件存在才进行进入播放页面等其他操作
-        if (tempFile != null) {
+        if ((await entity.file) != null) {
           List<AssetEntity> audioEneities =
               _list.where((e) => e.type == AssetType.audio).toList();
           // 找到点击的视频在过滤后的视频列表中的索引
@@ -445,29 +444,6 @@ class _PathMediaPageState extends State<PathMediaPage> {
               },
             ),
           );
-
-          /// 2024-01-23 本来这个视频播放器应该可以播放音频的，但没有成功
-          // Navigator.of(ctx).push(
-          //   MaterialPageRoute(
-          //     builder: (BuildContext ctx) {
-          //       // 这里轮播当前路径下的所有符合条件的视频文件。
-          //       return CusPlayer(
-          //         entities: audioEneities,
-          //         index: currentAudioIndex,
-          //       );
-          //     },
-          //   ),
-          // );
-
-          /// 2024-01-23 本来想写一个简单的音频播放页面，只播放选择的音频，播完就返回，退出播放页面就停止的，但有点问题
-          // if (!mounted) return;
-          // Navigator.of(context).push(
-          //   MaterialPageRoute(
-          //     builder: (BuildContext ctx) {
-          //       return CusAudioPlayer(audio: entity);
-          //     },
-          //   ),
-          // );
         } else {
           // 如果音频文件不存在，提示
           if (!mounted) return;
@@ -480,10 +456,80 @@ class _PathMediaPageState extends State<PathMediaPage> {
           return;
         }
       } else {
-        print("点击的既不是图片也不是音频、视频:${entity.title}-${entity.type}");
-
+        //  点击的既不是图片也不是音频、视频，不做任何操作;
         toggleLoading(false);
+
+        showSnackMessage(
+          context,
+          "点击的不是图片、音频或视频:${entity.title}-${entity.type}",
+        );
+        return;
       }
     }
+  }
+
+  /// 长按可以多选，多选后可以查看选中的信息
+  buildSelectedItemInfoDialog() async {
+    // 单个文件就显示文件属性
+    if (selectedEntityIndexes.length == 1) {
+      showMediaInfoDialog(_list[selectedEntityIndexes[0]], context);
+
+      setState(() {
+        selectedEntityIndexes.length = 0;
+      });
+      return;
+    }
+
+    // 多个就只显示选中的数量和体积
+    List<AssetEntity> selectedEntities =
+        selectedEntityIndexes.map((index) => _list[index]).toList();
+
+    // 计算被选中的媒体资源的总大小
+    var totalSize = 0;
+    for (var e in selectedEntities) {
+      totalSize += (await e.file)?.statSync().size ?? 0;
+    }
+
+    if (!mounted) return;
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("属性", textAlign: TextAlign.start),
+          content: SizedBox(
+            height: 150.sp,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // 如果是多选了视频文件，则只显示文件数量和总大小
+                ListTile(
+                  title: const Text("总数量"),
+                  subtitle: Text("${selectedEntityIndexes.length}"),
+                ),
+                ListTile(
+                  title: const Text("总大小"),
+                  subtitle: Text(
+                    "${getFileSize(totalSize, 2)} ($totalSize Byte)",
+                  ),
+                )
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('确认'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    ).then((value) {
+      // 关闭弹窗，取消选中
+      setState(() {
+        selectedEntityIndexes.length = 0;
+      });
+    });
   }
 }

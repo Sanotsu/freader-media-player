@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'dart:typed_data';
 
 import 'package:on_audio_query/on_audio_query.dart';
@@ -192,8 +190,6 @@ class MyAudioQuery {
   // 检查权限是否已经获取
   checkAndRequestPermissions({bool retry = false}) async {
     // The param 'retryRequest' is false, by default.
-
-    print("进入了检查权限的函数");
 
     _hasPermission = await _query.checkAndRequest(
       retryRequest: retry,

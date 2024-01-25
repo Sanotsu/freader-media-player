@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -35,7 +33,6 @@ class AudioLongPress with ChangeNotifier {
   void resetAudioLongPress() {
     isAudioLongPress = LongPressStats.INIT;
     selectedAudioList.length = 0;
-    print("resetAudioLongPress-----------------");
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
     });
@@ -45,7 +42,6 @@ class AudioLongPress with ChangeNotifier {
   void switchTabReset() {
     isAudioLongPress = LongPressStats.RESET;
     selectedAudioList.length = 0;
-    print("resetAudioLongPress-----------------");
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
     });

@@ -169,7 +169,7 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.info),
+          icon: const Icon(Icons.info_outline),
           tooltip: '详细信息',
           onPressed: () => buildAudioInfoDialog(context, alp),
         ),

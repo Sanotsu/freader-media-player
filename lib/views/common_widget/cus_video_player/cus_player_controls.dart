@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:flick_video_player/flick_video_player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +12,10 @@ import 'cus_data_manager.dart';
 ///
 /// 2024-01-16
 /// 从感官说，这里的尺寸不添加.sp，在横向或竖向展示时才是一致的；加了.sp之后，竖向播放时图标会小很多
+/// 2024-01-25
+/// 实测，这里调整播放器的音量，应该只是调整了应用音量，无法调整系统音量。
+///   比如系统音量是0.3,而这里调整的0~1,就是这0.3*(0~1)的调节，至少不能调大音量
+/// 所以添加了系统音量调节之后，就取消应用内音量调节了
 ///
 class CusVideoPlayerControls extends StatefulWidget {
   const CusVideoPlayerControls({
@@ -39,45 +41,29 @@ class CusVideoPlayerControls extends StatefulWidget {
 }
 
 class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
-  // 当前的视频音量
-  double _currentVideoVolume = 1.0;
-
   // 2024-01-25 当前系统音量(屏幕右边纵向滑动就修改这个)
   double _currentSystemVolume = 0;
-
   // 2024-01-24 上下滑动屏幕调整亮度
   double _currentBrightness = 1.0;
   // 是否显示当前亮度的文字
-  bool _isTextVisible = false;
-
+  bool _isBrightnessTextVisible = false;
+  // 是否显示当前音量的文字
+  bool _isVolumeTextVisible = false;
   // 2024-01-25 在纵向滑动开始时，记录滑动的x坐标，以判断是左边滑动调整亮度还是右边滑动调整音量
   double verticalDragStartX = 0;
 
   @override
   void initState() {
     super.initState();
-
-    getVolume();
-
-    initVolume();
+    initSystemVolume();
   }
 
-  initVolume() async {
+  initSystemVolume() async {
     // 调整音量时不显示系统UI
     await FlutterVolumeController.updateShowSystemUI(false);
-
     final volume = await FlutterVolumeController.getVolume();
-
     setState(() {
       _currentSystemVolume = volume ?? 0;
-    });
-  }
-
-  // 获取当前的视频音量(跟系统音量无关)
-  getVolume() async {
-    setState(() {
-      _currentVideoVolume =
-          widget.flickManager.flickDisplayManager?.volume ?? 1;
     });
   }
 
@@ -101,49 +87,21 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
     Navigator.pop(context);
   }
 
-  // 修改应用内视频播放音量(不是调整系统音量，就不能加大音量了)
-  Future<void> setVolume(double volume) async {
-    try {
-      await widget.flickManager.flickControlManager?.setVolume(volume);
-
-      setState(() {
-        _currentVideoVolume = volume;
-      });
-    } catch (e) {
-      debugPrint(e.toString());
-      throw 'Failed to set volume';
-    }
-  }
-
-  getVolumeBarHeight() {
-    Size? a = widget.flickManager.flickVideoManager!.videoPlayerValue?.size;
-
-    // 理论上是希望高度为视频高度的一半
-    var b = (a?.height ?? 360) / (ScreenUtil().pixelRatio ?? 1) / 2;
-
-    print("视频尺寸----------------$a $b ${ScreenUtil().pixelRatio}");
-    return b;
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onVerticalDragUpdate: (details) {
         var size = context.size;
 
-        // 左半屏滑动逻辑
-        print("在纵向滑动中-----$size $verticalDragStartX $details");
-
+        /// 左半屏滑动逻辑，调整应用内亮度
         if (verticalDragStartX < ((size?.width ?? 0.5.sh) / 2)) {
-          print("-----在左边");
           // 当滑动调整亮度时就显示当前亮度值
           setState(() {
-            _isTextVisible = true;
+            _isBrightnessTextVisible = true;
           });
 
           // 计算滑动的百分比(这个dy根据向上或者向下已经是正数或者负数了，这个context的高度可能不存在)
           double delta = details.delta.dy / (context.size?.height ?? 360);
-
           // 根据滑动的百分比计算亮度的变化值。调整亮度变化速度，可根据需要自行调整
           double brightnessDelta = -delta * 0.5;
 
@@ -157,51 +115,46 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
           // 修改屏幕亮度
           setBrightness(_currentBrightness);
         } else {
-          print("-----在[右]边");
+          /// 右半屏滑动逻辑，调整应用内系统音量
+
+          // 当滑动调整音量时就显示当前音量值
+          setState(() {
+            _isVolumeTextVisible = true;
+          });
 
           // 计算滑动的百分比(这个dy根据向上或者向下已经是正数或者负数了，这个context的高度可能不存在)
           double delta = details.delta.dy / (context.size?.height ?? 360);
-
-          // 根据滑动的百分比计算亮度的变化值。调整亮度变化速度，可根据需要自行调整
+          // 根据滑动的百分比计算音量的变化值。调整音量变化速度，可根据需要自行调整
           double volumeDelta = -delta * 0.5;
 
           // 更新当前的系统音量
           setState(() {
             _currentSystemVolume += volumeDelta;
-
-            // 限制亮度值在0.0到1.0之间
+            // 限制音量值在0.0到1.0之间
             _currentSystemVolume = _currentSystemVolume.clamp(0.0, 1.0);
           });
-
+          // 修改系统音量
           FlutterVolumeController.setVolume(_currentSystemVolume);
         }
       },
+      // 在纵向滑动开始时，记录滑动的横坐标。如果横坐标在屏幕左半边，就控制亮度；右半边就控制音量
       onVerticalDragStart: (details) {
-        print("在【onVerticalDragStart 滑动触发时-----】$details ");
-        // 在横向滑动开始时，记录滑动的横坐标。如果横坐标在左半边，就控制亮度；右半边就控制音量
-
         setState(() {
           verticalDragStartX = details.localPosition.dx;
         });
-
-        print(
-            "在【onVerticalDragStart verticalDragStartX-----】$verticalDragStartX ");
-
-        print("在【details.globalPosition.dx-----】${details.globalPosition.dx} ");
       },
+      // 纵向滑动结束后，亮度文字就不显示了
       onVerticalDragEnd: (details) {
-        // 纵向滑动结束后，亮度文字就不显示了
         setState(() {
-          _isTextVisible = false;
+          _isBrightnessTextVisible = false;
+          _isVolumeTextVisible = false;
         });
-
-        print("当前音量  $_currentSystemVolume");
       },
-      child: buildStack(),
+      child: buildStackArea(),
     );
   }
 
-  buildStack() {
+  buildStackArea() {
     return Stack(
       children: <Widget>[
         /// 左上角显示视频名称
@@ -215,10 +168,10 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
 
         // 2024-01-25 在上下滑动调整亮度时，也再左上角显示调整后的亮度值；1秒后自动隐藏(变透明)
         Positioned(
-          top: 30, // 避免遮挡左上角的标题
+          top: 40, // 避免遮挡左上角的标题
           left: 20,
           child: AnimatedOpacity(
-            opacity: _isTextVisible ? 1.0 : 0.0,
+            opacity: _isBrightnessTextVisible ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 1000),
             child: Text(
               '亮度: ${(_currentBrightness * 100).toInt()}%',
@@ -226,50 +179,6 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
             ),
           ),
         ),
-
-        /// 左边显示亮度条(在外层有滑动屏幕调整亮度了)
-        // Positioned(
-        //   left: 25,
-        //   bottom: 50,
-        //   child: FlickAutoHideChild(
-        //     child: FutureBuilder<double>(
-        //       future: ScreenBrightness().current,
-        //       builder: (context, snapshot) {
-        //         double currentBrightness = 0;
-        //         if (snapshot.hasData) {
-        //           currentBrightness = snapshot.data!;
-        //         }
-        //         return StreamBuilder<double>(
-        //           stream: ScreenBrightness().onCurrentBrightnessChanged,
-        //           builder: (context, snapshot) {
-        //             double changedBrightness = currentBrightness;
-        //             if (snapshot.hasData) {
-        //               changedBrightness = snapshot.data!;
-        //             }
-        //             return Column(
-        //               mainAxisSize: MainAxisSize.min,
-        //               children: [
-        //                 SizedBox(
-        //                   height: 50.sp,
-        //                   child: RotatedBox(
-        //                     quarterTurns: 3,
-        //                     child: Slider.adaptive(
-        //                       value: changedBrightness,
-        //                       onChanged: (value) {
-        //                         setBrightness(value);
-        //                       },
-        //                     ),
-        //                   ),
-        //                 ),
-        //                 const Icon(Icons.brightness_6_outlined)
-        //               ],
-        //             );
-        //           },
-        //         );
-        //       },
-        //     ),
-        //   ),
-        // ),
 
         /// 中间的上一条/暂停继续/下一条的按钮区域
         _buildCenterControlButtonArea(context),
@@ -294,86 +203,24 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
         ),
 
         /// 右边中间的声音调整
-        /// 2024-01-24 实测，应该只是调整了应用音量，无法调整系统音量。
-        /// 比如系统音量是0.3,而这里调整的0~1,就是这0.3*(0~1)的调节，至少不能调大音量
+        // 2024-01-25 在上下滑动调整亮度时，也在右上角显示调整后的音量值；1秒后自动隐藏(变透明)
         Positioned(
-          right: 25,
-          bottom: 50,
-          child: FlickAutoHideChild(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: getVolumeBarHeight(),
-                  child: RotatedBox(
-                    quarterTurns: 3,
-                    child: Slider.adaptive(
-                      value: _currentVideoVolume,
-                      onChanged: (value) {
-                        setState(() {
-                          setVolume(value);
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                const Icon(Icons.volume_down)
-              ],
+          top: 40, // 避免遮挡右上角关闭按钮
+          right: 20,
+          child: AnimatedOpacity(
+            opacity: _isVolumeTextVisible ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 1000),
+            child: Text(
+              '音量: ${(_currentSystemVolume * 100).toInt()}%',
+              style: const TextStyle(fontSize: 10, color: Colors.white),
             ),
           ),
         ),
-
-        /// 本来想着stack中区分左右两个区域的滑动分别控制亮度和音量，
-        /// 但是后面的positioned会覆盖前面的，导致按钮就不能用了
-        // 左半边区域
-        // Positioned(
-        //   left: 0,
-        //   top: 0,
-        //   bottom: 0,
-        //   width: MediaQuery.of(context).size.width / 2, // 设置为屏幕宽度的一半
-        //   child: GestureDetector(
-        //     behavior: HitTestBehavior.translucent,
-        //     onVerticalDragUpdate: (details) {
-        //       // 处理音量控制逻辑
-
-        //       print("在【左半边滑动-----】$details");
-        //     },
-        //     child: Container(
-        //       color: Colors.green[300],
-        //       alignment: Alignment.center,
-        //       child: const Text(
-        //         'Slide to adjust volume',
-        //         style: TextStyle(fontSize: 20),
-        //       ),
-        //     ),
-        //   ),
-        // ),
-
-        // Positioned(
-        //   right: 0,
-        //   top: 0,
-        //   bottom: 0,
-        //   width: MediaQuery.of(context).size.width / 2, // 设置为屏幕宽度的一半
-        //   child: GestureDetector(
-        //     onVerticalDragUpdate: (details) {
-        //       // 处理音量控制逻辑
-
-        //       print("在【右--半边滑动-----】$details");
-        //     },
-        //     child: Container(
-        //       color: Colors.grey[300],
-        //       alignment: Alignment.center,
-        //       child: const Text(
-        //         'Slide to adjust volume',
-        //         style: TextStyle(fontSize: 20),
-        //       ),
-        //     ),
-        //   ),
-        // ),
       ],
     );
   }
 
+  // 中间的上下一个/暂停/取消连播的按钮位置
   _buildCenterControlButtonArea(BuildContext context) {
     var flickVideoManager = Provider.of<FlickVideoManager>(context);
 
@@ -443,6 +290,7 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
     );
   }
 
+  // 下方的进度条、静音按钮等其他功能按钮的位置
   _buildBottomProgressBarArea(BuildContext context) {
     return Positioned.fill(
       child: FlickAutoHideChild(

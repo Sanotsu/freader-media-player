@@ -46,7 +46,7 @@ showMediaInfoDialog(AssetEntity entity, BuildContext context) {
                     ListTile(
                       title: const Text("文件路径"),
                       subtitle: Text(
-                        "${entity.relativePath}\n${entity.relativePath}",
+                        "${entity.relativePath?.replaceAll("/storage/emulated/0", "内部存储")}",
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),

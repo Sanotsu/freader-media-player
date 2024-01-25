@@ -1,12 +1,7 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../common/utils/global_styles.dart';
 import '../services/my_audio_handler.dart';
-import '../services/my_get_storage.dart';
 import '../services/service_locator.dart';
 import '../views/local_all_media/index.dart';
 import '../views/local_music/index.dart';
@@ -23,7 +18,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 3;
+  int _selectedIndex = 1;
 
   final _audioHandler = getIt<MyAudioHandler>();
 
@@ -32,8 +27,8 @@ class _HomePageState extends State<HomePage> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     LocalMusic(),
-    LocalPhoto(),
     LocalVideo(),
+    LocalPhoto(),
     LocalAllMedia(),
   ];
 
@@ -143,12 +138,12 @@ class _HomePageState extends State<HomePage> {
               label: '本地音乐',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.image),
-              label: '本地图片',
-            ),
-            BottomNavigationBarItem(
               icon: Icon(Icons.video_file),
               label: '本地视频',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.image),
+              label: '本地图片',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.all_inbox),
@@ -156,7 +151,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
           currentIndex: _selectedIndex,
-          // 底部导航栏的颜色
+          // // 底部导航栏的颜色
           // backgroundColor: Theme.of(context).primaryColor,
           // // 被选中的item的图标颜色和文本颜色
           // selectedIconTheme: const IconThemeData(color: Colors.white),
@@ -166,62 +161,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-}
-
-// 2024-01-12 抽屉目前无实际作用，暂时不启用
-buildDrawer(BuildContext context) {
-  final simpleStorage = getIt<MyGetStorage>();
-
-  return Drawer(
-    // 使用list view 内容高度超过页面可以滚动；
-    child: ListView(
-      // 删除任何填充
-      padding: EdgeInsets.zero,
-      children: [
-        // 用户信息标头
-        DrawerHeader(
-          // 背景色蓝色
-          decoration: BoxDecoration(color: Theme.of(context).primaryColor),
-          child: Center(
-            child: ListTile(
-              title: Text(
-                ' Named 小流',
-                style: TextStyle(
-                  fontSize: sizeHeadline1,
-                  // color: Theme.of(context).canvasColor,
-                ),
-              ),
-              subtitle: const Text('故君子居必择乡，游必就士，所以防邪僻而中正也。'),
-              leading: Icon(Icons.account_box, size: 50.sp),
-              onTap: null,
-            ),
-          ),
-        ),
-        const ListTile(
-          leading: Icon(Icons.abc),
-          title: Text('预留列表'),
-          subtitle: Text('不积跬步，无以至千里；'),
-        ),
-        const ListTile(
-          leading: Icon(Icons.abc),
-          title: Text('预留列表'),
-          subtitle: Text('不积小流，无以成江海。'),
-        ),
-        ListTile(
-          leading: const Icon(Icons.abc),
-          title: const Text('测试'),
-          subtitle: const Text('获取当前getstorage'),
-          onTap: () async {
-            var a = await simpleStorage.getCurrentAudioInfo();
-            var b = await simpleStorage.getCurrentCycleMode();
-            var c = await simpleStorage.getCurrentIsShuffleMode();
-
-            print("当前 AudioInfo $a");
-            print("当前 CycleMode $b");
-            print("当前 IsShuffleMode $c");
-          },
-        )
-      ],
-    ),
-  );
 }

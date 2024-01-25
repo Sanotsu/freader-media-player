@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -21,8 +19,6 @@ class PathImagePage extends StatefulWidget {
 class _PathImagePageState extends State<PathImagePage> {
   // 文件夹中的文件
   List<AssetEntity> _list = [];
-  // 被选中的文件索引
-  var selectedCards = [];
 
   @override
   void initState() {
@@ -37,7 +33,6 @@ class _PathImagePageState extends State<PathImagePage> {
       return;
     }
 
-    print("这只指定文件夹${widget.path.name}中的数量$count");
     // 查询所有媒体实体列表（起止参数表示可以过滤只显示排序后中某一部分实体）
     final list = await widget.path.getAssetListRange(start: 0, end: count);
     setState(() {
@@ -47,31 +42,10 @@ class _PathImagePageState extends State<PathImagePage> {
 
   @override
   Widget build(BuildContext context) {
-    print("333 这里是指定文件夹${widget.path.name}下文件预览界面PathPage");
-
     return Scaffold(
       /// 构建标题工具栏(没有条目被长按选择则不显示功能按钮)
       appBar: AppBar(
-        title: selectedCards.isNotEmpty
-            ? Text("${selectedCards.length}/${_list.length}")
-            : Text(widget.path.name),
-        actions: <Widget>[
-          selectedCards.isNotEmpty
-              ? Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.cancel),
-                      tooltip: '取消选中',
-                      onPressed: () {
-                        setState(() {
-                          selectedCards.length = 0;
-                        });
-                      },
-                    )
-                  ],
-                )
-              : Container(),
-        ],
+        title: Text(widget.path.name),
       ),
       body: Padding(
         padding: EdgeInsets.fromLTRB(5.sp, 10.sp, 5.sp, 10.sp),
@@ -82,7 +56,6 @@ class _PathImagePageState extends State<PathImagePage> {
 
   /// 构建媒体文件预览的grid列表
   _buildAssetList() {
-    print(" _list.length${_list.length}");
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
@@ -98,57 +71,31 @@ class _PathImagePageState extends State<PathImagePage> {
             option: ThumbnailOption.ios(
               size: const ThumbnailSize.square(500),
             ),
-            isLongPress: selectedCards.contains(index) ? true : false,
+            isLongPress: false,
           ),
           onTap: () async {
-            // 如果已经处于长按状态，点击则为添加多选
-            if (selectedCards.isNotEmpty) {
-              print(
-                "图片中点击了 $index $selectedCards ${entity.title} 要添加或者移除",
-              );
-              setState(() {
-                // 如果已经选中了，再点则为移除选中
-                if (selectedCards.contains(index)) {
-                  selectedCards.remove(index);
-                } else {
-                  selectedCards.add(index);
-                }
-              });
-            } else {
-              print(
-                "图片中点击了 ${entity.title} ${entity.type} ${entity.originFile} 要播放或者显示",
-              );
-
-              if (entity.type == AssetType.image) {
-                // 2023-05-05 目前暂时点击某一个图片，会滑动上/下一张，视频则显示视频预览图
-
-                Navigator.push(
-                  ctx,
-                  MaterialPageRoute(
-                    builder: (context) => CusGalleryViewer(
-                      galleryItems: _list,
-                      backgroundDecoration: const BoxDecoration(
-                        color: Colors.black,
-                      ),
-                      initialIndex: index,
-                      scrollDirection: Axis.horizontal,
+            if (entity.type == AssetType.image) {
+              // 2023-05-05 目前暂时点击某一个图片，会滑动上/下一张，视频则显示视频预览图
+              Navigator.push(
+                ctx,
+                MaterialPageRoute(
+                  builder: (context) => CusGalleryViewer(
+                    galleryItems: _list,
+                    backgroundDecoration: const BoxDecoration(
+                      color: Colors.black,
                     ),
+                    initialIndex: index,
+                    scrollDirection: Axis.horizontal,
                   ),
-                );
-              } else {
-                showSnackMessage(
-                  context,
-                  "点击的既不是图片也不是视频:${entity.title}-${entity.type}",
-                );
-                return;
-              }
+                ),
+              );
+            } else {
+              showSnackMessage(
+                context,
+                "点击的既不是图片也不是视频:${entity.title}-${entity.type}",
+              );
+              return;
             }
-          },
-          onLongPress: () {
-            print("使用了长按");
-            setState(() {
-              selectedCards.add(index);
-            });
           },
         );
       },

@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
@@ -71,7 +69,7 @@ class CusAudioPlayerState extends State<CusAudioPlayer>
       _player.play();
     } catch (e) {
       // Catch load errors: 404, invalid url...
-      print("Error loading audio source: $e");
+      debugPrint("Error loading audio source: $e");
     }
   }
 
