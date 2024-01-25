@@ -152,7 +152,7 @@ class _CusVideoPlayerState extends State<CusVideoPlayer> {
             child: isLoading
                 ? const CircularProgressIndicator()
                 : currentFile != null
-                    ? buildPlayScreen()
+                    ? buildOnlyPlayScreen()
                     : const Center(child: Text("该视频文件不存在!")),
           ),
         ),
@@ -160,7 +160,54 @@ class _CusVideoPlayerState extends State<CusVideoPlayer> {
     );
   }
 
+  // 构建视频播放器界面
+  buildOnlyPlayScreen() {
+    return SizedBox(
+      // 如果不是全屏，就使用视频原始分辨率进行播放
+      height: isCusFullscreen
+          ? 1.sh
+          : currentEntity.size.height / (ScreenUtil().pixelRatio ?? 1),
+      width: isCusFullscreen
+          ? 1.sw
+          : currentEntity.size.width / (ScreenUtil().pixelRatio ?? 1),
+      child: FlickVideoPlayer(
+        flickManager: flickManager,
+        // 根据视频的宽高比，显示默认是横向还是竖向播放
+        preferredDeviceOrientation: currentEntity.orientatedSize.aspectRatio > 1
+            ? const [
+                DeviceOrientation.landscapeRight,
+                DeviceOrientation.landscapeLeft
+              ]
+            : const [
+                DeviceOrientation.portraitUp,
+                DeviceOrientation.landscapeRight,
+                DeviceOrientation.landscapeLeft
+              ],
+        // systemUIOverlay: const [],
+        flickVideoWithControls: FlickVideoWithControls(
+          // 自定义的播放器控制器
+          controls: SafeArea(
+            child: CusVideoPlayerControls(
+              flickManager: flickManager,
+              dataManager: dataManager,
+              currentEntity: currentEntity,
+              onEnterFullScreen: (data) {
+                setState(() {
+                  print("点击了进入全屏-----onEnterFullScreen】$data");
+                  // 更新父组件中的数据
+                  isCusFullscreen = data;
+                });
+              },
+            ),
+          ),
+          videoFit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+
   // 构建视频播放器界面，上下滑动可调节亮度
+  // 2024-01-25 但这样放在外面的手势，会在视频全屏播放时滑动调整失效
   buildPlayScreen() {
     return GestureDetector(
       onVerticalDragUpdate: (DragUpdateDetails details) {

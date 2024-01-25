@@ -76,8 +76,6 @@ dependencies:
   photo_manager: ^3.0.0-dev.5
   # 2024-01-08 原本使用的AssetEntityImage 类变成这个单独的包了
   photo_manager_image_provider: ^2.1.0
-  # 使用视频创建缩略图
-  video_thumbnail: ^0.5.3
   # 图片预览操作等
   photo_view: ^0.14.0
   # shared_preferences持久话可能会丢失，使用这个代替
@@ -87,8 +85,6 @@ dependencies:
   device_info_plus: ^8.2.2
   # 提供了操作路径(path)的常用操作：连接、分割、规范化等。
   path: ^1.8.3
-  # toast 插件，比snackbar好看的
-  oktoast: ^3.4.0
   # 调整应用内亮度
   screen_brightness: ^0.2.2+1
 

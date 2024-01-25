@@ -67,7 +67,6 @@ freader-media-player(FMP Player)，一个使用 flutter 开发的简单的本地
 - video_player: ^2.6.1
 - flick_video_player: ^0.5.0
 - photo_manager: ^2.6.0
-- video_thumbnail: ^0.5.3
 - photo_view: ^0.14.0
 
 ## 很多问题

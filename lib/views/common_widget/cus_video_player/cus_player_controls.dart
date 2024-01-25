@@ -41,6 +41,14 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
   // 当前的视频音量
   double _currentVolume = 1.0;
 
+  // 2024-01-24 上下滑动屏幕调整亮度
+  double _currentBrightness = 1.0;
+  // 是否显示当前亮度的文字
+  bool _isTextVisible = false;
+
+  // 2024-01-25 在纵向滑动开始时，记录滑动的x坐标，以判断是左边滑动调整亮度还是右边滑动调整音量
+  double verticalDragStartX = 0;
+
   @override
   void initState() {
     super.initState();
@@ -101,6 +109,63 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
 
   @override
   Widget build(BuildContext context) {
+    return GestureDetector(
+      onVerticalDragUpdate: (details) {
+        var size = context.size;
+
+        // 左半屏滑动逻辑
+        print("在纵向滑动中-----$size $verticalDragStartX $details");
+
+        if (verticalDragStartX < ((size?.width ?? 0.5.sh) / 2)) {
+          print("-----在左边");
+          // 当滑动调整亮度时就显示当前亮度值
+          setState(() {
+            _isTextVisible = true;
+          });
+
+          // 计算滑动的百分比(这个dy根据向上或者向下已经是正数或者负数了，这个context的高度可能不存在)
+          double delta = details.delta.dy / (context.size?.height ?? 360);
+
+          // 根据滑动的百分比计算亮度的变化值。调整亮度变化速度，可根据需要自行调整
+          double brightnessDelta = -delta * 0.5;
+
+          // 更新当前的屏幕亮度值
+          setState(() {
+            _currentBrightness += brightnessDelta;
+            // 限制亮度值在0.0到1.0之间
+            _currentBrightness = _currentBrightness.clamp(0.0, 1.0);
+          });
+
+          // 修改屏幕亮度
+          setBrightness(_currentBrightness);
+        } else {
+          print("-----在[右]边");
+        }
+      },
+      onVerticalDragStart: (details) {
+        print("在【onVerticalDragStart 滑动触发时-----】$details ");
+        // 在横向滑动开始时，记录滑动的横坐标。如果横坐标在左半边，就控制亮度；右半边就控制音量
+
+        setState(() {
+          verticalDragStartX = details.localPosition.dx;
+        });
+
+        print(
+            "在【onVerticalDragStart verticalDragStartX-----】$verticalDragStartX ");
+
+        print("在【details.globalPosition.dx-----】${details.globalPosition.dx} ");
+      },
+      onVerticalDragEnd: (details) {
+        // 纵向滑动结束后，亮度文字就不显示了
+        setState(() {
+          _isTextVisible = false;
+        });
+      },
+      child: buildStack(),
+    );
+  }
+
+  buildStack() {
     return Stack(
       children: <Widget>[
         /// 左上角显示视频名称
@@ -109,6 +174,20 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
           top: 10,
           child: FlickAutoHideChild(
             child: Text(widget.dataManager!.getVideoName()),
+          ),
+        ),
+
+        // 2024-01-25 在上下滑动调整亮度时，也再左上角显示调整后的亮度值；1秒后自动隐藏(变透明)
+        Positioned(
+          top: 30, // 避免遮挡左上角的标题
+          left: 20,
+          child: AnimatedOpacity(
+            opacity: _isTextVisible ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 1000),
+            child: Text(
+              '亮度: ${(_currentBrightness * 100).toInt()}%',
+              style: const TextStyle(fontSize: 10, color: Colors.white),
+            ),
           ),
         ),
 
@@ -207,6 +286,54 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
             ),
           ),
         ),
+
+        /// 本来想着stack中区分左右两个区域的滑动分别控制亮度和音量，
+        /// 但是后面的positioned会覆盖前面的，导致按钮就不能用了
+        // 左半边区域
+        // Positioned(
+        //   left: 0,
+        //   top: 0,
+        //   bottom: 0,
+        //   width: MediaQuery.of(context).size.width / 2, // 设置为屏幕宽度的一半
+        //   child: GestureDetector(
+        //     behavior: HitTestBehavior.translucent,
+        //     onVerticalDragUpdate: (details) {
+        //       // 处理音量控制逻辑
+
+        //       print("在【左半边滑动-----】$details");
+        //     },
+        //     child: Container(
+        //       color: Colors.green[300],
+        //       alignment: Alignment.center,
+        //       child: const Text(
+        //         'Slide to adjust volume',
+        //         style: TextStyle(fontSize: 20),
+        //       ),
+        //     ),
+        //   ),
+        // ),
+
+        // Positioned(
+        //   right: 0,
+        //   top: 0,
+        //   bottom: 0,
+        //   width: MediaQuery.of(context).size.width / 2, // 设置为屏幕宽度的一半
+        //   child: GestureDetector(
+        //     onVerticalDragUpdate: (details) {
+        //       // 处理音量控制逻辑
+
+        //       print("在【右--半边滑动-----】$details");
+        //     },
+        //     child: Container(
+        //       color: Colors.grey[300],
+        //       alignment: Alignment.center,
+        //       child: const Text(
+        //         'Slide to adjust volume',
+        //         style: TextStyle(fontSize: 20),
+        //       ),
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }
