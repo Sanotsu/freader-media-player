@@ -4,6 +4,7 @@ import 'package:flick_video_player/flick_video_player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:screen_brightness/screen_brightness.dart';
@@ -39,7 +40,10 @@ class CusVideoPlayerControls extends StatefulWidget {
 
 class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
   // 当前的视频音量
-  double _currentVolume = 1.0;
+  double _currentVideoVolume = 1.0;
+
+  // 2024-01-25 当前系统音量(屏幕右边纵向滑动就修改这个)
+  double _currentSystemVolume = 0;
 
   // 2024-01-24 上下滑动屏幕调整亮度
   double _currentBrightness = 1.0;
@@ -54,12 +58,26 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
     super.initState();
 
     getVolume();
+
+    initVolume();
+  }
+
+  initVolume() async {
+    // 调整音量时不显示系统UI
+    await FlutterVolumeController.updateShowSystemUI(false);
+
+    final volume = await FlutterVolumeController.getVolume();
+
+    setState(() {
+      _currentSystemVolume = volume ?? 0;
+    });
   }
 
   // 获取当前的视频音量(跟系统音量无关)
-  getVolume() {
+  getVolume() async {
     setState(() {
-      _currentVolume = widget.flickManager.flickDisplayManager?.volume ?? 1;
+      _currentVideoVolume =
+          widget.flickManager.flickDisplayManager?.volume ?? 1;
     });
   }
 
@@ -89,7 +107,7 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
       await widget.flickManager.flickControlManager?.setVolume(volume);
 
       setState(() {
-        _currentVolume = volume;
+        _currentVideoVolume = volume;
       });
     } catch (e) {
       debugPrint(e.toString());
@@ -140,6 +158,22 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
           setBrightness(_currentBrightness);
         } else {
           print("-----在[右]边");
+
+          // 计算滑动的百分比(这个dy根据向上或者向下已经是正数或者负数了，这个context的高度可能不存在)
+          double delta = details.delta.dy / (context.size?.height ?? 360);
+
+          // 根据滑动的百分比计算亮度的变化值。调整亮度变化速度，可根据需要自行调整
+          double volumeDelta = -delta * 0.5;
+
+          // 更新当前的系统音量
+          setState(() {
+            _currentSystemVolume += volumeDelta;
+
+            // 限制亮度值在0.0到1.0之间
+            _currentSystemVolume = _currentSystemVolume.clamp(0.0, 1.0);
+          });
+
+          FlutterVolumeController.setVolume(_currentSystemVolume);
         }
       },
       onVerticalDragStart: (details) {
@@ -160,6 +194,8 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
         setState(() {
           _isTextVisible = false;
         });
+
+        print("当前音量  $_currentSystemVolume");
       },
       child: buildStack(),
     );
@@ -272,7 +308,7 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
                   child: RotatedBox(
                     quarterTurns: 3,
                     child: Slider.adaptive(
-                      value: _currentVolume,
+                      value: _currentVideoVolume,
                       onChanged: (value) {
                         setState(() {
                           setVolume(value);
