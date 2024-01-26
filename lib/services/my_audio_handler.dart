@@ -7,6 +7,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../common/global/constants.dart';
@@ -289,6 +290,49 @@ class MyAudioHandler {
     _currentPlaylist = ConcatenatingAudioSource(children: tempChildren);
   }
 
+  /// 2024-01-23 photo manage查询的音频，也用这个通用的播放器，只不过不缓存当前播放音频
+  /// 但是构建播放列表的源数据格式不一样了
+  Future<void> buildPlaylistByAssetEntity(
+    List<AssetEntity> list,
+    int currentIndex,
+  ) async {
+    List<AudioSource> tempChildren = [];
+
+    // 初始化索引为当前索引
+    _initIndex = currentIndex;
+
+    // 1 遍历歌单歌曲地址，获取元数据信息，构建列表组件
+    for (var i = 0; i < list.length; i++) {
+      var entity = list[i];
+
+      /// 目前这个cusExtras保存的东西就很多了
+      ///     1 音频新增到db时的文件元数据，"metadata"
+      ///     2 本条 LocalPlaylistHasAudio 的row数据， "playlistHasAudio"
+      ///  这里不先转换json而是直接赋值的的话，会导致因为引用类型的原因，在addAll()之后修改了原本的extrax的结构，会出问题
+
+      // 其他的音频，顺序加入列表组件
+      tempChildren.add(
+        AudioSource.uri(
+          Uri.parse((await entity.file)!.path),
+          tag: MediaItem(
+            id: entity.id.toString(),
+            title: entity.title ?? "",
+            // 实际上是没有这些属性的，就占位用
+            artist: entity.relativePath,
+            album: entity.id,
+            artUri: box.read(entity.id.toString()) != ""
+                ? Uri.parse(box.read(entity.id.toString()))
+                : null,
+            // extras: cusExtras,
+          ),
+        ),
+      );
+    }
+
+    // 构建新的播放列表就直接替换，在原列表上新增或删除在使用add、remove等方法修改
+    _currentPlaylist = ConcatenatingAudioSource(children: tempChildren);
+  }
+
   // 获取指定音频的artwork UInt8List数据，转为file并返回其uri
   Future<Uri?> getImageFileFromAssets(int audioId) async {
     var tempData = await _audioQuery.queryArtwork(audioId, ArtworkType.AUDIO);
@@ -319,6 +363,9 @@ class MyAudioHandler {
   // 通过索引获取当前播放列表中的指定音源
   AudioSource getAudioSourceByIndex(int audioIndex) =>
       _currentPlaylist.children[audioIndex];
+
+  // 获取音频播放实例
+  AudioPlayer player() => _player;
 
   // 继续播放
   Future<void> play() => _player.play();

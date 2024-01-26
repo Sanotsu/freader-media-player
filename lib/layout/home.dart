@@ -1,15 +1,14 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../common/utils/global_styles.dart';
+import '../common/utils/tool_widgets.dart';
 import '../services/my_audio_handler.dart';
 import '../services/my_get_storage.dart';
 import '../services/service_locator.dart';
+import '../views/local_all_media/index.dart';
 import '../views/local_music/index.dart';
-import '../views/local_media/index.dart';
+import '../views/local_photo/index.dart';
+import '../views/local_video/index.dart';
 
 /// 主页面
 
@@ -21,17 +20,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // 默认选中第一个底部导航条目
   int _selectedIndex = 0;
 
   final _audioHandler = getIt<MyAudioHandler>();
+  // 统一简单存储操作的工具类实例
+  final _simpleStorage = getIt<MyGetStorage>();
 
   // 是否音频初始化加载完成
   bool isLoading = false;
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    LocalMusic(),
-    LocalMedia(),
-  ];
+  // 2024-01-25 彩蛋功能，底部导航栏的数量和页面根据缓存中的值来改变
+  List<Widget> _widgetOptions = [];
+  List<BottomNavigationBarItem> bottomNavBarItems = [];
 
   @override
   void initState() {
@@ -39,6 +40,42 @@ class _HomePageState extends State<HomePage> {
 
     // app初次启动时要获取相关授权，取得之后就不需要重复请求了
     initAudio();
+
+    // 2024-01-25 根据缓存值显示底部导航条目数量
+    changeBottomNavItemNum();
+  }
+
+  /// 2024-01-25 彩蛋功能，根据缓存展示底部导航栏条目的数量
+  /// 2 个时就只显示本地音乐盒全部资源；否则就4个全部显示
+  changeBottomNavItemNum() {
+    setState(() {
+      // 2024-01-25 注意，因为可能在4切换成2的时候，当前标签tab在2或者3,那就找不到对应的了。所以默认都改成第一个。
+      _selectedIndex = 0;
+
+      var num = _simpleStorage.getBottomNavItemMun();
+
+      if (num > 2) {
+        _widgetOptions = const [
+          LocalMusic(),
+          LocalVideo(),
+          LocalPhoto(),
+          LocalAllMedia(),
+        ];
+
+        bottomNavBarItems = const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.audiotrack), label: '本地音乐'),
+          BottomNavigationBarItem(icon: Icon(Icons.video_file), label: '本地视频'),
+          BottomNavigationBarItem(icon: Icon(Icons.image), label: '本地图片'),
+          BottomNavigationBarItem(icon: Icon(Icons.all_inbox), label: '全部资源'),
+        ];
+      } else {
+        _widgetOptions = const [LocalMusic(), LocalAllMedia()];
+        bottomNavBarItems = const [
+          BottomNavigationBarItem(icon: Icon(Icons.audiotrack), label: '本地音乐'),
+          BottomNavigationBarItem(icon: Icon(Icons.all_inbox), label: '全部资源'),
+        ];
+      }
+    });
   }
 
   // 获取存储权限
@@ -83,7 +120,30 @@ class _HomePageState extends State<HomePage> {
           builder: (context) {
             return AlertDialog(
               title: const Text('关闭'),
-              content: const Text("确定要退出FMP播放器吗?"),
+              // content: const Text("确定要退出FMP播放器吗?"),
+              /// 2024-01-25 彩蛋功能，长按退出的正文，可切换底部导航栏item的数量
+              content: GestureDetector(
+                onLongPress: () async {
+                  if (_simpleStorage.getBottomNavItemMun() > 2) {
+                    await _simpleStorage.setBottomNavItemMun(2);
+                  } else {
+                    await _simpleStorage.setBottomNavItemMun(4);
+                  }
+
+                  setState(() {
+                    changeBottomNavItemNum();
+                  });
+                  if (!mounted) return;
+                  Navigator.pop(context, false);
+
+                  showSnackMessage(
+                    context,
+                    "恭喜你找到隐藏彩蛋。\n长按退出弹窗正文，可切换底部导航栏数量！",
+                    seconds: 5,
+                  );
+                },
+                child: const Text("确定要退出FMP播放器吗?"),
+              ),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -132,18 +192,10 @@ class _HomePageState extends State<HomePage> {
               )
             : Center(child: _widgetOptions.elementAt(_selectedIndex)),
         bottomNavigationBar: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.music_note),
-              label: '本地音乐',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.video_file),
-              label: '图片视频',
-            ),
-          ],
+          type: BottomNavigationBarType.fixed,
+          items: bottomNavBarItems,
           currentIndex: _selectedIndex,
-          // 底部导航栏的颜色
+          // // 底部导航栏的颜色
           // backgroundColor: Theme.of(context).primaryColor,
           // // 被选中的item的图标颜色和文本颜色
           // selectedIconTheme: const IconThemeData(color: Colors.white),
@@ -153,62 +205,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-}
-
-// 2024-01-12 抽屉目前无实际作用，暂时不启用
-buildDrawer(BuildContext context) {
-  final simpleStorage = getIt<MyGetStorage>();
-
-  return Drawer(
-    // 使用list view 内容高度超过页面可以滚动；
-    child: ListView(
-      // 删除任何填充
-      padding: EdgeInsets.zero,
-      children: [
-        // 用户信息标头
-        DrawerHeader(
-          // 背景色蓝色
-          decoration: BoxDecoration(color: Theme.of(context).primaryColor),
-          child: Center(
-            child: ListTile(
-              title: Text(
-                ' Named 小流',
-                style: TextStyle(
-                  fontSize: sizeHeadline1,
-                  // color: Theme.of(context).canvasColor,
-                ),
-              ),
-              subtitle: const Text('故君子居必择乡，游必就士，所以防邪僻而中正也。'),
-              leading: Icon(Icons.account_box, size: 50.sp),
-              onTap: null,
-            ),
-          ),
-        ),
-        const ListTile(
-          leading: Icon(Icons.abc),
-          title: Text('预留列表'),
-          subtitle: Text('不积跬步，无以至千里；'),
-        ),
-        const ListTile(
-          leading: Icon(Icons.abc),
-          title: Text('预留列表'),
-          subtitle: Text('不积小流，无以成江海。'),
-        ),
-        ListTile(
-          leading: const Icon(Icons.abc),
-          title: const Text('测试'),
-          subtitle: const Text('获取当前getstorage'),
-          onTap: () async {
-            var a = await simpleStorage.getCurrentAudioInfo();
-            var b = await simpleStorage.getCurrentCycleMode();
-            var c = await simpleStorage.getCurrentIsShuffleMode();
-
-            print("当前 AudioInfo $a");
-            print("当前 CycleMode $b");
-            print("当前 IsShuffleMode $c");
-          },
-        )
-      ],
-    ),
-  );
 }

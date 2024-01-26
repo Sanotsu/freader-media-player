@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -108,8 +106,8 @@ class _LocalMusicState extends State<LocalMusic>
       ],
       bottom: const TabBar(
         tabs: [
-          Tab(child: Text("歌单")),
           Tab(child: Text("全部")),
+          Tab(child: Text("歌单")),
           Tab(child: Text("歌手")),
           Tab(child: Text("专辑")),
         ],
@@ -169,8 +167,8 @@ class _LocalMusicState extends State<LocalMusic>
             const Expanded(
               child: TabBarView(
                 children: <Widget>[
-                  LocalMusicPlaylist(),
                   LocalMusicAll(),
+                  LocalMusicPlaylist(),
                   LocalMusicArtist(),
                   LocalMusicAlbum(),
                 ],
@@ -239,7 +237,7 @@ class _LocalMusicState extends State<LocalMusic>
                   onPressed: () async {
                     // 新建歌单的逻辑，同时加入歌单的逻辑。
 
-                    print(
+                    debugPrint(
                       """
                       rename 输入新建的歌单名称 ${llp.selectedPlaylistList[0].id}, $playInput
                       ${await audioQuery.queryDeviceInfo()}
@@ -332,7 +330,7 @@ class _LocalMusicState extends State<LocalMusic>
                             context, alp, AudioListTypes.all),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.info),
+                        icon: const Icon(Icons.info_outline),
                         tooltip: '详细信息',
                         onPressed: () => buildAudioInfoDialog(context, alp),
                       ),
@@ -360,7 +358,7 @@ class _LocalMusicState extends State<LocalMusic>
                   //   onPressed: () => buildRenamePlaylistDialog(context, llp),
                   // ),
                   IconButton(
-                    icon: const Icon(Icons.info),
+                    icon: const Icon(Icons.info_outline),
                     tooltip: '查看歌单详情',
                     onPressed: () => _buildPlaylistInfoDialog(context, llp),
                   ),

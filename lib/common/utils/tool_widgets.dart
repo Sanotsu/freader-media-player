@@ -1,7 +1,12 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../global/constants.dart';
 
 //  hexadecimal color code 转为 material color
 MaterialColor buildMaterialColor(Color color) {
@@ -33,3 +38,52 @@ final List<int> points = <int>[0xe0b0, 0xe0b1, 0xe0b2, 0xe0b3, 0xe0b4];
 final Random r = Random();
 IconData genRandomIcon() =>
     IconData(r.nextInt(points.length), fontFamily: 'MaterialIcons');
+
+// 显示底部提示条(默认都是出错或者提示的)
+void showSnackMessage(
+  BuildContext context,
+  String message, {
+  Color? backgroundColor = Colors.red,
+  int? seconds,
+}) {
+  var snackBar = SnackBar(
+    content: Text(message),
+    duration: Duration(seconds: seconds ?? 3),
+    backgroundColor: backgroundColor,
+  );
+
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
+commonExceptionDialog(BuildContext context, String title, String message) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(title),
+        content: Text(message, style: TextStyle(fontSize: 13.sp)),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("确定"),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+buildFileImage(File file, {BoxFit? fit}) => Image.file(
+      file,
+      errorBuilder: (
+        BuildContext context,
+        Object exception,
+        StackTrace? stackTrace,
+      ) =>
+          Image.asset(
+        placeholderImageUrl,
+        fit: fit ?? BoxFit.scaleDown,
+      ),
+    );

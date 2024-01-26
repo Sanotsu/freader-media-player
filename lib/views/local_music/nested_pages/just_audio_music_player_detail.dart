@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'dart:io';
 
 import 'package:audio_session/audio_session.dart';
@@ -168,12 +166,6 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
         }
 
         final metadata = state!.currentSource!.tag as MediaItem;
-
-        print(
-          " player detail 当前正在播放的音乐： 索引 ${state.currentIndex} 专辑 ${metadata.album} 歌名 ${metadata.title}",
-        );
-
-        print(metadata.artUri);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.center,
