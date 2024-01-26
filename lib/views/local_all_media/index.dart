@@ -101,7 +101,7 @@ class _LocalAllMediaState extends State<LocalAllMedia> {
                 decoration: const InputDecoration(
                   // 搜索框不显示下划线
                   border: InputBorder.none,
-                  hintText: '输入标题关键字',
+                  hintText: '输入资源的标题关键字',
                 ),
               ),
         actions: [

@@ -49,6 +49,9 @@ class _HomePageState extends State<HomePage> {
   /// 2 个时就只显示本地音乐盒全部资源；否则就4个全部显示
   changeBottomNavItemNum() {
     setState(() {
+      // 2024-01-25 注意，因为可能在4切换成2的时候，当前标签tab在2或者3,那就找不到对应的了。所以默认都改成第一个。
+      _selectedIndex = 0;
+
       var num = _simpleStorage.getBottomNavItemMun();
 
       if (num > 2) {
