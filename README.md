@@ -6,6 +6,12 @@ freader-media-player(FMP Player)，一个使用 flutter 开发的简单的本地
 
 ## 功能说明
 
+### 2024-01-29 主要更新
+
+- feat:添加了 2048 小游戏
+  - 更多参看对应模块的[readme](lib/views/game_center/flutter_2048/readme.md).
+  - 添加了休闲游戏模块后，原本的“本地图片”和“本地视频”模块就初始默认隐藏，同样长按退出弹窗正文可切换.
+
 ### 2024-01-26 主要更新
 
 - feat:
