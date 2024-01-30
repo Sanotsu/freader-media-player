@@ -1,10 +1,12 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../common/global/constants.dart';
-import 'flutter_2048/game_2048.dart';
+import 'flutter_2048/index.dart';
+import 'tetris/index.dart';
 
 class GameCenter extends StatefulWidget {
   const GameCenter({super.key});
@@ -23,19 +25,12 @@ class _GameCenterState extends State<GameCenter> {
 
   @override
   Widget build(BuildContext context) {
-    // 计算屏幕剩余的高度
-    // 设备屏幕的总高度
-    //  - 屏幕顶部的安全区域高度，即状态栏的高度
-    //  - 屏幕底部的安全区域高度，即导航栏的高度或者虚拟按键的高度
-    //  - 应用程序顶部的工具栏（如 AppBar）的高度
-    //  - 应用程序底部的导航栏的高度
-    //  - 组件的边框间隔(不一定就是2)
-    double screenHeight = MediaQuery.of(context).size.height -
-        MediaQuery.of(context).padding.top -
-        MediaQuery.of(context).padding.bottom -
-        kToolbarHeight -
-        kBottomNavigationBarHeight -
-        2 * 12.sp; // 减的越多，上下空隙越大
+    // 2024-01-30 暂时设定进入游戏中心强制是竖屏，且进入播放页面要隐藏状态栏
+    // 主要是偷懒横屏游戏的一些适配
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
 
     return Scaffold(
       // 避免搜索时弹出键盘，让底部的minibar位置移动到tab顶部导致溢出的问题
@@ -43,51 +38,91 @@ class _GameCenterState extends State<GameCenter> {
       appBar: AppBar(
         title: const Text("休闲游戏"),
       ),
-      body: buildFixedBody(screenHeight),
+      body: buildFixedBody(),
     );
   }
 
   // 可视页面固定等分居中、不可滚动的首页
-  buildFixedBody(double screenHeight) {
+  buildFixedBody() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Expanded(flex: 1, child: Container()),
           Expanded(
-            child: SizedBox(height: screenHeight / 4, child: Container()),
-          ),
-          Expanded(
-            child: SizedBox(
-              height: screenHeight / 4,
-              child: buildChildWidgetCard(
-                context,
-                const InitGame2048(),
-                "2048",
-              ),
+            flex: 2,
+            child: Row(
+              children: [
+                Expanded(
+                  child: buildCoverCardColumn(
+                    context,
+                    const InitGame2048(),
+                    "2048",
+                    imageUrl: cover2048ImageUrl,
+                  ),
+                ),
+                Expanded(
+                  child: buildCoverCardColumn(
+                    context,
+                    const InitTetris(),
+                    "俄罗斯方块",
+                    imageUrl: coverTetrisImageUrl,
+                  ),
+                )
+              ],
             ),
           ),
-          // Expanded(
-          //   child: SizedBox(
-          //     height: screenHeight / 4,
-          //     child: buildChildWidgetCard(
-          //       context,
-          //       Container(),
-          //       "俄罗斯方块",
-          //     ),
-          //   ),
-          // ),
-          Expanded(
-            child: SizedBox(height: screenHeight / 4, child: Container()),
-          ),
-          Expanded(
-            child: SizedBox(height: screenHeight / 4, child: Container()),
-          ),
+          Expanded(flex: 1, child: Container()),
         ],
       ),
     );
   }
 }
 
+buildCoverCardColumn(
+  BuildContext context,
+  Widget widget,
+  String title, {
+  String? subtitle,
+  String? imageUrl,
+}) {
+  return Card(
+    clipBehavior: Clip.hardEdge,
+    elevation: 5,
+    child: InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (BuildContext ctx) => widget,
+          ),
+        );
+      },
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Padding(
+            padding: EdgeInsets.all(5.sp),
+            child: Image.asset(
+              imageUrl ?? placeholderImageUrl,
+              fit: BoxFit.contain,
+            ),
+          ),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColor,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// 下面两个暂时留在这里
 buildChildWidgetCard(
   BuildContext context,
   Widget widget,
@@ -130,49 +165,40 @@ buildCoverCard(
   String title, {
   String? subtitle,
   String? imageUrl,
-  String? routeName,
 }) {
   return Card(
     clipBehavior: Clip.hardEdge,
     elevation: 5,
     child: InkWell(
       onTap: () {
-        if (routeName != null) {
-          // 这里需要使用pushName 带上指定的路由名称，后续跨层级popUntil的时候才能指定路由名称进行传参
-          Navigator.pushNamed(context, routeName);
-        } else {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (BuildContext ctx) => widget,
-            ),
-          );
-        }
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (BuildContext ctx) => widget,
+          ),
+        );
       },
       child: Center(
         child: Row(
           children: [
             Expanded(
-              flex: 2,
+              flex: 1,
               child: Padding(
                 padding: EdgeInsets.all(5.sp),
                 child: Image.asset(
                   imageUrl ?? placeholderImageUrl,
-                  fit: BoxFit.scaleDown,
+                  fit: BoxFit.contain,
                 ),
               ),
             ),
             Expanded(
-              flex: 3,
-              child: ListTile(
-                title: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).primaryColor,
-                  ),
+              flex: 1,
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
                 ),
-                subtitle: Text(subtitle ?? ""),
               ),
             ),
           ],

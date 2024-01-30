@@ -88,7 +88,7 @@ class MyGetStorage {
     await box.write("BottomNavItemMun", number);
   }
 
-  int getBottomNavItemMun() => box.read("BottomNavItemMun") ?? 5;
+  int getBottomNavItemMun() => box.read("BottomNavItemMun") ?? 3;
 
   /// 2024-01-29 2048游戏保存/获取当前棋盘状态
   Future<void> set2048BoardState(Board obj) async {
@@ -101,4 +101,11 @@ class MyGetStorage {
         ? Board.fromJson(Map<String, dynamic>.from(stateStr))
         : stateStr;
   }
+
+  /// 2024-01-30 俄罗斯方块游戏保存获取历史最高分
+  Future<void> setTetrisBestScore(int score) async {
+    await box.write("gameTetrisBestScore", score);
+  }
+
+  int? getTetrisBestScore() => box.read("gameTetrisBestScore");
 }

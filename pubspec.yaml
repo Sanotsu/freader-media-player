@@ -95,6 +95,9 @@ dependencies:
   uuid: ^4.3.3
   # 滑动检测(TODO 这个包有点老了，可以后续找找替代品)
   flutter_swipe_detector: ^2.0.0 
+  ### 2024-01-29新加：俄罗斯方块需要的一些库
+  soundpool: ^2.4.1
+  vector_math: ^2.1.4
 
 dev_dependencies:
   flutter_test:
@@ -124,6 +127,9 @@ flutter:
   assets:
     - assets/
     - assets/launch_background.png
+    - assets/games/
+    - assets/games/tetris/
+    - assets/games/tetris/audios/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

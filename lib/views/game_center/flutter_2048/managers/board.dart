@@ -46,6 +46,12 @@ class BoardManager extends StateNotifier<Board> {
 
     // 如果没有本地缓存，将启动一个新游戏。
     state = oldState ?? _newGame();
+
+    // 2024-01-30 一点小修复：如果上次保存时已经是游戏结束的状态，则本次初始化也是开始新游戏
+    // 重复赋值上面的state也会覆盖，所以不用管它
+    if (oldState != null && oldState.over) {
+      newGame();
+    }
   }
 
   // 创建一个新游戏棋盘状态
