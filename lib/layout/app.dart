@@ -9,6 +9,9 @@ import 'package:device_info_plus/device_info_plus.dart';
 
 import 'home.dart';
 
+/// ??? 2024-01-30 这个tetris原本main文件中的，后续来理清用途
+// final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
+
 class FreaderApp extends StatelessWidget {
   const FreaderApp({super.key});
 
@@ -32,6 +35,8 @@ class FreaderApp extends StatelessWidget {
             Locale('en', 'US'),
           ],
           locale: const Locale('zh'),
+          // 应用导航的观察者，导航有变化的时候可以做一些事？
+          // navigatorObservers: [routeObserver],
           theme: ThemeData(
             primarySwatch: Colors.blue,
             useMaterial3: false,

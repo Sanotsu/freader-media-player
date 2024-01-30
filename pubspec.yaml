@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 0.2.2-beta+1
+version: 0.2.3-beta+1
 
 environment:
     sdk: '>=3.0.1 <4.0.0'
@@ -89,6 +89,15 @@ dependencies:
   screen_brightness: ^0.2.2+1
   # 调整系统音量
   flutter_volume_controller: ^1.3.1
+  ### 2024-01-26新加：2048 需要的一些库
+  # 状态管理(TODO 其实已经有 provider了，后续可以考虑复用)
+  flutter_riverpod: ^2.4.9
+  uuid: ^4.3.3
+  # 滑动检测(TODO 这个包有点老了，可以后续找找替代品)
+  flutter_swipe_detector: ^2.0.0 
+  ### 2024-01-29新加：俄罗斯方块需要的一些库
+  soundpool: ^2.4.1
+  vector_math: ^2.1.4
 
 dev_dependencies:
   flutter_test:
@@ -118,6 +127,9 @@ flutter:
   assets:
     - assets/
     - assets/launch_background.png
+    - assets/games/
+    - assets/games/tetris/
+    - assets/games/tetris/audios/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

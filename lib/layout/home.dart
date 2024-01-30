@@ -5,6 +5,7 @@ import '../common/utils/tool_widgets.dart';
 import '../services/my_audio_handler.dart';
 import '../services/my_get_storage.dart';
 import '../services/service_locator.dart';
+import '../views/game_center/index.dart';
 import '../views/local_all_media/index.dart';
 import '../views/local_music/index.dart';
 import '../views/local_photo/index.dart';
@@ -54,12 +55,13 @@ class _HomePageState extends State<HomePage> {
 
       var num = _simpleStorage.getBottomNavItemMun();
 
-      if (num > 2) {
+      if (num > 3) {
         _widgetOptions = const [
           LocalMusic(),
           LocalVideo(),
           LocalPhoto(),
           LocalAllMedia(),
+          GameCenter(),
         ];
 
         bottomNavBarItems = const <BottomNavigationBarItem>[
@@ -67,12 +69,18 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.video_file), label: '本地视频'),
           BottomNavigationBarItem(icon: Icon(Icons.image), label: '本地图片'),
           BottomNavigationBarItem(icon: Icon(Icons.all_inbox), label: '全部资源'),
+          BottomNavigationBarItem(icon: Icon(Icons.games), label: '休闲游戏'),
         ];
       } else {
-        _widgetOptions = const [LocalMusic(), LocalAllMedia()];
+        _widgetOptions = const [
+          LocalMusic(),
+          LocalAllMedia(),
+          GameCenter(),
+        ];
         bottomNavBarItems = const [
           BottomNavigationBarItem(icon: Icon(Icons.audiotrack), label: '本地音乐'),
           BottomNavigationBarItem(icon: Icon(Icons.all_inbox), label: '全部资源'),
+          BottomNavigationBarItem(icon: Icon(Icons.games), label: '休闲游戏'),
         ];
       }
     });
@@ -124,10 +132,10 @@ class _HomePageState extends State<HomePage> {
               /// 2024-01-25 彩蛋功能，长按退出的正文，可切换底部导航栏item的数量
               content: GestureDetector(
                 onLongPress: () async {
-                  if (_simpleStorage.getBottomNavItemMun() > 2) {
-                    await _simpleStorage.setBottomNavItemMun(2);
+                  if (_simpleStorage.getBottomNavItemMun() > 3) {
+                    await _simpleStorage.setBottomNavItemMun(3);
                   } else {
-                    await _simpleStorage.setBottomNavItemMun(4);
+                    await _simpleStorage.setBottomNavItemMun(5);
                   }
 
                   setState(() {
@@ -185,8 +193,8 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(height: 16),
-                    Text("音频加载中……"),
-                    Text("首次使用耗时可能较长"),
+                    Text("扫描本地音频中……"),
+                    Text("首次使用可能耗时较长"),
                   ],
                 ),
               )

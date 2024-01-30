@@ -57,3 +57,6 @@ ios
 
 # 存放一些网站的api token
 **/tokens
+
+**/self*
+**/_self*

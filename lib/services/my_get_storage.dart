@@ -2,6 +2,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../common/global/constants.dart';
+import '../views/game_center/flutter_2048/models/board.dart';
 
 final box = GetStorage();
 
@@ -87,5 +88,24 @@ class MyGetStorage {
     await box.write("BottomNavItemMun", number);
   }
 
-  int getBottomNavItemMun() => box.read("BottomNavItemMun") ?? 4;
+  int getBottomNavItemMun() => box.read("BottomNavItemMun") ?? 3;
+
+  /// 2024-01-29 2048游戏保存/获取当前棋盘状态
+  Future<void> set2048BoardState(Board obj) async {
+    await box.write("game2048BoardState", obj.toJson());
+  }
+
+  Board? get2048BoardState() {
+    var stateStr = box.read("game2048BoardState");
+    return stateStr != null
+        ? Board.fromJson(Map<String, dynamic>.from(stateStr))
+        : stateStr;
+  }
+
+  /// 2024-01-30 俄罗斯方块游戏保存获取历史最高分
+  Future<void> setTetrisBestScore(int score) async {
+    await box.write("gameTetrisBestScore", score);
+  }
+
+  int? getTetrisBestScore() => box.read("gameTetrisBestScore");
 }
