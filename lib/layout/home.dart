@@ -193,8 +193,8 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(height: 16),
-                    Text("音频加载中……"),
-                    Text("首次使用耗时可能较长"),
+                    Text("扫描本地音频中……"),
+                    Text("首次使用可能耗时较长"),
                   ],
                 ),
               )
