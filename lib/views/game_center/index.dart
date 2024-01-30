@@ -25,9 +25,7 @@ class _GameCenterState extends State<GameCenter> {
 
   @override
   Widget build(BuildContext context) {
-    // 2024-01-30 暂时设定进入游戏中心强制是竖屏，且进入播放页面要隐藏状态栏
-    // 主要是偷懒横屏游戏的一些适配
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+    // 2024-01-30 暂时设定进入游戏中心强制是竖屏(主要是偷懒横屏游戏的一些适配)
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
