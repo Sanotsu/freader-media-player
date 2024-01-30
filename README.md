@@ -6,6 +6,11 @@ freader-media-player(FMP Player)，一个使用 flutter 开发的简单的本地
 
 ## 功能说明
 
+### 2024-01-30 主要更新
+
+- feat:添加了俄罗斯方块小游戏
+  - 更多参看对应模块的[readme](lib/views/game_center/tetris/readme.md).
+
 ### 2024-01-29 主要更新
 
 - feat:添加了 2048 小游戏
