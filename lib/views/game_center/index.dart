@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../common/global/constants.dart';
 import 'flutter_2048/index.dart';
+import 'snake/index.dart';
 import 't-rex_dinosaur/index.dart';
 import 'tetris/index.dart';
 
@@ -84,7 +85,12 @@ class _GameCenterState extends State<GameCenter> {
                   ),
                 ),
                 Expanded(
-                  child: Container(),
+                  child: buildCoverCardColumn(
+                    context,
+                    const SnakeGame(),
+                    "贪吃蛇",
+                    imageUrl: coverSnakeImageUrl,
+                  ),
                 )
               ],
             ),
