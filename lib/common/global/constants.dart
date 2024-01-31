@@ -14,6 +14,7 @@ class GlobalConstants {
 const String placeholderImageUrl = 'assets/launch_background.png';
 const String cover2048ImageUrl = 'assets/games/cover-2048.jpg';
 const String coverTetrisImageUrl = 'assets/games/cover-tetris.jpg';
+const String coverDinosaurImageUrl = 'assets/games/cover-dinosaur.jpg';
 
 /*
 // 音频播放列表支持的类型，使用扩展可以直接比较属性值

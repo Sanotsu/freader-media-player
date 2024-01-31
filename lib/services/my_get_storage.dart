@@ -108,4 +108,11 @@ class MyGetStorage {
   }
 
   int? getTetrisBestScore() => box.read("gameTetrisBestScore");
+
+  /// 2024-01-30 恐龙游戏保存获取历史最高分
+  Future<void> setDinosaurBestScore(int score) async {
+    await box.write("gameDinosaurBestScore", score);
+  }
+
+  int? getDinosaurBestScore() => box.read("gameDinosaurBestScore");
 }

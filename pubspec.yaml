@@ -130,6 +130,10 @@ flutter:
     - assets/games/
     - assets/games/tetris/
     - assets/games/tetris/audios/
+    - assets/games/dinosaur/
+    - assets/games/dinosaur/cacti/
+    - assets/games/dinosaur/dino/
+    - assets/games/dinosaur/ptera/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

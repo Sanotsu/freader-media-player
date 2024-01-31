@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../common/global/constants.dart';
 import 'flutter_2048/index.dart';
+import 't-rex_dinosaur/index.dart';
 import 'tetris/index.dart';
 
 class GameCenter extends StatefulWidget {
@@ -66,6 +67,24 @@ class _GameCenterState extends State<GameCenter> {
                     "俄罗斯方块",
                     imageUrl: coverTetrisImageUrl,
                   ),
+                )
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                Expanded(
+                  child: buildCoverCardColumn(
+                    context,
+                    const TRexDinosaur(),
+                    "恐龙快跑",
+                    imageUrl: coverDinosaurImageUrl,
+                  ),
+                ),
+                Expanded(
+                  child: Container(),
                 )
               ],
             ),
