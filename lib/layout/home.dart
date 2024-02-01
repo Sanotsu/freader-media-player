@@ -14,7 +14,12 @@ import '../views/local_video/index.dart';
 /// 主页面
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, this.selectedIndex});
+
+  // 2024-02-01 新加可以指定默认选中的底部导航索引
+  // 主要是游戏中心的扫雷游戏，退出游戏界面后是使用pushAndRemoveUntil导航到home页面，
+  // 所以可以指定索引以便显示的是正确的游戏中心而不是初始化的第一个导航栏
+  final int? selectedIndex;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -44,6 +49,10 @@ class _HomePageState extends State<HomePage> {
 
     // 2024-01-25 根据缓存值显示底部导航条目数量
     changeBottomNavItemNum();
+
+    if (widget.selectedIndex != null) {
+      _selectedIndex = widget.selectedIndex!;
+    }
   }
 
   /// 2024-01-25 彩蛋功能，根据缓存展示底部导航栏条目的数量

@@ -6,6 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../common/global/constants.dart';
 import 'flutter_2048/index.dart';
+import 'minesweeper/index.dart';
+
 import 'snake/index.dart';
 import 't-rex_dinosaur/index.dart';
 import 'tetris/index.dart';
@@ -48,7 +50,7 @@ class _GameCenterState extends State<GameCenter> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Expanded(flex: 1, child: Container()),
+          // Expanded(flex: 1, child: Container()),
           Expanded(
             flex: 2,
             child: Row(
@@ -95,7 +97,25 @@ class _GameCenterState extends State<GameCenter> {
               ],
             ),
           ),
-          Expanded(flex: 1, child: Container()),
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                Expanded(
+                  child: buildCoverCardColumn(
+                    context,
+                    const InitMinesweeper(),
+                    "扫雷",
+                    imageUrl: coverMinesweeperImageUrl,
+                  ),
+                ),
+                Expanded(
+                  child: Container(),
+                )
+              ],
+            ),
+          ),
+          // Expanded(flex: 1, child: Container()),
         ],
       ),
     );

@@ -42,6 +42,11 @@ freader-media-player(FMP Player)，一个使用 flutter 开发的简单的本地
 
 ## 更新说明
 
+### 2024-02-01 主要更新
+
+- feat:添加了扫雷小游戏
+  - 更多参看对应模块的 [readme](lib/views/game_center/minesweeper/readme.md) 。
+
 ### 2024-01-31 主要更新
 
 - feat:添加了恐龙快跑小游戏
