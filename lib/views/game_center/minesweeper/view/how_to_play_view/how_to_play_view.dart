@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../helper/shared_helper.dart';
 import '../../utils/game_colors.dart';
 import '../../utils/game_sizes.dart';
+import '../home_view/home_view.dart';
 
 class HowToPlayView extends StatefulWidget {
   const HowToPlayView({super.key, this.redirectToHome = false});
@@ -38,7 +39,9 @@ class _HowToPlayViewState extends State<HowToPlayView> {
 
   void _onSkip() async {
     if (widget.redirectToHome) {
-      Navigator.of(context).pushReplacementNamed('/home_view');
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (BuildContext ctx) => const MinesweeperHomeView(),
+      ));
       final sharedHelper = await SharedHelper.init();
       await sharedHelper.setHowToPlayShown(true);
     } else {
