@@ -112,7 +112,9 @@ class _SnakeGameState extends State<SnakeGame> with TickerProviderStateMixin {
   // 如果表示蛇的列表的最后一个元素（蛇头）是蛇列表中任何一个，表示蛇碰到自己了，游戏结束
   bool _gameOver() {
     for (int i = 0; i < _snake.length - 1; i++) {
-      if (_snake.last == _snake[i]) return true;
+      if (_snake.last == _snake[i]) {
+        return true;
+      }
     }
     return false;
   }
@@ -179,23 +181,13 @@ class _SnakeGameState extends State<SnakeGame> with TickerProviderStateMixin {
           setState(() {
             _hasStarted = !_hasStarted;
           });
-          // Navigator.of(context).pushReplacement(MaterialPageRoute(
-          //   builder: (context) => GameOver(score: _playerScore),
-          // ));
 
+          // 这里原本是跳转到新的gameover页面
           // ？？？其实如果和其他小游戏类似的话，就直接当前页面提示失败就好，不要跳转新页面
           // 这是一个简单的overlay示例
           _showGameOverOverlay(context);
         }
       });
-
-      // 2023-01-31 更新完当前得分后更新最佳得分
-      if (_playerScore > _bsetScore) {
-        await _simpleStorage.setSnakeBestScore(_playerScore);
-        setState(() {
-          _bsetScore = _playerScore;
-        });
-      }
     }
   }
 
@@ -253,8 +245,20 @@ class _SnakeGameState extends State<SnakeGame> with TickerProviderStateMixin {
                 ),
                 SizedBox(height: 25.sp),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     _overlayEntry?.remove();
+
+                    // 2023-02-01 更新完当前得分后更新最佳得分
+                    // 之前放在_updateSnake中，则会出现在达到最高分之后，每吃一次食物就因为更新最大值而卡顿的问题
+                    if (_playerScore > _bsetScore) {
+                      await _simpleStorage.setSnakeBestScore(_playerScore);
+                      if (!mounted) return;
+                      setState(() {
+                        _bsetScore = _playerScore;
+                      });
+                    }
+
+                    if (!mounted) return;
                     setState(() {
                       _setUpGame();
                     });
