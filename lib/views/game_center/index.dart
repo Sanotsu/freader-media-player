@@ -9,6 +9,7 @@ import 'flutter_2048/index.dart';
 import 'minesweeper/index.dart';
 
 import 'snake/index.dart';
+import 'sudoku/index.dart';
 import 't-rex_dinosaur/index.dart';
 import 'tetris/index.dart';
 
@@ -110,7 +111,12 @@ class _GameCenterState extends State<GameCenter> {
                   ),
                 ),
                 Expanded(
-                  child: Container(),
+                  child: buildCoverCardColumn(
+                    context,
+                    const InitSudoku(),
+                    "数独",
+                    imageUrl: coverSudokuImageUrl,
+                  ),
                 )
               ],
             ),
@@ -144,11 +150,13 @@ buildCoverCardColumn(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Padding(
-            padding: EdgeInsets.all(5.sp),
-            child: Image.asset(
-              imageUrl ?? placeholderImageUrl,
-              fit: BoxFit.contain,
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(5.sp),
+              child: Image.asset(
+                imageUrl ?? placeholderImageUrl,
+                fit: BoxFit.scaleDown,
+              ),
             ),
           ),
           Text(

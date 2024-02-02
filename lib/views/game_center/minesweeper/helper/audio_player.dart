@@ -18,7 +18,7 @@ class GameAudioPlayer {
     // 因为和音乐播放器共用同一个player，所以这里直接复用音乐播放器的那个
     // _player = AudioPlayer();
     _player = _audioHandler.player();
-    _player.play();
+    // _player.play();
   }
 
   // 2024-02-01 因为和音乐播放器共用同一个player，所以扫雷重置音乐播放只是停止即可

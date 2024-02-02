@@ -323,14 +323,16 @@ class _TRexDinosaurState extends State<TRexDinosaur>
                   },
                 ),
               ),
-              if (dino.state == DinoState.dead)
-                Positioned(
-                  top: screenSize.height / 2 - 100,
-                  child: const Text(
-                    "游戏结束",
-                    style: TextStyle(color: Colors.red, fontSize: 28),
-                  ),
-                ),
+              // 2024-02-02 这里有个问题，游戏还没开始，状态也是dead，不知道是未开始还是游戏结束
+              // 还是按照原来的，停止了，就是游戏结束了，不用显示文字
+              // if (dino.state == DinoState.dead)
+              //   Positioned(
+              //     top: screenSize.height / 2 - 100,
+              //     child: const Text(
+              //       "游戏结束",
+              //       style: TextStyle(color: Colors.red, fontSize: 28),
+              //     ),
+              //   ),
               Positioned(
                 bottom: 10,
                 child: TextButton(
