@@ -6,6 +6,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../common/global/constants.dart';
 import 'flutter_2048/index.dart';
+import 'minesweeper/index.dart';
+
+import 'snake/index.dart';
+import 'sudoku/index.dart';
+import 't-rex_dinosaur/index.dart';
 import 'tetris/index.dart';
 
 class GameCenter extends StatefulWidget {
@@ -46,7 +51,7 @@ class _GameCenterState extends State<GameCenter> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Expanded(flex: 1, child: Container()),
+          // Expanded(flex: 1, child: Container()),
           Expanded(
             flex: 2,
             child: Row(
@@ -70,7 +75,53 @@ class _GameCenterState extends State<GameCenter> {
               ],
             ),
           ),
-          Expanded(flex: 1, child: Container()),
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                Expanded(
+                  child: buildCoverCardColumn(
+                    context,
+                    const TRexDinosaur(),
+                    "恐龙快跑",
+                    imageUrl: coverDinosaurImageUrl,
+                  ),
+                ),
+                Expanded(
+                  child: buildCoverCardColumn(
+                    context,
+                    const SnakeGame(),
+                    "贪吃蛇",
+                    imageUrl: coverSnakeImageUrl,
+                  ),
+                )
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                Expanded(
+                  child: buildCoverCardColumn(
+                    context,
+                    const InitMinesweeper(),
+                    "扫雷",
+                    imageUrl: coverMinesweeperImageUrl,
+                  ),
+                ),
+                Expanded(
+                  child: buildCoverCardColumn(
+                    context,
+                    const InitSudoku(),
+                    "数独",
+                    imageUrl: coverSudokuImageUrl,
+                  ),
+                )
+              ],
+            ),
+          ),
+          // Expanded(flex: 1, child: Container()),
         ],
       ),
     );
@@ -99,11 +150,13 @@ buildCoverCardColumn(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Padding(
-            padding: EdgeInsets.all(5.sp),
-            child: Image.asset(
-              imageUrl ?? placeholderImageUrl,
-              fit: BoxFit.contain,
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(5.sp),
+              child: Image.asset(
+                imageUrl ?? placeholderImageUrl,
+                fit: BoxFit.scaleDown,
+              ),
             ),
           ),
           Text(

@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 0.3.0-beta+1
+version: 0.4.0-beta+1
 
 environment:
     sdk: '>=3.0.1 <4.0.0'
@@ -98,10 +98,24 @@ dependencies:
   ### 2024-01-29新加：俄罗斯方块需要的一些库
   soundpool: ^2.4.1
   vector_math: ^2.1.4
+  ### 扫雷小游戏需要用到相关依赖库
+  shared_preferences: ^2.0.18
+  ### 数独游戏用到相关依赖库
+  sudoku_dart: ^1.1.0
+  logger: ^2.0.2+1
+  sprintf: ^7.0.0
+  scoped_model: ^2.0.0
+  modal_bottom_sheet: ^3.0.0-pre
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  url_launcher: ^6.2.4
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  hive_generator: ^2.0.0
+  build_runner: ^2.3.3
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -130,6 +144,19 @@ flutter:
     - assets/games/
     - assets/games/tetris/
     - assets/games/tetris/audios/
+    - assets/games/dinosaur/
+    - assets/games/dinosaur/cacti/
+    - assets/games/dinosaur/dino/
+    - assets/games/dinosaur/ptera/
+    - assets/games/minesweeper/
+    - assets/games/minesweeper/audio/
+    - assets/games/minesweeper/images/
+    - assets/games/minesweeper/images/how_to_play/
+    - assets/games/sodoku/
+    - assets/games/sodoku/audio/
+    - assets/games/sodoku/image/
+    - assets/games/sodoku/svg/
+
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

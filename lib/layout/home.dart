@@ -14,15 +14,24 @@ import '../views/local_video/index.dart';
 /// 主页面
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, this.selectedIndex});
+
+  // 2024-02-01 新加可以指定默认选中的底部导航索引
+  // 主要是游戏中心的扫雷游戏，退出游戏界面后是使用pushAndRemoveUntil导航到home页面，
+  // 所以可以指定索引以便显示的是正确的游戏中心而不是初始化的第一个导航栏
+  final int? selectedIndex;
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  // 默认选中第一个底部导航条目
-  int _selectedIndex = 0;
+  //  // 当前选中项的索引 默认选中第一个底部导航条目
+  int _currentIndex = 0;
+  // 2024-02-02 新加记录上一个底部导航索引，如果是从休闲游戏模块切换到其他模块。需要重新构建音频播放列表
+  // 因为目前游戏中心的背景音乐播放器和本地音乐模块播放器是同一个，因为背景播放插件的限制
+  // 上一个选中项的索引
+  int _previousIndex = 0;
 
   final _audioHandler = getIt<MyAudioHandler>();
   // 统一简单存储操作的工具类实例
@@ -44,6 +53,10 @@ class _HomePageState extends State<HomePage> {
 
     // 2024-01-25 根据缓存值显示底部导航条目数量
     changeBottomNavItemNum();
+
+    if (widget.selectedIndex != null) {
+      _currentIndex = widget.selectedIndex!;
+    }
   }
 
   /// 2024-01-25 彩蛋功能，根据缓存展示底部导航栏条目的数量
@@ -51,7 +64,7 @@ class _HomePageState extends State<HomePage> {
   changeBottomNavItemNum() {
     setState(() {
       // 2024-01-25 注意，因为可能在4切换成2的时候，当前标签tab在2或者3,那就找不到对应的了。所以默认都改成第一个。
-      _selectedIndex = 0;
+      _currentIndex = 0;
 
       var num = _simpleStorage.getBottomNavItemMun();
 
@@ -106,7 +119,23 @@ class _HomePageState extends State<HomePage> {
 
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index;
+      _previousIndex = _currentIndex; // 更新上一个索引值
+      _currentIndex = index; // 更新当前索引值
+
+      // 2024-02-02
+      // 检查是否是从游戏中心tab切换到其他tab
+      int gameCenterIndex = _simpleStorage.getBottomNavItemMun() > 3 ? 4 : 2;
+      if (_previousIndex == gameCenterIndex &&
+          _currentIndex != _previousIndex) {
+        initAudio();
+      }
+
+      // 如果是从其他tab进入游戏中心，则暂停音乐播放
+      var num = _simpleStorage.getBottomNavItemMun();
+      if (num > 3 ? _currentIndex == 4 : _currentIndex == 2) {
+        // 默认是暂停状态
+        _audioHandler.pause();
+      }
     });
   }
 
@@ -198,11 +227,11 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               )
-            : Center(child: _widgetOptions.elementAt(_selectedIndex)),
+            : Center(child: _widgetOptions.elementAt(_currentIndex)),
         bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           items: bottomNavBarItems,
-          currentIndex: _selectedIndex,
+          currentIndex: _currentIndex,
           // // 底部导航栏的颜色
           // backgroundColor: Theme.of(context).primaryColor,
           // // 被选中的item的图标颜色和文本颜色
