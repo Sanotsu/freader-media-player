@@ -56,7 +56,9 @@ class BoardManager extends StateNotifier<Board> {
 
   // 创建一个新游戏棋盘状态
   Board _newGame() {
-    return Board.newGame(state.best + state.score, state.bestNum, [random([])]);
+    // return Board.newGame(state.best + state.score, state.bestNum, [random([])]);
+    // 2024-02-19 初始化的最佳分数不应该包含上次得分，需要在游戏结束时更新最佳得分
+    return Board.newGame(state.best, state.bestNum, [random([])]);
   }
 
   // 开始新游戏
@@ -364,6 +366,7 @@ class BoardManager extends StateNotifier<Board> {
 
     state = state.copyWith(
       tiles: tiles,
+      best: max(state.score, state.best),
       bestNum: max(maxValue, state.bestNum),
       won: gameWon,
       over: gameOver,
