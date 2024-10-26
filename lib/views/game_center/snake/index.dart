@@ -385,8 +385,8 @@ class _SnakeGameState extends State<SnakeGame> with TickerProviderStateMixin {
                         ),
                         // 给按钮添加了圆弧
                         style: ButtonStyle(
-                          shape: MaterialStateProperty.resolveWith(
-                            (Set<MaterialState> states) {
+                          shape: WidgetStateProperty.resolveWith(
+                            (Set<WidgetState> states) {
                               return RoundedRectangleBorder(
                                 // 指定圆角半径
                                 borderRadius: BorderRadius.circular(20),

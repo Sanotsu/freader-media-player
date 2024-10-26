@@ -17,12 +17,14 @@ class _SplashViewState extends State<SplashView> {
     await SharedHelper.init().then((sharedHelper) async {
       await sharedHelper.getHowToPlayShown().then((hasShown) {
         if (hasShown) {
+          if (!mounted) return;
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (BuildContext ctx) => const MinesweeperHomeView(),
             ),
           );
         } else {
+          if (!mounted) return;
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => const HowToPlayView(redirectToHome: true),

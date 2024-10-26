@@ -44,7 +44,7 @@ class _GameViewState extends State<GameView> with WidgetsBindingObserver {
       child: Consumer<GameController>(builder: (context, gameController, _) {
         return PopScope(
           canPop: !gameController.gameHasStarted,
-          onPopInvoked: (popped) {
+          onPopInvokedWithResult: (bool didPop, Object? result) async {
             gameController.exitGame(context);
           },
           child: SafeArea(

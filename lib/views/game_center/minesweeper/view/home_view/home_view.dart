@@ -25,7 +25,7 @@ class _MinesweeperHomeViewState extends State<MinesweeperHomeView> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (popped) {
+      onPopInvokedWithResult: (bool didPop, Object? result) {
         // 2024-02-01 不包裹在这里面，点击返回到游戏中心可能不生效，还会报错，可参看：
         // https://stackoverflow.com/questions/55618717/error-thrown-on-navigator-pop-until-debuglocked-is-not-true
         // 其他使用pushAndRemoveUntil的同理

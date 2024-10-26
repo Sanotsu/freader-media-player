@@ -93,8 +93,13 @@ void _internalSudokuGenerate(List<dynamic> args) {
   sendPort.send(sudoku);
 }
 
+/// 应该有一个加载数独的弹窗，在数独加载出来之后关闭。
+/// 但实测数独出来后没有关闭弹窗，原因不知
 Future _sudokuGenerate(BuildContext context, Level level) async {
   String sudokuGenerateText = "正在为你加载数独,请稍后...";
+  // 创建一个 Completer 来控制弹窗的关闭
+  Completer<void> dialogCompleter = Completer<void>();
+
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -113,7 +118,13 @@ Future _sudokuGenerate(BuildContext context, Level level) async {
         ),
       ),
     ),
-  );
+  ).then((_) {
+    debugPrint("$dialogCompleter----${dialogCompleter.isCompleted}");
+    // 当 Completer 完成时关闭弹窗
+    if (!dialogCompleter.isCompleted) {
+      dialogCompleter.complete();
+    }
+  });
 
   ReceivePort receivePort = ReceivePort();
 
@@ -134,7 +145,11 @@ Future _sudokuGenerate(BuildContext context, Level level) async {
 
   debugPrint("应该关闭弹窗了-----");
   // dismiss dialog
-  Navigator.pop(context);
+  // Navigator.pop(context);
+
+  // 关闭弹窗
+// 完成 Completer 以关闭弹窗
+  dialogCompleter.complete();
 }
 
 Widget _newGameButton(BuildContext context) {
@@ -169,47 +184,51 @@ Widget _newGameButton(BuildContext context) {
             for (var level in Level.values) {
               String levelName =
                   LocalizationUtils.localizationLevelName(context, level);
-              buttons.add(SizedBox(
+              buttons.add(
+                SizedBox(
                   height: 60,
                   width: MediaQuery.of(context).size.width,
                   child: Container(
-                      margin: const EdgeInsets.all(2.0),
-                      child: CupertinoButton(
-                        child: Text(
-                          levelName,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        onPressed: () async {
-                          log.d(
-                              "begin generator Sudoku with level : $levelName");
-                          // await _sudokuGenerate(context, level);
+                    margin: const EdgeInsets.all(2.0),
+                    child: CupertinoButton(
+                      child: Text(
+                        levelName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: () async {
+                        log.d("begin generator Sudoku with level : $levelName");
+                        // await _sudokuGenerate(context, level);
 
-                          ReceivePort receivePort = ReceivePort();
+                        // 因为上面那个加载数独时显示弹窗的方法无效，所以直接这里初始化数独
+                        ReceivePort receivePort = ReceivePort();
 
-                          Isolate isolate = await Isolate.spawn(
-                            _internalSudokuGenerate,
-                            [level, receivePort.sendPort],
-                          );
+                        Isolate isolate = await Isolate.spawn(
+                          _internalSudokuGenerate,
+                          [level, receivePort.sendPort],
+                        );
 
-                          var data = await receivePort.first;
-                          Sudoku sudoku = data;
-                          SudokuState state =
-                              ScopedModel.of<SudokuState>(context);
-                          state.initialize(sudoku: sudoku, level: level);
-                          state.updateStatus(SudokuGameStatus.pause);
-                          receivePort.close();
-                          isolate.kill(priority: Isolate.immediate);
+                        var data = await receivePort.first;
+                        Sudoku sudoku = data;
+                        SudokuState state =
+                            ScopedModel.of<SudokuState>(context);
+                        state.initialize(sudoku: sudoku, level: level);
+                        state.updateStatus(SudokuGameStatus.pause);
+                        receivePort.close();
+                        isolate.kill(priority: Isolate.immediate);
 
-                          debugPrint("-------------");
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const SudokuGamePage(title: "Sudoku"),
-                            ),
-                          );
-                        },
-                      ))));
+                        debugPrint("-------------");
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const SudokuGamePage(title: "Sudoku"),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              );
             }
             buttons.add(cancelButton);
 

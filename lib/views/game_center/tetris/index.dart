@@ -30,7 +30,7 @@ class _HomePage extends StatelessWidget {
     return PopScope(
       canPop: false,
       // 退出游戏界面前，先重置设备方向为竖向
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (bool didPop, Object? result) {
         if (didPop) return;
 
         SystemChrome.setPreferredOrientations([

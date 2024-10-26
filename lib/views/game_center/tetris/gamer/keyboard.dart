@@ -17,15 +17,16 @@ class _KeyboardControllerState extends State<KeyboardController> {
   @override
   void initState() {
     super.initState();
-    RawKeyboard.instance.addListener(_onKey);
+    HardwareKeyboard.instance.addHandler(_onKey);
   }
 
-  void _onKey(RawKeyEvent event) {
-    if (event is RawKeyUpEvent) {
-      return;
+  bool _onKey(KeyEvent event) {
+    if (event is KeyUpEvent) {
+      // Return false to indicate the event was not handled
+      return false;
     }
 
-    final key = event.data.logicalKey;
+    final key = event.logicalKey;
     final game = Game.of(context);
 
     if (key == LogicalKeyboardKey.arrowUp) {
@@ -44,12 +45,18 @@ class _KeyboardControllerState extends State<KeyboardController> {
       game.soundSwitch();
     } else if (key == LogicalKeyboardKey.keyR) {
       game.reset();
+    } else {
+      // Return false to indicate the event was not handled
+      return false;
     }
+
+    // Return true to indicate the event was handled
+    return true;
   }
 
   @override
   void dispose() {
-    RawKeyboard.instance.removeListener(_onKey);
+    HardwareKeyboard.instance.removeHandler(_onKey);
     super.dispose();
   }
 

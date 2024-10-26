@@ -409,7 +409,7 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
 // 调整应用内的亮度
 Future<void> setBrightness(double brightness) async {
   try {
-    await ScreenBrightness().setScreenBrightness(brightness);
+    await ScreenBrightness().setApplicationScreenBrightness(brightness);
   } catch (e) {
     debugPrint(e.toString());
     throw 'Failed to set brightness';
@@ -419,7 +419,7 @@ Future<void> setBrightness(double brightness) async {
 // 还原应用内的亮度系统亮度
 Future<void> resetBrightness() async {
   try {
-    await ScreenBrightness().resetScreenBrightness();
+    await ScreenBrightness().resetApplicationScreenBrightness();
   } catch (e) {
     debugPrint(e.toString());
     throw 'Failed to reset brightness';

@@ -259,6 +259,7 @@ _buildList(List<AssetPathEntity> list) {
             ),
           ).then((value) {
             // 返回时收起键盘
+            if (!context.mounted) return;
             FocusScope.of(context).requestFocus(FocusNode());
           });
         },
@@ -290,6 +291,7 @@ _buildGrid(List<AssetPathEntity> list) {
                   PathMediaPage(path: path, pathList: list),
             ),
           ).then((value) {
+            if (!context.mounted) return;
             FocusScope.of(context).requestFocus(FocusNode());
           });
         },

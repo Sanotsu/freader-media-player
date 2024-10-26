@@ -146,7 +146,7 @@ class _HomePageState extends State<HomePage> {
     /// 而在音频列表中长按音频，也有改变内部app bar显示的功能内容。这样`全部`这个没有中间层的也比较特殊
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (didPop) {
           return;
         }
@@ -170,7 +170,7 @@ class _HomePageState extends State<HomePage> {
                   setState(() {
                     changeBottomNavItemNum();
                   });
-                  if (!mounted) return;
+                  if (!context.mounted) return;
                   Navigator.pop(context, false);
 
                   showSnackMessage(

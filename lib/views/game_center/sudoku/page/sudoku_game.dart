@@ -529,6 +529,7 @@ class _SudokuGamePageState extends State<SudokuGamePage>
         bool confirm = val;
         if (confirm == true) {
           // exit the game 退出游戏
+          if (!context.mounted) return;
           ScopedModel.of<SudokuState>(context).initialize();
           Navigator.pop(context);
         }
@@ -953,7 +954,7 @@ class _SudokuGamePageState extends State<SudokuGamePage>
       ]),
       body: PopScope(
         canPop: false,
-        onPopInvoked: (didPop) async {
+        onPopInvokedWithResult: (bool didPop, Object? result) {
           if (didPop) {
             return;
           }

@@ -106,7 +106,7 @@ class _CusVideoPlayerState extends State<CusVideoPlayer> {
     return PopScope(
       canPop: false,
       // 退出播放页面之前，重置为竖向，关闭全屏，返回上一页。
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (didPop) return;
         // 返回之前重置方向为原始的
         // SystemChrome.setEnabledSystemUIMode(
