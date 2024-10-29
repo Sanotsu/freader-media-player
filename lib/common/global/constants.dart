@@ -11,7 +11,7 @@ class GlobalConstants {
   static String currentIsShuffleMode = "currentIsShuffleMode"; // 随机播放或顺序播放
 }
 
-const String placeholderImageUrl = 'assets/launch_background.png';
+const String placeholderImageUrl = 'assets/fmp_placeholder.jpg';
 const String cover2048ImageUrl = 'assets/games/cover-2048.jpg';
 const String coverTetrisImageUrl = 'assets/games/cover-tetris.jpg';
 const String coverDinosaurImageUrl = 'assets/games/cover-dinosaur.jpg';

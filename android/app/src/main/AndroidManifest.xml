@@ -18,6 +18,12 @@
     <!-- 启动前台服务 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
+    <!-- 通知权限 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+     <!-- ALSO ADD THIS PERMISSION IF TARGETING SDK 34 -->
+     <!-- 前台服务显示状态栏通知，让用户知道应用正在前台执行任务并消耗系统资源。 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+
     <!-- 网络服务权限 -->
     <!-- <uses-permission android:name="android.permission.INTERNET"/> -->
 
@@ -33,7 +39,9 @@
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            android:extractNativeLibs="true"
+            tools:replace="android:extractNativeLibs">
             <!-- Specifies an Android theme to apply to this Activity as soon as
                  the Android process has started. This theme is visible to the user
                  while the Flutter UI initializes. After that, this theme continues

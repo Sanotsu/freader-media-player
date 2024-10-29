@@ -218,7 +218,7 @@ class SeekBarState extends State<SeekBar> {
               onPressed: () {
                 showSliderDialog(
                   context: context,
-                  title: "调整速度",
+                  title: "播放速度",
                   divisions: 18,
                   min: 0.2,
                   max: 2.0,
@@ -246,11 +246,12 @@ class SeekBarState extends State<SeekBar> {
           right: 15.sp, // 距离右边界15个单位
           bottom: 17.0,
           child: Text(
-              RegExp(r'((^0*[1-9]\d*:)?\d{2}:\d{2})\.\d+$')
-                      .firstMatch("${widget.duration}")
-                      ?.group(1) ??
-                  '${widget.duration}',
-              style: Theme.of(context).textTheme.bodySmall),
+            RegExp(r'((^0*[1-9]\d*:)?\d{2}:\d{2})\.\d+$')
+                    .firstMatch("${widget.duration}")
+                    ?.group(1) ??
+                '${widget.duration}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
         ),
       ],
     );
@@ -507,14 +508,17 @@ void showSliderDialog({
       content: StreamBuilder<double>(
         stream: stream,
         builder: (context, snapshot) => SizedBox(
-          height: 80.0,
+          height: 80.sp,
           child: Column(
             children: [
-              Text('${snapshot.data?.toStringAsFixed(1)}$valueSuffix',
-                  style: const TextStyle(
-                      fontFamily: 'Fixed',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24.0)),
+              Text(
+                '${snapshot.data?.toStringAsFixed(1)}$valueSuffix',
+                style: TextStyle(
+                  fontFamily: 'Fixed',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18.sp,
+                ),
+              ),
               Slider(
                 divisions: divisions,
                 min: min,

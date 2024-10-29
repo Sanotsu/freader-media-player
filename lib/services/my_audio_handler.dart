@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -15,8 +16,10 @@ import 'my_audio_query.dart';
 import 'my_get_storage.dart';
 import 'service_locator.dart';
 
-/// 单例的audio player，以及他的一些方法
+// 定义一个 ValueNotifier 来管理当前正在处理的音频文件的状态
+var currentProcessingAudio = ValueNotifier<SongModel?>(null);
 
+/// 单例的audio player，以及他的一些方法
 class MyAudioHandler {
   // 播放器
   final _player = AudioPlayer();
@@ -93,36 +96,6 @@ class MyAudioHandler {
     await buildPlaylist(songs, songs[tempList[1]]);
   }
 
-  // 把指定音频所在的缩略图缓存起来，并记录音频编号和图片缓存的地址
-  buildArtUriCache(List<SongModel> songs) async {
-    // 如果缓存中还没有预设的占位音频缩略图，就先添加到缓存
-    if (box.read("placeholderArtUri") == null) {
-      await setDefaultArtUriFromAssets();
-    }
-
-    /// 2024-01-10 在初始化时，遍历音频文件，把查询到的音频文件的缩略图，保存到缓存中去
-    for (var e in songs) {
-      // 如果对应音频id的缩略图缓存已经存在，就不新加了
-      if (box.read(e.id.toString()) != null) {
-        continue;
-      }
-
-      // 查询指定音频的缩略图数据
-      var tempData = await _audioQuery.queryArtwork(e.id, ArtworkType.AUDIO);
-      if (tempData == null) {
-        // 音频文件没有缩略图就用预设图片
-        await box.write(e.id.toString(), box.read("placeholderArtUri"));
-        continue;
-      }
-
-      // 音频有带缩略图，就保存为缓存文件，然后缓存音频编号记录uri字符串
-      final directory = await getApplicationDocumentsDirectory();
-      final pathOfImage = await File('${directory.path}/${e.id}.png').create();
-      File imageFile = await pathOfImage.writeAsBytes(tempData);
-      await box.write(e.id.toString(), imageFile.uri.toString());
-    }
-  }
-
   // 2024-01-10 启动时也把占位图片Uri保存到缓存
   Future<void> setDefaultArtUriFromAssets() async {
     // 预设当音频文件没有自带缩略图时，用来显示的预设图片位置
@@ -143,12 +116,122 @@ class MyAudioHandler {
     await box.write("placeholderArtUri", file.uri.toString());
   }
 
-  /// 缓存所有音频的缩略图
+  //  将歌曲列表分成多个批次，逐批处理，避免一次性处理过多歌曲导致内存和性能问题。
   Future<void> cacheAllAudioThumbnail() async {
+    // var start = DateTime.now().millisecondsSinceEpoch;
+
+    // 1. 查询所有音频文件
+    var songs = await _audioQuery.querySongs();
+    // var end1 = DateTime.now().millisecondsSinceEpoch;
+
+    // print("缓存所有的音频----${songs.length} ${box.read("placeholderArtUri")}");
+
+    // 如果缓存中还没有预设的占位音频缩略图，就先添加到缓存
+    if (box.read("placeholderArtUri") == null) {
+      await setDefaultArtUriFromAssets();
+    }
+
+    // 2. 批量处理缩略图缓存，避免一次性处理过多歌曲导致内存和性能问题
+    const batchSize = 10; // 每批处理的歌曲数量
+    for (var i = 0; i < songs.length; i += batchSize) {
+      var batch = songs.sublist(
+        i,
+        i + batchSize > songs.length ? songs.length : i + batchSize,
+      );
+      await Future.wait(batch.map((e) async {
+        // 更新当前正在处理的音频文件的状态
+        currentProcessingAudio.value = e;
+
+        // 如果对应音频id的缩略图缓存已经存在，就不新加了
+        if (box.read(e.id.toString()) != null) {
+          return;
+        }
+
+        // 查询指定音频的缩略图数据
+        var tempData = await _audioQuery.queryArtwork(e.id, ArtworkType.AUDIO);
+        if (tempData == null) {
+          // 音频文件没有缩略图就用预设图片
+          await box.write(e.id.toString(), box.read("placeholderArtUri"));
+          return;
+        }
+
+        // 音频有带缩略图，就保存为缓存文件，然后缓存音频编号记录uri字符串
+        final directory = await getApplicationDocumentsDirectory();
+        final pathOfImage = File('${directory.path}/${e.id}.png');
+        await pathOfImage.writeAsBytes(tempData);
+        await box.write(e.id.toString(), pathOfImage.uri.toString());
+      }).toList());
+
+      // 处理完成后，重置状态
+      currentProcessingAudio.value = null;
+    }
+
+    // var end2 = DateTime.now().millisecondsSinceEpoch;
+
+    // print("查询歌曲 耗时${end1 - start}");
+    // print("构建缩略图 耗时${end2 - start}");
+  }
+
+  // 异步构建音频缩略图，但可能会出现一大串
+  // E/flutter (25098): [ERROR:flutter/runtime/dart_vm_initializer.cc(41)]
+  //  Unhandled Exception: FileSystemException: An async operation is currently pending,
+  // path = '/data/user/0/com.swm.freadermediaplayer/app_flutter/GetStorage.gs'
+  Future<void> _cacheAllAudioThumbnailNew1() async {
+    var start = DateTime.now().millisecondsSinceEpoch;
+
+    // 1. 查询所有音频文件
+    var songs = await _audioQuery.querySongs();
+    var end1 = DateTime.now().millisecondsSinceEpoch;
+
+    print("缓存所有的音频----${songs.length} ${box.read("placeholderArtUri")}");
+
+    // 如果缓存中还没有预设的占位音频缩略图，就先添加到缓存
+    if (box.read("placeholderArtUri") == null) {
+      await setDefaultArtUriFromAssets();
+    }
+
+    // 2. 并行处理缩略图缓存
+    await Future.wait(songs.map((e) async {
+      // 如果对应音频id的缩略图缓存已经存在，就不新加了
+      if (box.read(e.id.toString()) != null) {
+        return;
+      }
+
+      // 查询指定音频的缩略图数据
+      var tempData = await _audioQuery.queryArtwork(e.id, ArtworkType.AUDIO);
+      if (tempData == null) {
+        // 音频文件没有缩略图就用预设图片
+        await box.write(e.id.toString(), box.read("placeholderArtUri"));
+        return;
+      }
+
+      // 音频有带缩略图，就保存为缓存文件，然后缓存音频编号记录uri字符串
+      final directory = await getApplicationDocumentsDirectory();
+      final pathOfImage = File('${directory.path}/${e.id}.png');
+      await pathOfImage.writeAsBytes(tempData);
+      await box.write(e.id.toString(), pathOfImage.uri.toString());
+    }).toList());
+
+    var end2 = DateTime.now().millisecondsSinceEpoch;
+
+    print("查询歌曲 耗时${end1 - start}");
+    print("构建缩略图 耗时${end2 - start}");
+  }
+
+  /// 缓存所有音频的缩略图
+  /// 2024-10-28 因为全是同步的操作，所以音频文件非常多的时候会很慢
+  Future<void> _cacheAllAudioThumbnailOld() async {
     /// 1 查到所有的音频文件
+    ///
+    var start = (DateTime.now().millisecondsSinceEpoch);
     var songs = await _audioQuery.querySongs();
 
+    var end1 = (DateTime.now().millisecondsSinceEpoch);
+
     /// 2 将音频文件内置的缩略图缓存到app内部缓存文件夹中
+    ///
+    ///
+    print("缓存所有的音频----${songs.length} ${box.read("placeholderArtUri")}");
 
     // 如果缓存中还没有预设的占位音频缩略图，就先添加到缓存
     if (box.read("placeholderArtUri") == null) {
@@ -176,6 +259,11 @@ class MyAudioHandler {
       File imageFile = await pathOfImage.writeAsBytes(tempData);
       await box.write(e.id.toString(), imageFile.uri.toString());
     }
+
+    var end2 = (DateTime.now().millisecondsSinceEpoch);
+
+    print("查询歌曲 耗时${end1 - start}");
+    print("构建缩略图 耗时${end2 - start}");
   }
 
   // 设置初始化播放列表源（这在app启动时就要加载完成）
@@ -363,6 +451,9 @@ class MyAudioHandler {
   // 通过索引获取当前播放列表中的指定音源
   AudioSource getAudioSourceByIndex(int audioIndex) =>
       _currentPlaylist.children[audioIndex];
+
+  // 通过当前播放列表中
+  ConcatenatingAudioSource getAudioSource() => _currentPlaylist;
 
   // 获取音频播放实例
   AudioPlayer player() => _player;

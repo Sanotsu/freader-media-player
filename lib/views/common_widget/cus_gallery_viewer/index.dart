@@ -128,18 +128,18 @@ class _CusGalleryViewerState extends State<CusGalleryViewer> {
           "${currentIndex + 1}/${widget.galleryItems.length}",
           style: TextStyle(
             fontSize: 18.sp,
-            color: Theme.of(context).canvasColor,
+            // color: Theme.of(context).canvasColor,
           ),
         ),
         subtitle: SimpleMarqueeOrText(
           data: "$headerTitle",
           style: TextStyle(
-            fontSize: 15.sp,
+            fontSize: 12.sp,
             // color: Theme.of(context).canvasColor,
           ),
           velocity: 20,
           showLines: 1,
-          height: 16.sp,
+          height: 20.sp,
           textAlignment: Alignment.centerLeft,
         ),
       ),

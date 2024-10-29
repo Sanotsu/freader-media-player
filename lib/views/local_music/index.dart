@@ -416,7 +416,7 @@ class _LocalMusicState extends State<LocalMusic>
         return alp.isAudioLongPress != LongPressStats.YES &&
                 llp.isPlaylistLongPress != LongPressStats.YES
             ? SizedBox(
-                height: 20.sp,
+                // height: 20.sp,
                 child: Row(
                   // 如果没点击搜索按钮，正常显示预设的搜索、排序按钮；如果点击了搜索按钮，展示了搜索框，这里按钮也变成清除。
                   children: !_iSClickSearch

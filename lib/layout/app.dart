@@ -23,25 +23,26 @@ class FreaderApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (_, widget) {
-        return MaterialApp(
+        return const MaterialApp(
           title: 'freader_media_player',
-          localizationsDelegates: const [
+          localizationsDelegates: [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
+          supportedLocales: [
             Locale('zh', 'CH'),
             Locale('en', 'US'),
           ],
-          locale: const Locale('zh'),
+          locale: Locale('zh'),
           // 应用导航的观察者，导航有变化的时候可以做一些事？
           // navigatorObservers: [routeObserver],
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            useMaterial3: false,
-          ),
-          home: const MyHomePage(),
+          // 2024-10-28 启用material3
+          // theme: ThemeData(
+          //   primarySwatch: Colors.blue,
+          //   useMaterial3: false,
+          // ),
+          home: MyHomePage(),
         );
       },
     );
@@ -112,6 +113,9 @@ class _MyHomePageState extends State<MyHomePage> {
           });
         }
       }
+
+      // 通知权限(已经授权了无事发生，没授权则可能会重新询问)
+      await Permission.notification.request();
     }
   }
 
