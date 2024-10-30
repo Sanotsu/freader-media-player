@@ -27,6 +27,10 @@ class PathMediaPage extends StatefulWidget {
 class _PathMediaPageState extends State<PathMediaPage> {
   // 文件夹中的文件
   List<AssetEntity> _list = [];
+
+  // 文件夹中的可以解析的文件
+  List<AssetEntity> _supportedList = [];
+
   // 被选中的文件索引
   var selectedEntityIndexes = [];
 
@@ -53,8 +57,17 @@ class _PathMediaPageState extends State<PathMediaPage> {
 
     // 查询所有媒体实体列表（起止参数表示可以过滤只显示排序后中某一部分实体）
     final list = await widget.path.getAssetListRange(start: 0, end: count);
+
+    if (!mounted) return;
     setState(() {
-      if (mounted) _list = list;
+      // 全部的文件
+      _list = list;
+
+      // 2024-10-29 可解析的文件
+      // 直接过滤无法解析的视频音频(时长duration为0的)
+      _supportedList = list
+          .where((c) => !(c.type != AssetType.image && c.duration == 0))
+          .toList();
     });
   }
 
@@ -182,7 +195,20 @@ class _PathMediaPageState extends State<PathMediaPage> {
           ),
         ],
       ),
-      body: isGridMode ? buildGridItem() : buildList(),
+      body: Column(
+        children: [
+          Text(
+            _list.length - _supportedList.length > 0
+                ? '无法解析另外 ${_list.length - _supportedList.length} 个资源'
+                : '',
+            style: const TextStyle(color: Colors.grey),
+          ),
+          const Divider(),
+          Expanded(
+            child: isGridMode ? buildGridItem() : buildList(),
+          ),
+        ],
+      ),
     );
   }
 
@@ -217,9 +243,15 @@ class _PathMediaPageState extends State<PathMediaPage> {
                       Expanded(
                         child: Text(
                           entity.title ?? "",
-                          style: TextStyle(fontSize: 10.sp),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 10.sp,
+                            color: (entity.type != AssetType.image &&
+                                    entity.duration == 0)
+                                ? Colors.grey
+                                : null,
+                          ),
                         ),
                       ),
                     ],
@@ -261,8 +293,20 @@ class _PathMediaPageState extends State<PathMediaPage> {
             entity.title ?? "",
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: (entity.type != AssetType.image && entity.duration == 0)
+                  ? Colors.grey
+                  : null,
+            ),
           ),
-          subtitle: Text(entity.type.toString()),
+          subtitle: Text(
+            entity.type.toString(),
+            style: TextStyle(
+              color: (entity.type != AssetType.image && entity.duration == 0)
+                  ? Colors.grey
+                  : null,
+            ),
+          ),
           leading: SizedBox(
             height: 36.sp,
             width: 48.sp,
@@ -286,9 +330,11 @@ class _PathMediaPageState extends State<PathMediaPage> {
               ),
             ),
           ),
-          onTap: () {
-            buildItemOnTap(entity, index);
-          },
+          onTap: (entity.type != AssetType.image && entity.duration == 0)
+              ? null
+              : () {
+                  buildItemOnTap(entity, index);
+                },
           onLongPress: () {
             setState(() {
               selectedEntityIndexes.add(index);
@@ -324,7 +370,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
         // 如果视频文件存在才进行进入播放页面等其他操作
         if ((await entity.file) != null) {
           List<AssetEntity> videoEneities =
-              _list.where((e) => e.type == AssetType.video).toList();
+              _supportedList.where((e) => e.type == AssetType.video).toList();
           // 找到点击的视频在过滤后的视频列表中的索引
           var currentVideoIndex =
               videoEneities.indexWhere((f) => f.id == entity.id);
@@ -342,7 +388,10 @@ class _PathMediaPageState extends State<PathMediaPage> {
             commonExceptionDialog(
               context,
               "提示",
-              "不支持的视频格式: ${entity.mimeType}",
+              """无法解析该视频\n
+  【格式】${getSpecificExtension(entity.title ?? '')}
+  【名称】${entity.title}""",
+              msgFontSize: 15.sp,
             );
             toggleLoading(false);
             return;
@@ -376,7 +425,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
       } else if (entity.type == AssetType.image) {
         // 2024-01-23 目前暂时点击某一个图片，会滑动上/下一张，略过视频
         List<AssetEntity> imageEneities =
-            _list.where((e) => e.type == AssetType.image).toList();
+            _supportedList.where((e) => e.type == AssetType.image).toList();
         // 找到点击的视频在过滤后的视频列表中的索引
         var currentImageIndex =
             imageEneities.indexWhere((f) => f.id == entity.id);
@@ -401,7 +450,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
         // 如果视频文件存在才进行进入播放页面等其他操作
         if ((await entity.file) != null) {
           List<AssetEntity> audioEneities =
-              _list.where((e) => e.type == AssetType.audio).toList();
+              _supportedList.where((e) => e.type == AssetType.audio).toList();
           // 找到点击的视频在过滤后的视频列表中的索引
           var currentAudioIndex =
               audioEneities.indexWhere((f) => f.id == entity.id);
@@ -416,10 +465,15 @@ class _PathMediaPageState extends State<PathMediaPage> {
           // 2024-01-17 如果点击的视频获取不到长度，就不进入播放页面
           // 理论上没有，因为进入页面初始化时就过滤掉了不可播放的视频
           if (entity.duration <= 0) {
+            // 2024-10-29 可能存在像酷狗音乐下载的加密后的音频，比如xxx.kgm.flac，
+            // 咋看还以为是不支持audio/flac格式，实际是不支持.kgm.xxx
             commonExceptionDialog(
               context,
               "提示",
-              "不支持的音频格式: ${entity.mimeType}",
+              """无法解析该音频
+  【格式】${getSpecificExtension(entity.title ?? '')}
+  【名称】${entity.title}""",
+              msgFontSize: 15.sp,
             );
             toggleLoading(false);
             return;

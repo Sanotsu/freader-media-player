@@ -55,13 +55,21 @@ void showSnackMessage(
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
-commonExceptionDialog(BuildContext context, String title, String message) {
+commonExceptionDialog(
+  BuildContext context,
+  String title,
+  String message, {
+  double? msgFontSize,
+}) {
   showDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
         title: Text(title),
-        content: Text(message, style: TextStyle(fontSize: 13.sp)),
+        content: Text(
+          message,
+          style: TextStyle(fontSize: msgFontSize ?? 13.sp),
+        ),
         actions: [
           TextButton(
             onPressed: () {

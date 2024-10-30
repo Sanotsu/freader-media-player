@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -23,18 +24,18 @@ class FreaderApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (_, widget) {
-        return const MaterialApp(
+        return MaterialApp(
           title: 'freader_media_player',
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: [
+          supportedLocales: const [
             Locale('zh', 'CH'),
             Locale('en', 'US'),
           ],
-          locale: Locale('zh'),
+          locale: const Locale('zh'),
           // 应用导航的观察者，导航有变化的时候可以做一些事？
           // navigatorObservers: [routeObserver],
           // 2024-10-28 启用material3
@@ -42,7 +43,8 @@ class FreaderApp extends StatelessWidget {
           //   primarySwatch: Colors.blue,
           //   useMaterial3: false,
           // ),
-          home: MyHomePage(),
+          home: const MyHomePage(),
+          builder: EasyLoading.init(),
         );
       },
     );

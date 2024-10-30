@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+import '../../common/global/constants.dart';
 import '../../common/utils/tools.dart';
 
 showMediaInfoDialog(AssetEntity entity, BuildContext context) {
@@ -11,10 +13,16 @@ showMediaInfoDialog(AssetEntity entity, BuildContext context) {
     context: context,
     builder: (BuildContext context) {
       return Dialog(
-        insetPadding: EdgeInsets.only(left: 10, right: 10.sp),
-        child: Container(
-          color: Colors.white,
-          height: 400,
+        // 修改默认弹窗的边距，可以让弹窗显示更宽一点
+        insetPadding: EdgeInsets.only(left: 10.sp, right: 10.sp),
+        shape: RoundedRectangleBorder(
+          // 设置圆角半径
+          borderRadius: BorderRadius.circular(15.sp),
+        ),
+        child: SizedBox(
+          // 如果保持背景色为白色，圆角就看不到
+          // color: Colors.white,
+          height: (2 / 3).sh,
           child: Column(
             children: [
               SizedBox(
@@ -54,7 +62,10 @@ showMediaInfoDialog(AssetEntity entity, BuildContext context) {
                     ),
                     ListTile(
                       title: const Text("修改时间"),
-                      subtitle: Text("${entity.modifiedDateTime}"),
+                      subtitle: Text(
+                        DateFormat(constDatetimeFormat)
+                            .format(entity.modifiedDateTime),
+                      ),
                       dense: true,
                     ),
                     if (entity.type == AssetType.video)

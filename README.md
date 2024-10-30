@@ -6,6 +6,10 @@ freader-media-player(FMP Player)，一个使用 flutter 开发的简单的本地
 - 添加了“2048”、“俄罗斯方块”、“恐龙快跑”、“贪吃蛇”、“扫雷”、“数独”等小游戏。
   - 尝试做到“视听娱乐”不耽误。
 
+## 更新说明
+
+[CHANGELOG](CHANGELOG.md)
+
 ## 主要功能
 
 - **本地音乐**
@@ -26,10 +30,6 @@ freader-media-player(FMP Player)，一个使用 flutter 开发的简单的本地
 粗略截图如下：
 
 ![screenshot_fmp](_screenshots/screenshot_fmp.jpg)
-
-## 更新说明
-
-[CHANGELOG](CHANGELOG.md)
 
 ## 开发环境
 

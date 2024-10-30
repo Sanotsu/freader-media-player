@@ -444,7 +444,8 @@ class MyAudioHandler {
 
       print(_player.sequenceStateStream);
     } catch (e) {
-      print("refreshCurrentPlaylist Error: $e");
+      print("【refreshCurrentPlaylist Error:】】】】】】】】 $e");
+      rethrow;
     }
   }
 

@@ -260,6 +260,7 @@ _buildList(List<AssetPathEntity> list) {
           future: path.assetCountAsync,
           builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
             // 其实分为hasData、hasError、加载中几个情况。
+            // 2024-10-29 注意这里看到的数量，进入文件夹后数量不一定一样，因为不支持播放的文件不会显示
             return (snapshot.hasData)
                 ? Text("${snapshot.data} 个资源")
                 : const SizedBox();

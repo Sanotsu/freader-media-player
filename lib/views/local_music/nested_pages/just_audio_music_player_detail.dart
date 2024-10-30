@@ -373,7 +373,7 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
 
           // 滚动到指定播放索引去(越到后面越慢，就看着越卡)
           await scrollController.animateTo(
-            (index - 1) * 56.0, // 目标位置
+            (index - 1) * 56.sp, // 目标位置
             duration: const Duration(milliseconds: 200), // 动画持续时间
             curve: Curves.easeInOut, // 动画曲线
           );
