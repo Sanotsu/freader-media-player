@@ -1,6 +1,6 @@
 # Freader Media Player
 
-freader-media-player(FMP Player)，一个使用 flutter 开发的简单的本地媒体文件播放器：
+freader-media-player(FMP Player)，一个使用 flutter 开发的简单的本地媒体资源播放器：
 
 - 可用于播放本地音频、浏览本地图片、观看本地视频。
 - 添加了“2048”、“俄罗斯方块”、“恐龙快跑”、“贪吃蛇”、“扫雷”、“数独”等小游戏。

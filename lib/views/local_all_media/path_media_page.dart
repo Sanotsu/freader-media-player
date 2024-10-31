@@ -58,6 +58,29 @@ class _PathMediaPageState extends State<PathMediaPage> {
     // 查询所有媒体实体列表（起止参数表示可以过滤只显示排序后中某一部分实体）
     final list = await widget.path.getAssetListRange(start: 0, end: count);
 
+    // 2024-10-30 先排序，可解析的排在前面；都可解析则按标题升序排
+    list.sort((a, b) {
+      if (a.type != AssetType.image && b.type != AssetType.image) {
+        // 先判断 duration 是否大于 0
+        if (a.duration > 0 && b.duration > 0) {
+          // 如果都大于 0，则按 title 升序排序
+          return (a.title ?? '').compareTo(b.title ?? '');
+        } else if (a.duration > 0) {
+          // 如果 a 的 duration 大于 0，则 a 在前
+          return -1;
+        } else if (b.duration > 0) {
+          // 如果 b 的 duration 大于 0，则 b 在前
+          return 1;
+        } else {
+          // 如果都等于 0，则按 title 升序排序
+          return (a.title ?? '').compareTo(b.title ?? '');
+        }
+      } else {
+        // 如果是图片，则标题升序
+        return (a.title ?? '').compareTo(b.title ?? '');
+      }
+    });
+
     if (!mounted) return;
     setState(() {
       // 全部的文件
@@ -97,28 +120,28 @@ class _PathMediaPageState extends State<PathMediaPage> {
               ),
             ),
             Positioned(
-              top: MediaQuery.of(context).size.height / 2 - 50,
-              left: MediaQuery.of(context).size.width / 2 - 50,
+              top: MediaQuery.of(context).size.height / 2 - 50.sp,
+              left: MediaQuery.of(context).size.width / 2 - 50.sp,
               child: Container(
-                width: 100,
-                height: 100,
+                width: 150.sp,
+                height: 150.sp,
                 decoration: BoxDecoration(
                   color: const Color.fromARGB(137, 161, 153, 153),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Column(
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(
+                    const CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: 10.sp),
                     Text(
                       '当前路径资源较多',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 10,
+                        fontSize: 15.sp,
                         decoration: TextDecoration.none,
                       ),
                     ),
@@ -126,7 +149,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
                       '播放列表构建中...',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 10,
+                        fontSize: 15.sp,
                         decoration: TextDecoration.none,
                       ),
                     ),
@@ -147,6 +170,13 @@ class _PathMediaPageState extends State<PathMediaPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 无法解析的媒体资源数量
+    int unsupportedNum = _list.length - _supportedList.length;
+    var exStr = "";
+    if ((unsupportedNum > 0)) {
+      exStr = "(其中 $unsupportedNum 个资源无法解析)";
+    }
+
     return Scaffold(
       /// 构建标题工具栏(没有条目被长按选择则不显示功能按钮)
       appBar: AppBar(
@@ -158,12 +188,10 @@ class _PathMediaPageState extends State<PathMediaPage> {
             Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.cancel),
-                  tooltip: '取消选中',
+                  icon: const Icon(Icons.info_outline),
+                  tooltip: '查看信息',
                   onPressed: () {
-                    setState(() {
-                      selectedEntityIndexes.length = 0;
-                    });
+                    buildSelectedItemInfoDialog();
                   },
                 )
               ],
@@ -172,10 +200,12 @@ class _PathMediaPageState extends State<PathMediaPage> {
             Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.info_outline),
-                  tooltip: '查看信息',
+                  icon: const Icon(Icons.cancel_outlined),
+                  tooltip: '取消选中',
                   onPressed: () {
-                    buildSelectedItemInfoDialog();
+                    setState(() {
+                      selectedEntityIndexes.length = 0;
+                    });
                   },
                 )
               ],
@@ -197,15 +227,10 @@ class _PathMediaPageState extends State<PathMediaPage> {
       ),
       body: Column(
         children: [
-          Text(
-            _list.length - _supportedList.length > 0
-                ? '无法解析另外 ${_list.length - _supportedList.length} 个资源'
-                : '',
-            style: const TextStyle(color: Colors.grey),
-          ),
-          const Divider(),
+          Text("共${_list.length}个资源$exStr"),
+          Divider(height: 1.sp),
           Expanded(
-            child: isGridMode ? buildGridItem() : buildList(),
+            child: isGridMode ? buildEntityGrid() : buildEntityList(),
           ),
         ],
       ),
@@ -213,7 +238,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
   }
 
   /// 构建媒体文件预览的grid列表
-  buildGridItem() {
+  buildEntityGrid() {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
@@ -234,11 +259,24 @@ class _PathMediaPageState extends State<PathMediaPage> {
           ),
           child: GestureDetector(
             // 2024-01-23 这里的音频文件取不到封面之类的，就显示图标和标题
+            onTap: (entity.type != AssetType.image && entity.duration == 0)
+                ? null
+                : () => buildItemOnTap(entity, index),
+            onLongPress: () {
+              setState(() {
+                selectedEntityIndexes.add(index);
+              });
+            },
+            // 2024-01-23 这里的音频文件取不到封面之类的，就显示图标和标题
             child: (entity.type == AssetType.audio)
                 ? Column(
                     children: [
                       Expanded(
-                        child: Icon(Icons.audiotrack, size: 18.sp),
+                        child: Icon(
+                          Icons.audiotrack,
+                          size: 18.sp,
+                          color: entity.duration == 0 ? Colors.grey : null,
+                        ),
                       ),
                       Expanded(
                         child: Text(
@@ -247,10 +285,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 10.sp,
-                            color: (entity.type != AssetType.image &&
-                                    entity.duration == 0)
-                                ? Colors.grey
-                                : null,
+                            color: entity.duration == 0 ? Colors.grey : null,
                           ),
                         ),
                       ),
@@ -264,14 +299,6 @@ class _PathMediaPageState extends State<PathMediaPage> {
                     isLongPress:
                         selectedEntityIndexes.contains(index) ? true : false,
                   ),
-            onTap: () {
-              buildItemOnTap(entity, index);
-            },
-            onLongPress: () {
-              setState(() {
-                selectedEntityIndexes.add(index);
-              });
-            },
           ),
         );
       },
@@ -279,7 +306,7 @@ class _PathMediaPageState extends State<PathMediaPage> {
   }
 
   /// 构建媒体文件预览的list列表
-  buildList() {
+  buildEntityList() {
     return ListView.builder(
       itemCount: _list.length,
       itemBuilder: (BuildContext context, int index) {

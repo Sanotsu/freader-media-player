@@ -5,8 +5,14 @@ import 'package:path/path.dart' as path;
 
 import '../global/constants.dart';
 
+/// 格式化任意可转型的时间字符串为指定格式的时间字符串
+String formatTimeString(String timeStr, {String? format}) =>
+    DateFormat(format ?? constDatetimeFormat).format(
+      DateTime.tryParse(timeStr) ?? DateTime.parse(unknownDateTimeString),
+    );
+
 // 10位的时间戳转字符串
-String formatTimestampToString(int? timestamp) {
+String formatTimestampToString(int? timestamp, {String? format}) {
   if (timestamp == null) {
     return "";
   }
@@ -19,8 +25,7 @@ String formatTimestampToString(int? timestamp) {
     return "输入的时间戳不是10位或者13位的整数";
   }
 
-  return DateFormat.yMd('zh_CN')
-      .add_Hms()
+  return DateFormat(format ?? constDatetimeFormat)
       .format(DateTime.fromMillisecondsSinceEpoch(timestamp));
 }
 
@@ -72,9 +77,3 @@ String getSpecificExtension(String fileName) {
   }
   return ''; // 如果没有后缀，返回空字符串
 }
-
-/// 格式化任意可转型的时间字符串为指定格式的时间字符串
-String formatTimeString(String timeStr, {String? format}) =>
-    DateFormat(format ?? constDatetimeFormat).format(
-      DateTime.tryParse(timeStr) ?? DateTime.parse(unknownDateTimeString),
-    );

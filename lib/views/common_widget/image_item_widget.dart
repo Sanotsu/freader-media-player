@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 
@@ -20,8 +21,12 @@ class ImageItemWidget extends StatelessWidget {
 
   Widget buildContent(BuildContext context) {
     if (entity.type == AssetType.audio) {
-      return const Center(
-        child: Icon(Icons.audiotrack, size: 30),
+      return Center(
+        child: Icon(
+          Icons.audiotrack,
+          size: 24.sp,
+          color: entity.duration == 0 ? Colors.grey : null,
+        ),
       );
     }
     return _buildImageWidget(context, entity, option);

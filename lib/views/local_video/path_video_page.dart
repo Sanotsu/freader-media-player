@@ -80,7 +80,7 @@ class _PathVideoPageState extends State<PathVideoPage> {
                   children: [
                     _buildInfoButton(),
                     IconButton(
-                      icon: const Icon(Icons.cancel),
+                      icon: const Icon(Icons.cancel_outlined),
                       tooltip: '取消选中',
                       onPressed: () {
                         setState(() {

@@ -42,6 +42,7 @@ class MyAudioHandler {
   Future<void> _getInitPlaylistAndIndex() async {
     // 获取当前的播放列表数据
     // 这个list有依次3个值：当前列表类型、当前音频在列表中的索引、当前播放列表编号
+    // 2024-10-30 当前音频在列表中的索引现在是播放列表剔除了不可解析的音频之后的位置
     var tempList = await _simpleStorage.getCurrentAudioInfo();
 
     print(
@@ -92,6 +93,10 @@ class MyAudioHandler {
       default:
         songs = await _audioQuery.querySongs();
     }
+
+    // 2024-10-30 构建列表要剔除不可解析的部分
+    // 注意：“本地音乐”模块在构建各个种类的播放列表时，都要剔除不可解析的音频部分，否则这里也取不到对应上次播放的index
+    songs = songs.where((a) => a.duration != null && a.duration! > 0).toList();
 
     await buildPlaylist(songs, songs[tempList[1]]);
   }
@@ -408,6 +413,8 @@ class MyAudioHandler {
             // 实际上是没有这些属性的，就占位用
             artist: entity.relativePath,
             album: entity.id,
+            // app初始化保存在缓存的图片id时SongModel的id，而这里是AssetEntity的id，
+            // 所以一定为空的，所以这几个都是占位
             artUri: box.read(entity.id.toString()) != ""
                 ? Uri.parse(box.read(entity.id.toString()))
                 : null,

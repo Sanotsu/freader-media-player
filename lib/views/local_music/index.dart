@@ -335,7 +335,7 @@ class _LocalMusicState extends State<LocalMusic>
                         onPressed: () => buildAudioInfoDialog(context, alp),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.cancel),
+                        icon: const Icon(Icons.cancel_outlined),
                         tooltip: '取消选中',
                         onPressed: () => alp.resetAudioLongPress(),
                       )
@@ -369,7 +369,7 @@ class _LocalMusicState extends State<LocalMusic>
                         buildRemovePlaylistOrAudioDialog(context, llp),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.cancel),
+                    icon: const Icon(Icons.cancel_outlined),
                     tooltip: '取消选中歌单',
                     onPressed: () {
                       // 单击了取消按钮图标，取消所有选中歌单
@@ -390,7 +390,7 @@ class _LocalMusicState extends State<LocalMusic>
                         buildRemovePlaylistOrAudioDialog(context, llp),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.cancel),
+                    icon: const Icon(Icons.cancel_outlined),
                     tooltip: '取消选中歌单',
                     onPressed: () {
                       // 单击了取消按钮图标，取消所有选中歌单

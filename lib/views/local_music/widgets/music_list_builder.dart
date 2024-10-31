@@ -186,13 +186,15 @@ class _MusicListBuilderState extends State<MusicListBuilder> {
 
             // 无法解析的歌曲数量
             int unsupportedNum = item.data!.length - songs.length;
+            var exStr = "";
+            if ((unsupportedNum > 0)) {
+              exStr = "(已过滤了 $unsupportedNum 首无法解析的音频)";
+            }
 
             return Column(
               children: [
-                if (unsupportedNum > 0) ...[
-                  Text("已过滤了 ${item.data!.length - songs.length} 首无法解析的音频"),
-                  Divider(height: 1.sp),
-                ],
+                Text("共${songs.length}首$exStr"),
+                Divider(height: 1.sp),
                 Expanded(
                   child: ListView.builder(
                     itemCount: songs.length,
@@ -325,8 +327,12 @@ class _MusicListBuilderState extends State<MusicListBuilder> {
             }
             // 将播放列表信息、被点击的音频编号\播放列表编号(全部歌曲tab除外)存入持久化
             // 2024-01-09 使用get storage之后，可以有类型了，不必转为string
+
+            // 2024-10-30  注意这里保存的当前播放音频索引index，是过滤了不可解析的音频后的列表中的位置
+            // 所以在打开app重建上次播放位置的时候，播放列表也要过滤不可解析的部分
             await _simpleStorage.setCurrentAudioListType(widget.audioListType);
             await _simpleStorage.setCurrentAudioIndex(index);
+
             if (widget.audioListType != AudioListTypes.all) {
               await _simpleStorage.setCurrentAudioListId(widget.audioListId);
             }

@@ -48,6 +48,12 @@ class _GameCenterState extends State<GameCenter> {
                 context: context,
                 applicationName: 'FMP Player',
                 children: [
+                  Text(
+                    "FMP Player 是一个附带一些小游戏、\n且极其简陋的本地媒体资源播放器。",
+                    style: TextStyle(fontSize: 13.sp, color: Colors.green),
+                    textAlign: TextAlign.center,
+                  ),
+                  const Divider(),
                   Row(
                     children: [
                       SizedBox(width: 60.sp, child: const Text("Author: ")),

@@ -14,7 +14,7 @@ showMediaInfoDialog(AssetEntity entity, BuildContext context) {
     builder: (BuildContext context) {
       return Dialog(
         // 修改默认弹窗的边距，可以让弹窗显示更宽一点
-        insetPadding: EdgeInsets.only(left: 10.sp, right: 10.sp),
+        // insetPadding: EdgeInsets.only(left: 10.sp, right: 10.sp),
         shape: RoundedRectangleBorder(
           // 设置圆角半径
           borderRadius: BorderRadius.circular(15.sp),
@@ -22,7 +22,7 @@ showMediaInfoDialog(AssetEntity entity, BuildContext context) {
         child: SizedBox(
           // 如果保持背景色为白色，圆角就看不到
           // color: Colors.white,
-          height: (2 / 3).sh,
+          height: 400.sp,
           child: Column(
             children: [
               SizedBox(
@@ -71,20 +71,26 @@ showMediaInfoDialog(AssetEntity entity, BuildContext context) {
                     if (entity.type == AssetType.video)
                       ListTile(
                         title: const Text("视频时长"),
-                        subtitle: Text("${entity.videoDuration}"),
+                        subtitle: Text(
+                          "${formatDurationToString(entity.videoDuration)}",
+                        ),
                         dense: true,
                       ),
                     if (entity.type == AssetType.audio)
                       ListTile(
                         title: const Text("音频时长"),
-                        subtitle: Text("${Duration(seconds: entity.duration)}"),
+                        subtitle: Text(
+                          "${formatDurationToString(Duration(seconds: entity.duration))}",
+                        ),
                         dense: true,
                       ),
                     if (entity.type == AssetType.video ||
                         entity.type == AssetType.image)
                       ListTile(
                         title: const Text("文件尺寸"),
-                        subtitle: Text("${entity.size}"),
+                        subtitle: Text(
+                          "${entity.size.width.toInt()} x ${entity.size.height.toInt()}",
+                        ),
                         dense: true,
                       ),
                     ListTile(

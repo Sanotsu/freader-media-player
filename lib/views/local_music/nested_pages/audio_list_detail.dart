@@ -174,7 +174,7 @@ class _PlayerlistDetailState extends State<LocalMusicAudioListDetail> {
           onPressed: () => buildAudioInfoDialog(context, alp),
         ),
         IconButton(
-          icon: const Icon(Icons.cancel),
+          icon: const Icon(Icons.cancel_outlined),
           tooltip: '取消选中',
           onPressed: () => alp.resetAudioLongPress(),
         ),
