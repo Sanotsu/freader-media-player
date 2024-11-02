@@ -55,13 +55,21 @@ void showSnackMessage(
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
-commonExceptionDialog(BuildContext context, String title, String message) {
+commonExceptionDialog(
+  BuildContext context,
+  String title,
+  String message, {
+  double? msgFontSize,
+}) {
   showDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
         title: Text(title),
-        content: Text(message, style: TextStyle(fontSize: 13.sp)),
+        content: Text(
+          message,
+          style: TextStyle(fontSize: msgFontSize ?? 13.sp),
+        ),
         actions: [
           TextButton(
             onPressed: () {
@@ -87,3 +95,11 @@ buildFileImage(File file, {BoxFit? fit}) => Image.file(
         fit: fit ?? BoxFit.scaleDown,
       ),
     );
+
+/// 强制收起键盘
+unfocusHandle() {
+  // 这个不一定有用，比如下面原本键盘弹出来了，跳到历史记录页面，回来之后还是弹出来的
+  // FocusScope.of(context).unfocus();
+
+  FocusManager.instance.primaryFocus?.unfocus();
+}

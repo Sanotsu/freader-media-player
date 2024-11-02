@@ -1,9 +1,18 @@
 import 'dart:math';
 
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as path;
+
+import '../global/constants.dart';
+
+/// 格式化任意可转型的时间字符串为指定格式的时间字符串
+String formatTimeString(String timeStr, {String? format}) =>
+    DateFormat(format ?? constDatetimeFormat).format(
+      DateTime.tryParse(timeStr) ?? DateTime.parse(unknownDateTimeString),
+    );
 
 // 10位的时间戳转字符串
-String formatTimestampToString(int? timestamp) {
+String formatTimestampToString(int? timestamp, {String? format}) {
   if (timestamp == null) {
     return "";
   }
@@ -16,8 +25,7 @@ String formatTimestampToString(int? timestamp) {
     return "输入的时间戳不是10位或者13位的整数";
   }
 
-  return DateFormat.yMd('zh_CN')
-      .add_Hms()
+  return DateFormat(format ?? constDatetimeFormat)
       .format(DateTime.fromMillisecondsSinceEpoch(timestamp));
 }
 
@@ -54,4 +62,18 @@ getFileSize(int bytes, int decimals) {
   const suffixes = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
   var i = (log(bytes) / log(1024)).floor();
   return '${(bytes / pow(1024, i)).toStringAsFixed(decimals)} ${suffixes[i]}';
+}
+
+/// 获取全量文件后缀
+/// 比如 `example.file.tar.gz`，输出`.file.tar.gz`
+String getSpecificExtension(String fileName) {
+  // 获取文件名部分（不包括路径）
+  String baseName = path.basename(fileName);
+
+  // 获取第一个 . 之前的部分
+  int firstDotIndex = baseName.indexOf('.');
+  if (firstDotIndex != -1 && firstDotIndex < baseName.length - 1) {
+    return baseName.substring(firstDotIndex);
+  }
+  return ''; // 如果没有后缀，返回空字符串
 }

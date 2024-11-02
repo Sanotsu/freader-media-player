@@ -105,6 +105,7 @@ class _AnimatedPlayButtonState extends State<AnimatedPlayButton> {
               text: '',
               onPressed: () {
                 Future.delayed(const Duration(milliseconds: 200), () {
+              if(!context.mounted) return;
                   Navigator.push(
                       context,
                       MaterialPageRoute(

@@ -9,8 +9,10 @@ import 'package:on_audio_query/on_audio_query.dart';
 
 import '../../../common/global/constants.dart';
 import '../../../common/utils/global_styles.dart';
+import '../../../common/utils/tool_widgets.dart';
 import '../../../services/my_audio_handler.dart';
 import '../../../services/my_audio_query.dart';
+import '../../../services/my_get_storage.dart';
 import '../../../services/service_locator.dart';
 import '../widgets/common.dart';
 import '../widgets/common_small_widgets.dart';
@@ -29,6 +31,9 @@ class JustAudioMusicPlayer extends StatefulWidget {
 class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
     with WidgetsBindingObserver {
   final _audioHandler = getIt<MyAudioHandler>();
+
+  // 统一简单存储操作的工具类实例
+  final _simpleStorage = getIt<MyGetStorage>();
 
   // 获取查询音乐组件实例
   final _audioQuery = getIt<MyAudioQuery>();
@@ -71,10 +76,20 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent, // 设置为透明色
+        // backgroundColor: Colors.transparent, // 设置为透明色
         elevation: 0, // 去除阴影
         // 设置返回箭头颜色
         iconTheme: IconThemeData(color: Theme.of(context).primaryColor),
+        // leading: SizedBox(
+        //   height: 48.sp,
+        //   child: Icon(Icons.arrow_back, size: 24.sp),
+        // ),
+        actions: [
+          IconButton(
+            onPressed: () => _buildPlaylistModalBottomSheet(),
+            icon: const Icon(Icons.queue_music),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
@@ -139,7 +154,10 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
             // Divider(height: 2, thickness: 1.sp, color: Colors.grey),
 
             /// 下一曲概述
-            Expanded(flex: 1, child: _buildNextMusicInfo())
+            Expanded(
+              flex: 1,
+              child: Center(child: _buildNextMusicInfo()),
+            )
           ],
         ),
       ),
@@ -179,12 +197,24 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
                   child: metadata.artUri != null
                       ? Image.file(
                           File.fromUri(metadata.artUri!),
-                          fit: BoxFit.fitWidth,
+                          fit: BoxFit.scaleDown,
                           filterQuality: FilterQuality.high,
+                          errorBuilder: (BuildContext context, Object exception,
+                                  StackTrace? stackTrace) =>
+                              Image.asset(
+                            placeholderImageUrl,
+                            fit: BoxFit.scaleDown,
+                          ),
                         )
                       : Image.asset(
                           placeholderImageUrl,
-                          fit: BoxFit.fitWidth,
+                          fit: BoxFit.scaleDown,
+                          errorBuilder: (BuildContext context, Object exception,
+                                  StackTrace? stackTrace) =>
+                              Image.asset(
+                            placeholderImageUrl,
+                            fit: BoxFit.scaleDown,
+                          ),
                         ),
                 ),
 
@@ -254,10 +284,10 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
                     List<SongModel> audios = item.data!.toSongModel();
 
                     // 滚动显示音频所在的地址，清除前面部分内容
-                    // 在Android上，音频内部存储地址默认前缀是`/storage/emulated/0`
+                    // 在Android上，音频内部存储地址默认前缀是`/storage/emulated/0/`
                     return SimpleMarqueeOrText(
                       data: audios.isNotEmpty
-                          ? "存储位置: ${audios[0].data.substring(19)}"
+                          ? "存储位置: ${audios[0].data.substring(20)}"
                           : '',
                       style: TextStyle(fontSize: 12.sp),
                     );
@@ -296,18 +326,217 @@ class JustAudioMusicPlayerState extends State<JustAudioMusicPlayer>
         return SizedBox(
           // 这个会让下面的 simpleMarqueeOrText 设置的宽度无效
           width: double.infinity,
+          // 和外层的bar高度一样
+          height: 70.sp,
           child: Padding(
-            padding: EdgeInsets.all(5.sp),
+            padding: EdgeInsets.all(2.sp),
             child: Card(
-              elevation: 5.sp,
-              child: SimpleMarqueeOrText(
-                data: nextInfo,
-                style: TextStyle(fontSize: sizeContent0),
+              elevation: 2.sp,
+              child: Padding(
+                // 让滚动文字前后有点空白
+                padding: EdgeInsets.symmetric(horizontal: 10.sp),
+                child: SimpleMarqueeOrText(
+                  data: nextInfo,
+                  style: TextStyle(fontSize: sizeContent0),
+                  // style: TextStyle(fontSize: sizeHeadline2),
+                ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  /// 构建播放列表底部弹窗
+  _buildPlaylistModalBottomSheet() async {
+    // 当前播放列表
+    var playlist = _audioHandler.getAudioSource();
+    // 当前播放索引
+    var index = _audioHandler.player().currentIndex ?? 0;
+
+    // 创建一个 ScrollController
+    final ScrollController scrollController = ScrollController();
+
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (BuildContext context) {
+        // 在弹窗打开时，异步将当前选中的索引元素滚动到列表的第一位
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          // 延迟一小段时间，确保 ListView 已经渲染
+          // await Future.delayed(const Duration(milliseconds: 50));
+          // 确保 ListView 已经渲染
+          await Future.microtask(() {});
+
+          // 56.0 是 ListTile 的平均高度
+          // scrollController.jumpTo((index - 1) * 56.0);
+
+          // 滚动到指定播放索引去(越到后面越慢，就看着越卡)
+          await scrollController.animateTo(
+            (index - 1) * 56.sp, // 目标位置
+            duration: const Duration(milliseconds: 200), // 动画持续时间
+            curve: Curves.easeInOut, // 动画曲线
+          );
+        });
+
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(15.sp),
+              topRight: Radius.circular(15.sp),
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.sp),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("当前播放列表", style: TextStyle(fontSize: 18.sp)),
+                    TextButton(
+                      child: const Text('关闭'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        unfocusHandle();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Divider(height: 2.sp, thickness: 2.sp),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController, // 使用 ScrollController
+                  itemCount: playlist.children.length,
+                  itemExtent: 56.sp, // 设置每个列表项的高度
+                  shrinkWrap: true, // 确保 ListView 的高度自适应内容
+                  // 确保 ListView 始终可以滚动
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemBuilder: (BuildContext context, int i) {
+                    bool isCurrent = i == index;
+                    MediaItem? sor;
+
+                    // 检查 playlist.children[i].sequence 是否为空
+                    if (playlist.children[i].sequence.isNotEmpty) {
+                      // 检查 playlist.children[i].sequence.first.tag 是否为 MediaItem 类型
+                      if (playlist.children[i].sequence.first.tag
+                          is MediaItem) {
+                        sor = playlist.children[i].sequence.first.tag;
+                      }
+                    }
+
+                    return _buildPlaylistItem(sor, isCurrent, i);
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  _buildPlaylistItem(MediaItem? sor, bool isCurrent, int index) {
+    // 其他的条目样式，暂时还是listtile
+    SizedBox(
+      height: 56.sp,
+      child: InkWell(
+        onTap: () async {
+          await _audioHandler.player().seek(Duration.zero, index: index);
+          await _audioHandler.play();
+
+          // 2024-10-28 在播放详情页只是切换了当前歌单的播放编号，不支持其他内容的修改
+          // 所有不必更新其他缓存
+          await _simpleStorage.setCurrentAudioIndex(index);
+
+          // 切换到了其他索引要关闭弹窗
+          if (!mounted) return;
+          Navigator.pop(context);
+        },
+        // child: RichText(
+        //   maxLines: 2,
+        //   overflow: TextOverflow.ellipsis,
+        //   text: TextSpan(
+        //     children: [
+        //       TextSpan(
+        //         text: sor?.title ?? '',
+        //         style: TextStyle(
+        //           // fontWeight: FontWeight.bold,
+        //           fontSize: 15.sp,
+        //           color: isCurrent ? Colors.blue : Colors.black,
+        //         ),
+        //       ),
+        //       TextSpan(
+        //         text: "\n${sor?.artist ?? ''}",
+        //         style: TextStyle(
+        //           fontSize: 12.sp,
+        //           color: isCurrent ? Colors.blue : Colors.grey,
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
+
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            sor != null
+                ? Text(
+                    sor.title,
+                    style: TextStyle(
+                      color: isCurrent ? Colors.blue : null,
+                    ),
+                  )
+                : const Text("无效的媒体项"),
+            Text(
+              sor?.artist ?? '',
+              style: TextStyle(fontSize: 12.sp),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return SizedBox(
+      height: 56.sp,
+      child: ListTile(
+        onTap: () async {
+          await _audioHandler.player().seek(Duration.zero, index: index);
+          await _audioHandler.play();
+
+          // 2024-10-28 在播放详情页只是切换了当前歌单的播放编号，不支持其他内容的修改
+          // 所有不必更新其他缓存
+          await _simpleStorage.setCurrentAudioIndex(index);
+
+          // 切换到了其他索引要关闭弹窗
+          if (!mounted) return;
+          Navigator.pop(context);
+        },
+        leading: isCurrent
+            ? const Icon(
+                Icons.graphic_eq,
+                color: Colors.blue,
+              )
+            : null,
+        title: sor != null
+            ? Text(
+                sor.title,
+                style: TextStyle(color: isCurrent ? Colors.blue : null),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
+            : const Text("无效的媒体项"),
+        subtitle: Text(
+          sor?.artist ?? '',
+          style: TextStyle(color: isCurrent ? Colors.blue : null),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
     );
   }
 }

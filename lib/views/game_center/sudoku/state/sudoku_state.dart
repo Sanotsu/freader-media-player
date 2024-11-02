@@ -162,14 +162,14 @@ class SudokuState extends Model {
     List<int> zoneIndexes =
         Matrix.getZoneIndexes(zone: Matrix.getZone(index: index));
 
-    for (var _ in colIndexes) {
-      cleanMark(_, num: num);
+    for (var index in colIndexes) {
+      cleanMark(index, num: num);
     }
-    for (var _ in rowIndexes) {
-      cleanMark(_, num: num);
+    for (var index in rowIndexes) {
+      cleanMark(index, num: num);
     }
-    for (var _ in zoneIndexes) {
-      cleanMark(_, num: num);
+    for (var index in zoneIndexes) {
+      cleanMark(index, num: num);
     }
   }
 

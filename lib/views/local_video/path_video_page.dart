@@ -80,7 +80,7 @@ class _PathVideoPageState extends State<PathVideoPage> {
                   children: [
                     _buildInfoButton(),
                     IconButton(
-                      icon: const Icon(Icons.cancel),
+                      icon: const Icon(Icons.cancel_outlined),
                       tooltip: '取消选中',
                       onPressed: () {
                         setState(() {
@@ -294,7 +294,7 @@ class _PathVideoPageState extends State<PathVideoPage> {
                   // 找到点击的视频在列表中的索引
                   var index = _files.indexWhere((f) => f.path == tempFile.path);
 
-                  if (!mounted) return;
+                  if (!context.mounted) return;
                   if (index < 0) {
                     showSnackMessage(context, "没找到对应点击的视频");
                     return;

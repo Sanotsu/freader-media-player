@@ -28,7 +28,7 @@ class _MusicPlayerMiniBarState extends State<MusicPlayerMiniBar> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 5,
+      elevation: 2,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,

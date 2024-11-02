@@ -16,6 +16,9 @@ import 'cus_data_manager.dart';
 /// 实测，这里调整播放器的音量，应该只是调整了应用音量，无法调整系统音量。
 ///   比如系统音量是0.3,而这里调整的0~1,就是这0.3*(0~1)的调节，至少不能调大音量
 /// 所以添加了系统音量调节之后，就取消应用内音量调节了
+/// 2024-10-31
+/// 注意，这里的尺寸单位是spMin。
+///   如果是之前的sp，在竖向播放控制器的图标文字大小正常，但横向时就变得非常大了
 ///
 class CusVideoPlayerControls extends StatefulWidget {
   const CusVideoPlayerControls({
@@ -91,17 +94,17 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onVerticalDragUpdate: (details) {
-        var size = context.size;
+        var tempSize = context.size;
 
         /// 左半屏滑动逻辑，调整应用内亮度
-        if (verticalDragStartX < ((size?.width ?? 0.5.sh) / 2)) {
+        if (verticalDragStartX < ((tempSize?.width ?? 0.5.sh) / 2)) {
           // 当滑动调整亮度时就显示当前亮度值
           setState(() {
             _isBrightnessTextVisible = true;
           });
 
           // 计算滑动的百分比(这个dy根据向上或者向下已经是正数或者负数了，这个context的高度可能不存在)
-          double delta = details.delta.dy / (context.size?.height ?? 360);
+          double delta = details.delta.dy / (tempSize?.height ?? 360.spMin);
           // 根据滑动的百分比计算亮度的变化值。调整亮度变化速度，可根据需要自行调整
           double brightnessDelta = -delta * 0.5;
 
@@ -123,7 +126,7 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
           });
 
           // 计算滑动的百分比(这个dy根据向上或者向下已经是正数或者负数了，这个context的高度可能不存在)
-          double delta = details.delta.dy / (context.size?.height ?? 360);
+          double delta = details.delta.dy / (tempSize?.height ?? 360);
           // 根据滑动的百分比计算音量的变化值。调整音量变化速度，可根据需要自行调整
           double volumeDelta = -delta * 0.5;
 
@@ -155,27 +158,40 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
   }
 
   buildStackArea() {
+    // 视频上方标题文字，根据是否全屏切换显示长度
+    var titleWidth = 0.8.sw *
+        (widget.currentEntity.width / (ScreenUtil().pixelRatio ?? 1) / 1.sw);
+
     return Stack(
       children: <Widget>[
         /// 左上角显示视频名称
         Positioned(
-          left: 10,
-          top: 10,
+          left: 10.spMin,
+          top: 15.spMin,
           child: FlickAutoHideChild(
-            child: Text(widget.dataManager!.getVideoName()),
+            child: SizedBox(
+              width: titleWidth,
+              child: Text(
+                widget.dataManager!.getVideoName(),
+                style: TextStyle(
+                  fontSize: 16.spMin,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ),
         ),
 
         // 2024-01-25 在上下滑动调整亮度时，也再左上角显示调整后的亮度值；1秒后自动隐藏(变透明)
         Positioned(
-          top: 40, // 避免遮挡左上角的标题
-          left: 20,
+          top: 40.spMin, // 避免遮挡左上角的标题
+          left: 20.spMin,
           child: AnimatedOpacity(
             opacity: _isBrightnessTextVisible ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 1000),
             child: Text(
               '亮度: ${(_currentBrightness * 100).toInt()}%',
-              style: const TextStyle(fontSize: 10, color: Colors.white),
+              style: TextStyle(fontSize: 14.spMin, color: Colors.white),
             ),
           ),
         ),
@@ -188,8 +204,8 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
 
         /// 右上角的关闭按钮
         Positioned(
-          right: 10.sp,
-          top: 10.sp,
+          right: 10.spMin,
+          top: 10.spMin,
           child: FlickAutoHideChild(
             child: GestureDetector(
               onTap: () {
@@ -197,7 +213,7 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
                 // 重置应用内调节的亮度为系统亮度
                 resetBrightness();
               },
-              child: const Icon(Icons.cancel, size: 30),
+              child: Icon(Icons.cancel_outlined, size: 30.spMin),
             ),
           ),
         ),
@@ -205,14 +221,14 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
         /// 右边中间的声音调整
         // 2024-01-25 在上下滑动调整亮度时，也在右上角显示调整后的音量值；1秒后自动隐藏(变透明)
         Positioned(
-          top: 40, // 避免遮挡右上角关闭按钮
-          right: 20,
+          top: 40.spMin, // 避免遮挡右上角关闭按钮
+          right: 20.spMin,
           child: AnimatedOpacity(
             opacity: _isVolumeTextVisible ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 1000),
             child: Text(
               '音量: ${(_currentSystemVolume * 100).toInt()}%',
-              style: const TextStyle(fontSize: 10, color: Colors.white),
+              style: TextStyle(fontSize: 16.spMin, color: Colors.white),
             ),
           ),
         ),
@@ -234,10 +250,13 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
                     backgroundColor: Colors.white30,
                     color: Colors.red,
                   ),
-                  playChild: const Icon(Icons.play_arrow, size: 32),
-                  cancelChild: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10),
-                    child: Text('取消连播', style: TextStyle(fontSize: 20)),
+                  playChild: Icon(Icons.play_arrow, size: 24.spMin),
+                  cancelChild: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.spMin),
+                    child: Text(
+                      '取消连播',
+                      style: TextStyle(fontSize: 20.spMin),
+                    ),
                   ),
                 )
               // 如果取消连播，或者当前视频还没播完，显示上一个、暂停/继续、下一个按钮
@@ -246,7 +265,7 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Padding(
-                        padding: EdgeInsets.all(5.sp),
+                        padding: EdgeInsets.all(5.spMin),
                         child: GestureDetector(
                           onTap: () {
                             widget.dataManager!.skipToPreviousVideo();
@@ -256,16 +275,18 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
                             color: widget.dataManager!.hasPreviousVideo()
                                 ? Colors.white
                                 : Colors.white38,
-                            size: 35,
+                            size: 35.spMin,
                           ),
                         ),
                       ),
-                      const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: FlickPlayToggle(size: 50),
+                      Padding(
+                        padding: EdgeInsets.all(8.spMin),
+                        child: FlickPlayToggle(
+                          size: 50.spMin,
+                        ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: EdgeInsets.all(8.spMin),
                         child: GestureDetector(
                           onTap: () {
                             bool rst = widget.dataManager!.skipToNextVideo();
@@ -278,7 +299,7 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
                             color: widget.dataManager!.hasNextVideo()
                                 ? Colors.white
                                 : Colors.white38,
-                            size: 35,
+                            size: 35.spMin,
                           ),
                         ),
                       )
@@ -298,30 +319,33 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
           children: <Widget>[
             Expanded(child: Container()),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: EdgeInsets.symmetric(
+                horizontal: 20.spMin,
+                vertical: 10.spMin,
+              ),
               color: const Color.fromRGBO(0, 0, 0, 0.4),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   // 继续或者暂停按钮
                   FlickPlayToggle(size: widget.iconSize),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10.spMin),
 
                   // 已播放时间和总时间
                   FlickCurrentPosition(fontSize: widget.fontSize),
                   const Text(' / '),
                   FlickTotalDuration(fontSize: widget.fontSize),
 
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10.spMin),
                   // 进度条
                   Expanded(
                     child: FlickVideoProgressBar(
                       flickProgressBarSettings: FlickProgressBarSettings(
-                        height: 10,
-                        handleRadius: 10,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 8,
+                        height: 10.spMin,
+                        handleRadius: 10.spMin,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.spMin,
+                          vertical: 8.spMin,
                         ),
                         backgroundColor: Colors.white24,
                         bufferedColor: Colors.white38,
@@ -339,8 +363,8 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
                               0.5
                             ]).createShader(
                               Rect.fromPoints(
-                                const Offset(0, 0),
-                                Offset(width!, 0),
+                                Offset(0.sp, 0.spMin),
+                                Offset(width!, 0.spMin),
                               ),
                             );
                         },
@@ -369,11 +393,11 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
                     ),
                   ),
 
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10.spMin),
                   // 是否静音的按钮
                   FlickSoundToggle(size: widget.iconSize),
 
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10.spMin),
                   // ???2024-01-16 进入全屏有改变方向，点击退出后无法退出全屏，也不能返回到上一个页面
                   // https://github.com/GeekyAnts/flick-video-player/issues/101
 
@@ -409,7 +433,7 @@ class _CusVideoPlayerControlsState extends State<CusVideoPlayerControls> {
 // 调整应用内的亮度
 Future<void> setBrightness(double brightness) async {
   try {
-    await ScreenBrightness().setScreenBrightness(brightness);
+    await ScreenBrightness().setApplicationScreenBrightness(brightness);
   } catch (e) {
     debugPrint(e.toString());
     throw 'Failed to set brightness';
@@ -419,7 +443,7 @@ Future<void> setBrightness(double brightness) async {
 // 还原应用内的亮度系统亮度
 Future<void> resetBrightness() async {
   try {
-    await ScreenBrightness().resetScreenBrightness();
+    await ScreenBrightness().resetApplicationScreenBrightness();
   } catch (e) {
     debugPrint(e.toString());
     throw 'Failed to reset brightness';

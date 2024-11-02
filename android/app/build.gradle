@@ -1,3 +1,10 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -21,10 +28,6 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
-
 // 在 android 代码块之前将你 properties 文件的密钥库信息添加进去
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
@@ -33,9 +36,10 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    // compileSdkVersion flutter.compileSdkVersion
+    namespace = "com.swm.freader_music_player"
     compileSdkVersion 34
-    ndkVersion flutter.ndkVersion
+    // ndkVersion flutter.ndkVersion
+    ndkVersion = "25.1.8937393"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -45,6 +49,16 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
+    // device_info_plus 升级依赖 https://github.com/fluttercommunity/plus_plugins/issues/3303
+    // compileOptions {
+    //   sourceCompatibility JavaVersion.VERSION_17
+    //   targetCompatibility JavaVersion.VERSION_17
+    // }
+
+    // kotlinOptions {
+    //     jvmTarget = JavaVersion.VERSION_17
+    // }
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -115,8 +129,4 @@ android {
 
 flutter {
     source '../..'
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

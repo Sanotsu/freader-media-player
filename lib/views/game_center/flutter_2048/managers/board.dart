@@ -34,7 +34,7 @@ class BoardManager extends StateNotifier<Board> {
   ///  14, 10, 6, 2,  ↑↓      8, 9, 10,11,   ←→
   ///  15, 11, 7, 3,  ↑↓      12,13,14,15,   ←→
 
-  final StateNotifierProviderRef ref;
+  final Ref ref;
   BoardManager(this.ref) : super(Board.newGame(0, 0, [])) {
     // 加载上一次保存的状态或者开始新游戏
     load();
@@ -415,15 +415,18 @@ class BoardManager extends StateNotifier<Board> {
 
   //Move the tiles using the arrow keys on the keyboard.
   // 如果是桌面应用，可以用键盘方向键控制图块移动
-  bool onKey(RawKeyEvent event) {
+  bool onKey(KeyEvent event) {
     SwipeDirection? direction;
-    if (event.isKeyPressed(LogicalKeyboardKey.arrowRight)) {
+
+    final key = event.logicalKey;
+
+    if (key == (LogicalKeyboardKey.arrowRight)) {
       direction = SwipeDirection.right;
-    } else if (event.isKeyPressed(LogicalKeyboardKey.arrowLeft)) {
+    } else if (key == LogicalKeyboardKey.arrowLeft) {
       direction = SwipeDirection.left;
-    } else if (event.isKeyPressed(LogicalKeyboardKey.arrowUp)) {
+    } else if (key == LogicalKeyboardKey.arrowUp) {
       direction = SwipeDirection.up;
-    } else if (event.isKeyPressed(LogicalKeyboardKey.arrowDown)) {
+    } else if (key == LogicalKeyboardKey.arrowDown) {
       direction = SwipeDirection.down;
     }
 

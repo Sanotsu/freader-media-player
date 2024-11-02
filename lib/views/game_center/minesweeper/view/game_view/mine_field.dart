@@ -78,6 +78,7 @@ class Grass extends StatelessWidget {
             return null;
           }).then((value) {
             if (value?.$1 != null) {
+              if (!parentContext.mounted) return;
               GamePopupScreen.gameOver(
                 parentContext,
                 controller: gameController,

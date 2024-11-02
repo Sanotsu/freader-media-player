@@ -47,6 +47,10 @@ app.*.map.json
 ios
 **/_demos
 **/_tests
+linux
+macos
+windows
+web
 
 **/assets/audio
 **/assets/test/**

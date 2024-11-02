@@ -86,7 +86,7 @@ class _LocalAllMediaState extends State<LocalAllMedia> {
     return Scaffold(
       appBar: AppBar(
         title: (!_iSClickSearch)
-            ? const Text('所有资源')
+            ? const Text('全部资源')
             : TextField(
                 onChanged: (String inputStr) {
                   setState(() {
@@ -95,12 +95,12 @@ class _LocalAllMediaState extends State<LocalAllMedia> {
                   });
                 },
                 autofocus: true,
-                cursorColor: Colors.white,
-                style: const TextStyle(color: Colors.white),
+                // cursorColor: Colors.white,
+                // style: const TextStyle(color: Colors.white),
                 textInputAction: TextInputAction.search,
                 decoration: const InputDecoration(
                   // 搜索框不显示下划线
-                  border: InputBorder.none,
+                  // border: InputBorder.none,
                   hintText: '输入资源的标题关键字',
                 ),
               ),
@@ -138,6 +138,8 @@ class _LocalAllMediaState extends State<LocalAllMedia> {
                               ? Icons.video_file
                               : Icons.filter_list,
             ),
+            // offset: Offset(-20.sp, 30.sp),
+            position: PopupMenuPosition.under,
             initialValue: selectedRequestType,
             onSelected: (RequestType item) {
               setState(() {
@@ -149,25 +151,40 @@ class _LocalAllMediaState extends State<LocalAllMedia> {
             itemBuilder: (BuildContext context) => [
               const PopupMenuItem<RequestType>(
                 value: RequestType.all,
-                child: Text('全部'),
+                child: ListTile(
+                  leading: Icon(Icons.filter_list),
+                  title: Text('全部'),
+                ),
               ),
               // 2024-01-23 虽然common预设的是图片和视频，但是查询没有效果
               // 我这个用来构建sql，只是指定 MediaType 而已
               const PopupMenuItem<RequestType>(
                 value: RequestType.common,
-                child: Text('音频和视频'),
+                child: ListTile(
+                  leading: Icon(Icons.perm_media),
+                  title: Text('音频和视频'),
+                ),
               ),
               const PopupMenuItem<RequestType>(
                 value: RequestType.image,
-                child: Text('仅图片'),
+                child: ListTile(
+                  leading: Icon(Icons.image),
+                  title: Text('仅图片'),
+                ),
               ),
               const PopupMenuItem<RequestType>(
                 value: RequestType.audio,
-                child: Text('仅音频'),
+                child: ListTile(
+                  leading: Icon(Icons.audiotrack),
+                  title: Text('仅音频'),
+                ),
               ),
               const PopupMenuItem<RequestType>(
                 value: RequestType.video,
-                child: Text('仅视频'),
+                child: ListTile(
+                  leading: Icon(Icons.video_file),
+                  title: Text('仅视频'),
+                ),
               ),
             ],
           ),
@@ -243,6 +260,7 @@ _buildList(List<AssetPathEntity> list) {
           future: path.assetCountAsync,
           builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
             // 其实分为hasData、hasError、加载中几个情况。
+            // 2024-10-29 注意这里看到的数量，进入文件夹后数量不一定一样，因为不支持播放的文件不会显示
             return (snapshot.hasData)
                 ? Text("${snapshot.data} 个资源")
                 : const SizedBox();
@@ -259,6 +277,7 @@ _buildList(List<AssetPathEntity> list) {
             ),
           ).then((value) {
             // 返回时收起键盘
+            if (!context.mounted) return;
             FocusScope.of(context).requestFocus(FocusNode());
           });
         },
@@ -290,6 +309,7 @@ _buildGrid(List<AssetPathEntity> list) {
                   PathMediaPage(path: path, pathList: list),
             ),
           ).then((value) {
+            if (!context.mounted) return;
             FocusScope.of(context).requestFocus(FocusNode());
           });
         },

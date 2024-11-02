@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -37,11 +38,13 @@ class FreaderApp extends StatelessWidget {
           locale: const Locale('zh'),
           // 应用导航的观察者，导航有变化的时候可以做一些事？
           // navigatorObservers: [routeObserver],
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            useMaterial3: false,
-          ),
+          // 2024-10-28 启用material3
+          // theme: ThemeData(
+          //   primarySwatch: Colors.blue,
+          //   useMaterial3: false,
+          // ),
           home: const MyHomePage(),
+          builder: EasyLoading.init(),
         );
       },
     );
@@ -112,6 +115,9 @@ class _MyHomePageState extends State<MyHomePage> {
           });
         }
       }
+
+      // 通知权限(已经授权了无事发生，没授权则可能会重新询问)
+      await Permission.notification.request();
     }
   }
 

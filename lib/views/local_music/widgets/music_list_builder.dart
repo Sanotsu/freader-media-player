@@ -4,6 +4,7 @@ import 'package:on_audio_query/on_audio_query.dart';
 import 'package:provider/provider.dart';
 
 import '../../../common/global/constants.dart';
+import '../../../common/utils/tool_widgets.dart';
 import '../../../common/utils/tools.dart';
 import '../../../models/audio_long_press.dart';
 import '../../../models/list_long_press.dart';
@@ -178,24 +179,44 @@ class _MusicListBuilderState extends State<MusicListBuilder> {
               return const Center(child: Text("暂无歌曲"));
             }
 
-            List<SongModel> songs = item.data!;
-            return ListView.builder(
-                itemCount: songs.length,
-                itemBuilder: (context, index) {
-                  return GestureDetector(
-                    onLongPress: () {
-                      setState(() {
-                        // 音频item被长按了，设置标志为被长按，会显示一些操作按钮，且再单击音频是多选，而不是播放
-                        alp.changeIsAudioLongPress(LongPressStats.YES);
-                        // 长按的时候把该item索引加入被选中的索引变量中
-                        selectedIndexs.add(songs[index]);
-                        // 保存被选中的音频
-                        alp.changeSelectedAudioList(selectedIndexs);
-                      });
+            // 2024-10-29 直接过滤无法解析的音频(时长为空或为0的)
+            List<SongModel> songs = (item.data!)
+                .where((a) => a.duration != null && a.duration != 0)
+                .toList();
+
+            // 无法解析的歌曲数量
+            int unsupportedNum = item.data!.length - songs.length;
+            var exStr = "";
+            if ((unsupportedNum > 0)) {
+              exStr = "(已过滤了 $unsupportedNum 首无法解析的音频)";
+            }
+
+            return Column(
+              children: [
+                Text("共${songs.length}首$exStr"),
+                Divider(height: 1.sp),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: songs.length,
+                    itemBuilder: (context, index) {
+                      return GestureDetector(
+                        onLongPress: () {
+                          setState(() {
+                            // 音频item被长按了，设置标志为被长按，会显示一些操作按钮，且再单击音频是多选，而不是播放
+                            alp.changeIsAudioLongPress(LongPressStats.YES);
+                            // 长按的时候把该item索引加入被选中的索引变量中
+                            selectedIndexs.add(songs[index]);
+                            // 保存被选中的音频
+                            alp.changeSelectedAudioList(selectedIndexs);
+                          });
+                        },
+                        child: _buildListTileArea(songs, index, alp),
+                      );
                     },
-                    child: _buildListTileArea(songs, index, alp),
-                  );
-                });
+                  ),
+                ),
+              ],
+            );
           }),
     );
   }
@@ -278,24 +299,40 @@ class _MusicListBuilderState extends State<MusicListBuilder> {
             // ??? 2023-04-27 如果这个条件成立，那么是指定歌单的音频，id不是原始id，需要获得原始id以便展示缩略图
             // 存入播放列表的是包含原始音频id的列表，但和歌单中存在的音频是一样的，虽然是两个list
             // 【缺陷】: 使用的firstWhere
-            if (playlistAudioList.isNotEmpty) {
-              await _audioHandler.buildPlaylist(
-                playlistAudioList,
-                playlistAudioList.firstWhere(
-                  (e) => e.title == song.title,
-                  orElse: () => playlistAudioList[index],
-                ),
+            // 2024-10-29 实测，这里如果点击的音频是不能解析的音频，内部的绑定音源会报错的
+            try {
+              if (playlistAudioList.isNotEmpty) {
+                await _audioHandler.buildPlaylist(
+                  playlistAudioList,
+                  playlistAudioList.firstWhere(
+                    (e) => e.title == song.title,
+                    orElse: () => playlistAudioList[index],
+                  ),
+                );
+              } else {
+                await _audioHandler.buildPlaylist(songs, song);
+              }
+
+              await _audioHandler.refreshCurrentPlaylist();
+            } catch (e) {
+              if (!mounted) return;
+              commonExceptionDialog(
+                context,
+                "提示",
+                """无法解析该音频，请检查该音频格式是否正确。\n\n${song.title}""",
+                msgFontSize: 15.sp,
               );
-            } else {
-              await _audioHandler.buildPlaylist(songs, song);
+
+              return;
             }
-
-            await _audioHandler.refreshCurrentPlaylist();
-
             // 将播放列表信息、被点击的音频编号\播放列表编号(全部歌曲tab除外)存入持久化
             // 2024-01-09 使用get storage之后，可以有类型了，不必转为string
+
+            // 2024-10-30  注意这里保存的当前播放音频索引index，是过滤了不可解析的音频后的列表中的位置
+            // 所以在打开app重建上次播放位置的时候，播放列表也要过滤不可解析的部分
             await _simpleStorage.setCurrentAudioListType(widget.audioListType);
             await _simpleStorage.setCurrentAudioIndex(index);
+
             if (widget.audioListType != AudioListTypes.all) {
               await _simpleStorage.setCurrentAudioListId(widget.audioListId);
             }

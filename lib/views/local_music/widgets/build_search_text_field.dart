@@ -8,7 +8,10 @@ import '../../../models/list_long_press.dart';
 
 // 构建appbar中的条件查询框
 Widget buildSearchTextField(BuildContext context, dynamic pressState) {
-  var color = Theme.of(context).canvasColor;
+  // var color = Theme.of(context).canvasColor;
+
+  // 2024-10-28 启用了 material3，就使用默认的各项颜色
+  // var color = Theme.of(context).primaryColor;
 
   return TextField(
     onChanged: (String inputStr) async {
@@ -19,17 +22,17 @@ Widget buildSearchTextField(BuildContext context, dynamic pressState) {
       }
     },
     autofocus: true,
-    cursorColor: color,
-    style: TextStyle(color: color),
+    // cursorColor: color,
+    // style: TextStyle(color: color),
     textInputAction: TextInputAction.search,
-    decoration: InputDecoration(
+    decoration: const InputDecoration(
       // 搜索框不显示下划线
       // border: InputBorder.none,
       // 搜索框显示白底
-      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: color)),
-      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: color)),
+      // enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: color)),
+      // focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: color)),
       hintText: '输入查询条件',
-      hintStyle: TextStyle(color: color),
+      // hintStyle: TextStyle(color: color),
     ),
   );
 }

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../common/global/constants.dart';
@@ -40,6 +41,40 @@ class _GameCenterState extends State<GameCenter> {
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text("休闲游戏"),
+        actions: [
+          IconButton(
+            onPressed: () {
+              showAboutDialog(
+                context: context,
+                applicationName: 'FMP Player',
+                children: [
+                  Text(
+                    "FMP Player 是一个附带一些小游戏、\n且极其简陋的本地媒体资源播放器。",
+                    style: TextStyle(fontSize: 13.sp, color: Colors.green),
+                    textAlign: TextAlign.center,
+                  ),
+                  const Divider(),
+                  Row(
+                    children: [
+                      SizedBox(width: 60.sp, child: const Text("Author: ")),
+                      const Text("SanotSu"),
+                    ],
+                  ),
+                  const Divider(),
+                  Row(
+                    children: [
+                      SizedBox(width: 60.sp, child: const Text("Wechat: ")),
+                      const Text("SanotSu"),
+                    ],
+                  ),
+                  const Divider(),
+                  const CopyableText(),
+                ],
+              );
+            },
+            icon: const Icon(Icons.info),
+          ),
+        ],
       ),
       body: buildFixedBody(),
     );
@@ -128,6 +163,37 @@ class _GameCenterState extends State<GameCenter> {
   }
 }
 
+// 可复制 github 文本
+class CopyableText extends StatelessWidget {
+  const CopyableText({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(width: 60.sp, child: const Text("Github: ")),
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              Clipboard.setData(
+                const ClipboardData(
+                  text: "https://github.com/Sanotsu/freader-media-player",
+                ),
+              );
+
+              EasyLoading.showInfo('复制成功');
+            },
+            child: Text(
+              "https://github.com/Sanotsu/freader-media-player",
+              style: TextStyle(color: Theme.of(context).primaryColor),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 buildCoverCardColumn(
   BuildContext context,
   Widget widget,
@@ -137,7 +203,7 @@ buildCoverCardColumn(
 }) {
   return Card(
     clipBehavior: Clip.hardEdge,
-    elevation: 5,
+    elevation: 1,
     child: InkWell(
       onTap: () {
         Navigator.of(context).push(
@@ -162,11 +228,12 @@ buildCoverCardColumn(
           Text(
             title,
             style: TextStyle(
-              fontSize: 20.sp,
+              fontSize: 18.sp,
               fontWeight: FontWeight.bold,
               color: Theme.of(context).primaryColor,
             ),
           ),
+          SizedBox(height: 10.sp),
         ],
       ),
     ),

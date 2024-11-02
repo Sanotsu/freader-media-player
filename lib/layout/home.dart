@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 
 import '../common/utils/tool_widgets.dart';
 import '../services/my_audio_handler.dart';
@@ -48,11 +50,11 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
-    // app初次启动时要获取相关授权，取得之后就不需要重复请求了
-    initAudio();
-
     // 2024-01-25 根据缓存值显示底部导航条目数量
     changeBottomNavItemNum();
+
+    // app初次启动时要获取相关授权，取得之后就不需要重复请求了
+    initAudio();
 
     if (widget.selectedIndex != null) {
       _currentIndex = widget.selectedIndex!;
@@ -146,7 +148,7 @@ class _HomePageState extends State<HomePage> {
     /// 而在音频列表中长按音频，也有改变内部app bar显示的功能内容。这样`全部`这个没有中间层的也比较特殊
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (didPop) {
           return;
         }
@@ -170,7 +172,7 @@ class _HomePageState extends State<HomePage> {
                   setState(() {
                     changeBottomNavItemNum();
                   });
-                  if (!mounted) return;
+                  if (!context.mounted) return;
                   Navigator.pop(context, false);
 
                   showSnackMessage(
@@ -216,14 +218,20 @@ class _HomePageState extends State<HomePage> {
         // appBar: AppBar(title: const Text("HOME")),
         // home页的背景色(如果下层还有设定其他主题颜色，会被覆盖)
         body: isLoading
-            ? const Center(
+            ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text("扫描本地音频中……"),
-                    Text("首次使用可能耗时较长"),
+                    const CircularProgressIndicator(),
+                    SizedBox(height: 16.sp),
+                    const Text("扫描本地音频中……"),
+                    const Text("首次使用可能耗时较长"),
+                    ValueListenableBuilder<SongModel?>(
+                      valueListenable: currentProcessingAudio,
+                      builder: (context, value, child) {
+                        return Text(value?.displayName ?? '');
+                      },
+                    ),
                   ],
                 ),
               )
