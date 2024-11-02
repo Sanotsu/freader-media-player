@@ -50,6 +50,7 @@ ios
 linux
 macos
 windows
+web
 
 **/assets/audio
 **/assets/test/**
