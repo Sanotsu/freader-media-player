@@ -36,7 +36,7 @@ freader-media-player(FMP Player)，一个使用 flutter 开发的简单的本地
 - 在 Windows 7 主机下使用 VirtualBox7.0 安装的 Ubuntu22.04 虚拟机，配合 VS Code1.94.2 进行开发；
 - flutter 版本为 3.24.4，java 版本为 temurin-17.0.6。
 
-仅在下面设备进行过实机测试，**其他平台完全没处理**：
+**仅 Android 平台**，且仅在下面设备进行过实机测试，**其他平台完全没处理**：
 
 - Nubia Z60 Ultra (Android 14，分辨率 `2480 * 1116`)
 - Nubia Z50 Ultra (Android 13，分辨率 `2480 * 1116`)
